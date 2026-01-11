@@ -1,0 +1,107 @@
+//! # iridium-units
+//!
+//! A runtime dimensional analysis library inspired by AstroPy's units module.
+//!
+//! This library provides physical units and quantities with automatic dimensional
+//! analysis at runtime. It supports SI, CGS, and astrophysical unit systems,
+//! as well as equivalencies for converting between different physical domains
+//! (e.g., wavelength to frequency).
+//!
+//! ## Quick Start
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! // Create quantities by multiplying values with units
+//! // Note: lazy_static units need to be dereferenced with &*
+//! let distance = 100.0 * &*M;
+//! let time = 9.58 * &*S;
+//! let speed = &distance / &time;
+//!
+//! // Convert between units
+//! let speed_kmh = speed.to(&(&*KM / &*H)).unwrap();
+//! println!("{}", speed_kmh); // ~37.58 km / h
+//!
+//! // Dimensional analysis is automatic
+//! let energy = 10.0 * &*KG * M.pow(2) / S.pow(2);
+//! let in_joules = energy.to(&*J).unwrap();
+//! ```
+//!
+//! ## Unit Systems
+//!
+//! The library provides units from multiple systems:
+//!
+//! - **SI units**: meter, second, kilogram, ampere, kelvin, etc.
+//! - **CGS units**: centimeter, gram, dyne, erg, etc.
+//! - **Astrophysical units**: parsec, AU, solar mass, light year, etc.
+//! - **Imperial units**: mile, foot, inch, pound, etc.
+//!
+//! ## Equivalencies
+//!
+//! Some physical quantities can be converted through physical laws even though
+//! they have different dimensions:
+//!
+//! ```ignore
+//! use iridium_units::prelude::*;
+//! use iridium_units::equivalencies::spectral;
+//!
+//! let wavelength = 500.0 * NM;
+//! let frequency = wavelength.to_with_equiv(&HZ, &[spectral()]).unwrap();
+//! ```
+
+pub mod dimension;
+pub mod error;
+pub mod quantity;
+pub mod unit;
+
+pub mod constants;
+pub mod equivalencies;
+pub mod systems;
+
+// Re-export main types
+pub use dimension::{Dimension, Rational8};
+pub use error::{UnitError, UnitResult};
+pub use quantity::Quantity;
+pub use unit::Unit;
+
+/// Prelude module for convenient imports.
+///
+/// This module re-exports the most commonly used types and units.
+///
+/// ```
+/// use iridium_units::prelude::*;
+/// ```
+pub mod prelude {
+    pub use crate::dimension::{Dimension, Rational8};
+    pub use crate::error::{UnitError, UnitResult};
+    pub use crate::quantity::Quantity;
+    pub use crate::unit::Unit;
+
+    // Re-export common SI units
+    pub use crate::systems::si::{
+        // Base units
+        A, CD, K, KG, M, MOL, RAD, S, SR,
+        // Length
+        CM, KM, MM, NM, UM,
+        // Time
+        DAY, H, MIN, MS, NS, US, YR,
+        // Derived units
+        C, F, GHZ, HZ, J, KHZ, MHZ, N, OHM, PA, THZ, V, W,
+    };
+
+    // Re-export astrophysical units
+    pub use crate::systems::astrophysical::{
+        ANGSTROM, AU, BARN, DYN, ERG, GAUSS, JANSKY, LIGHT_YEAR, PARSEC,
+        SOLAR_LUMINOSITY, SOLAR_MASS, SOLAR_RADIUS,
+    };
+
+    // Re-export CGS units
+    pub use crate::systems::cgs::{
+        CENTIMETER, DYNE, ERG as ERG_CGS, GRAM,
+    };
+
+    // Re-export imperial units
+    pub use crate::systems::imperial::{
+        FOOT, INCH, MILE, POUND, YARD,
+    };
+}
