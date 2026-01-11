@@ -3,9 +3,10 @@ name = "iridium-units"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "A runtime dimensional analysis library inspired by AstroPy"
+description = "Units of measure inspired by AstroPy"
 keywords = ["units", "dimensional-analysis", "physics", "astronomy"]
 categories = ["science", "mathematics"]
+repository = "https://github.com/bsiegfreid/iridium-units"
 
 [dependencies]
 thiserror = "2.0"
