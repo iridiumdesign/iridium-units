@@ -62,19 +62,22 @@ impl std::fmt::Debug for Equivalency {
 }
 
 /// A converter that can transform values between units.
+///
+/// Converters use `Result<f64, String>` to handle invalid inputs
+/// (e.g., zero wavelength, negative temperature, superluminal velocity).
 pub struct Converter {
     /// Function to convert from source to target unit
-    pub forward: Box<dyn Fn(f64) -> f64 + Send + Sync>,
+    pub forward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
     /// Function to convert from target to source unit
-    pub backward: Box<dyn Fn(f64) -> f64 + Send + Sync>,
+    pub backward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
 }
 
 impl Converter {
-    /// Create a new converter with forward and backward functions.
+    /// Create a new converter with forward and backward functions that can fail.
     pub fn new<F, B>(forward: F, backward: B) -> Self
     where
-        F: Fn(f64) -> f64 + Send + Sync + 'static,
-        B: Fn(f64) -> f64 + Send + Sync + 'static,
+        F: Fn(f64) -> Result<f64, String> + Send + Sync + 'static,
+        B: Fn(f64) -> Result<f64, String> + Send + Sync + 'static,
     {
         Converter {
             forward: Box::new(forward),
@@ -82,13 +85,25 @@ impl Converter {
         }
     }
 
+    /// Create a converter from infallible functions (for backwards compatibility).
+    pub fn new_infallible<F, B>(forward: F, backward: B) -> Self
+    where
+        F: Fn(f64) -> f64 + Send + Sync + 'static,
+        B: Fn(f64) -> f64 + Send + Sync + 'static,
+    {
+        Converter {
+            forward: Box::new(move |x| Ok(forward(x))),
+            backward: Box::new(move |x| Ok(backward(x))),
+        }
+    }
+
     /// Apply the forward conversion.
-    pub fn convert(&self, value: f64) -> f64 {
+    pub fn convert(&self, value: f64) -> Result<f64, String> {
         (self.forward)(value)
     }
 
     /// Apply the backward conversion.
-    pub fn convert_back(&self, value: f64) -> f64 {
+    pub fn convert_back(&self, value: f64) -> Result<f64, String> {
         (self.backward)(value)
     }
 }
@@ -114,8 +129,13 @@ impl Quantity {
             if let Some(converter) = equiv.get_converter(self.unit(), target) {
                 // Convert to SI value first
                 let si_value = self.value() * self.unit().scale();
-                // Apply the equivalency conversion
-                let converted_si = converter.convert(si_value);
+                // Apply the equivalency conversion (may fail for invalid inputs)
+                let converted_si = converter.convert(si_value).map_err(|msg| {
+                    UnitError::NoEquivalency {
+                        from: format!("{} ({})", self.unit(), msg),
+                        to: target.to_string(),
+                    }
+                })?;
                 // Convert to target unit
                 let target_value = converted_si / target.scale();
                 return Ok(Quantity::new(target_value, target.clone()));

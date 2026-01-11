@@ -58,14 +58,40 @@ pub fn parallax() -> Equivalency {
             // Using the definition: d(pc) = 1 / p(arcsec)
             // d(m) = PARSEC_M / (p(rad) / ARCSEC_RAD)
             Some(Converter::new(
-                move |p_rad| PARSEC_M * ARCSEC_RAD / p_rad,
-                move |d_m| PARSEC_M * ARCSEC_RAD / d_m,
+                move |p_rad| {
+                    if p_rad <= 0.0 {
+                        return Err(format!(
+                            "parallax angle must be positive, got {}",
+                            p_rad
+                        ));
+                    }
+                    Ok(PARSEC_M * ARCSEC_RAD / p_rad)
+                },
+                move |d_m| {
+                    if d_m <= 0.0 {
+                        return Err(format!("distance must be positive, got {}", d_m));
+                    }
+                    Ok(PARSEC_M * ARCSEC_RAD / d_m)
+                },
             ))
         } else {
             // Distance → Angle
             Some(Converter::new(
-                move |d_m| PARSEC_M * ARCSEC_RAD / d_m,
-                move |p_rad| PARSEC_M * ARCSEC_RAD / p_rad,
+                move |d_m| {
+                    if d_m <= 0.0 {
+                        return Err(format!("distance must be positive, got {}", d_m));
+                    }
+                    Ok(PARSEC_M * ARCSEC_RAD / d_m)
+                },
+                move |p_rad| {
+                    if p_rad <= 0.0 {
+                        return Err(format!(
+                            "parallax angle must be positive, got {}",
+                            p_rad
+                        ));
+                    }
+                    Ok(PARSEC_M * ARCSEC_RAD / p_rad)
+                },
             ))
         }
     })
@@ -113,5 +139,26 @@ mod tests {
         let plx_back = dist.to_equiv(&ARCSEC, parallax()).unwrap();
 
         assert!((plx.value() - plx_back.value()).abs() / plx.value() < 1e-10);
+    }
+
+    #[test]
+    fn test_zero_parallax_fails() {
+        let plx = 0.0 * ARCSEC.clone();
+        let result = plx.to_equiv(&PARSEC, parallax());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_negative_parallax_fails() {
+        let plx = -1.0 * ARCSEC.clone();
+        let result = plx.to_equiv(&PARSEC, parallax());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_zero_distance_fails() {
+        let dist = 0.0 * PARSEC.clone();
+        let result = dist.to_equiv(&ARCSEC, parallax());
+        assert!(result.is_err());
     }
 }

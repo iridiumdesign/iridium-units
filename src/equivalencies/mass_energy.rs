@@ -49,14 +49,34 @@ pub fn mass_energy() -> Equivalency {
         if is_mass_to_energy {
             // Mass → Energy: E = mc²
             Some(Converter::new(
-                move |m_kg| m_kg * c_squared,
-                move |e_j| e_j / c_squared,
+                move |m_kg| {
+                    if m_kg < 0.0 {
+                        return Err(format!("mass cannot be negative, got {}", m_kg));
+                    }
+                    Ok(m_kg * c_squared)
+                },
+                move |e_j| {
+                    if e_j < 0.0 {
+                        return Err(format!("energy cannot be negative, got {}", e_j));
+                    }
+                    Ok(e_j / c_squared)
+                },
             ))
         } else {
             // Energy → Mass: m = E/c²
             Some(Converter::new(
-                move |e_j| e_j / c_squared,
-                move |m_kg| m_kg * c_squared,
+                move |e_j| {
+                    if e_j < 0.0 {
+                        return Err(format!("energy cannot be negative, got {}", e_j));
+                    }
+                    Ok(e_j / c_squared)
+                },
+                move |m_kg| {
+                    if m_kg < 0.0 {
+                        return Err(format!("mass cannot be negative, got {}", m_kg));
+                    }
+                    Ok(m_kg * c_squared)
+                },
             ))
         }
     })
@@ -106,5 +126,27 @@ mod tests {
         let mass_back = energy.to_equiv(&KG, mass_energy()).unwrap();
 
         assert!((mass.value() - mass_back.value()).abs() / mass.value() < 1e-10);
+    }
+
+    #[test]
+    fn test_negative_mass_fails() {
+        let mass = -1.0 * KG.clone();
+        let result = mass.to_equiv(&J, mass_energy());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_negative_energy_fails() {
+        let energy = -1.0 * J.clone();
+        let result = energy.to_equiv(&KG, mass_energy());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_zero_mass_ok() {
+        let mass = 0.0 * KG.clone();
+        let result = mass.to_equiv(&J, mass_energy());
+        assert!(result.is_ok());
+        assert!(result.unwrap().value().abs() < 1e-30);
     }
 }

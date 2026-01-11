@@ -96,6 +96,11 @@ pub fn temperature() -> Equivalency {
     })
 }
 
+/// Absolute zero in Celsius
+const ABS_ZERO_C: f64 = -273.15;
+/// Absolute zero in Fahrenheit
+const ABS_ZERO_F: f64 = -459.67;
+
 fn create_temp_converter(
     from: TempScale,
     to: TempScale,
@@ -105,27 +110,121 @@ fn create_temp_converter(
     use TempScale::*;
 
     match (from, to) {
-        (Kelvin, Celsius) => Converter::new(|k| k - 273.15, |c| c + 273.15),
+        (Kelvin, Celsius) => Converter::new(
+            |k| {
+                if k < 0.0 {
+                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
+                }
+                Ok(k - 273.15)
+            },
+            |c| {
+                if c < ABS_ZERO_C {
+                    return Err(format!(
+                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
+                        ABS_ZERO_C, c
+                    ));
+                }
+                Ok(c + 273.15)
+            },
+        ),
 
-        (Celsius, Kelvin) => Converter::new(|c| c + 273.15, |k| k - 273.15),
+        (Celsius, Kelvin) => Converter::new(
+            |c| {
+                if c < ABS_ZERO_C {
+                    return Err(format!(
+                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
+                        ABS_ZERO_C, c
+                    ));
+                }
+                Ok(c + 273.15)
+            },
+            |k| {
+                if k < 0.0 {
+                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
+                }
+                Ok(k - 273.15)
+            },
+        ),
 
-        (Kelvin, Fahrenheit) => {
-            Converter::new(|k| (k - 273.15) * 9.0 / 5.0 + 32.0, |f| (f - 32.0) * 5.0 / 9.0 + 273.15)
-        }
+        (Kelvin, Fahrenheit) => Converter::new(
+            |k| {
+                if k < 0.0 {
+                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
+                }
+                Ok((k - 273.15) * 9.0 / 5.0 + 32.0)
+            },
+            |f| {
+                if f < ABS_ZERO_F {
+                    return Err(format!(
+                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
+                        ABS_ZERO_F, f
+                    ));
+                }
+                Ok((f - 32.0) * 5.0 / 9.0 + 273.15)
+            },
+        ),
 
-        (Fahrenheit, Kelvin) => {
-            Converter::new(|f| (f - 32.0) * 5.0 / 9.0 + 273.15, |k| (k - 273.15) * 9.0 / 5.0 + 32.0)
-        }
+        (Fahrenheit, Kelvin) => Converter::new(
+            |f| {
+                if f < ABS_ZERO_F {
+                    return Err(format!(
+                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
+                        ABS_ZERO_F, f
+                    ));
+                }
+                Ok((f - 32.0) * 5.0 / 9.0 + 273.15)
+            },
+            |k| {
+                if k < 0.0 {
+                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
+                }
+                Ok((k - 273.15) * 9.0 / 5.0 + 32.0)
+            },
+        ),
 
-        (Celsius, Fahrenheit) => {
-            Converter::new(|c| c * 9.0 / 5.0 + 32.0, |f| (f - 32.0) * 5.0 / 9.0)
-        }
+        (Celsius, Fahrenheit) => Converter::new(
+            |c| {
+                if c < ABS_ZERO_C {
+                    return Err(format!(
+                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
+                        ABS_ZERO_C, c
+                    ));
+                }
+                Ok(c * 9.0 / 5.0 + 32.0)
+            },
+            |f| {
+                if f < ABS_ZERO_F {
+                    return Err(format!(
+                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
+                        ABS_ZERO_F, f
+                    ));
+                }
+                Ok((f - 32.0) * 5.0 / 9.0)
+            },
+        ),
 
-        (Fahrenheit, Celsius) => {
-            Converter::new(|f| (f - 32.0) * 5.0 / 9.0, |c| c * 9.0 / 5.0 + 32.0)
-        }
+        (Fahrenheit, Celsius) => Converter::new(
+            |f| {
+                if f < ABS_ZERO_F {
+                    return Err(format!(
+                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
+                        ABS_ZERO_F, f
+                    ));
+                }
+                Ok((f - 32.0) * 5.0 / 9.0)
+            },
+            |c| {
+                if c < ABS_ZERO_C {
+                    return Err(format!(
+                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
+                        ABS_ZERO_C, c
+                    ));
+                }
+                Ok(c * 9.0 / 5.0 + 32.0)
+            },
+        ),
 
-        _ => Converter::new(|x| x, |x| x),
+        _ => Converter::new(|x| Ok(x), |x| Ok(x)),
     }
 }
 
@@ -159,14 +258,40 @@ pub fn temperature_energy() -> Equivalency {
         if is_temp_to_energy {
             // T → E: E = kT
             Some(Converter::new(
-                |t_kelvin| BOLTZMANN_CONSTANT * t_kelvin,
-                |e_joule| e_joule / BOLTZMANN_CONSTANT,
+                |t_kelvin| {
+                    if t_kelvin < 0.0 {
+                        return Err(format!(
+                            "Kelvin temperature cannot be negative, got {}",
+                            t_kelvin
+                        ));
+                    }
+                    Ok(BOLTZMANN_CONSTANT * t_kelvin)
+                },
+                |e_joule| {
+                    if e_joule < 0.0 {
+                        return Err(format!("energy cannot be negative, got {}", e_joule));
+                    }
+                    Ok(e_joule / BOLTZMANN_CONSTANT)
+                },
             ))
         } else {
             // E → T: T = E/k
             Some(Converter::new(
-                |e_joule| e_joule / BOLTZMANN_CONSTANT,
-                |t_kelvin| BOLTZMANN_CONSTANT * t_kelvin,
+                |e_joule| {
+                    if e_joule < 0.0 {
+                        return Err(format!("energy cannot be negative, got {}", e_joule));
+                    }
+                    Ok(e_joule / BOLTZMANN_CONSTANT)
+                },
+                |t_kelvin| {
+                    if t_kelvin < 0.0 {
+                        return Err(format!(
+                            "Kelvin temperature cannot be negative, got {}",
+                            t_kelvin
+                        ));
+                    }
+                    Ok(BOLTZMANN_CONSTANT * t_kelvin)
+                },
             ))
         }
     })
@@ -206,5 +331,28 @@ mod tests {
         let temp_back = energy.to_equiv(&K, temperature_energy()).unwrap();
 
         assert!((temp.value() - temp_back.value()).abs() / temp.value() < 1e-10);
+    }
+
+    #[test]
+    fn test_negative_kelvin_fails() {
+        let temp = -1.0 * K.clone();
+        let result = temp.to_equiv(&J, temperature_energy());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_negative_energy_fails() {
+        let energy = -1.0 * J.clone();
+        let result = energy.to_equiv(&K, temperature_energy());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_absolute_zero_ok() {
+        // Absolute zero (0 K) should be valid
+        let temp = 0.0 * K.clone();
+        let result = temp.to_equiv(&J, temperature_energy());
+        assert!(result.is_ok());
+        assert!(result.unwrap().value().abs() < 1e-30);
     }
 }

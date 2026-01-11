@@ -66,14 +66,40 @@ pub fn doppler_radio(rest_freq: Quantity) -> Equivalency {
         if is_freq_to_vel {
             // ν → v: v = c(1 - ν/ν₀)
             Some(Converter::new(
-                move |nu_si| SPEED_OF_LIGHT * (1.0 - nu_si / nu0),
-                move |v_si| nu0 * (1.0 - v_si / SPEED_OF_LIGHT),
+                move |nu_si| {
+                    if nu_si <= 0.0 {
+                        return Err(format!("frequency must be positive, got {}", nu_si));
+                    }
+                    Ok(SPEED_OF_LIGHT * (1.0 - nu_si / nu0))
+                },
+                move |v_si| {
+                    if v_si.abs() >= SPEED_OF_LIGHT {
+                        return Err(format!(
+                            "velocity must be less than speed of light, got {} m/s",
+                            v_si
+                        ));
+                    }
+                    Ok(nu0 * (1.0 - v_si / SPEED_OF_LIGHT))
+                },
             ))
         } else {
             // v → ν: ν = ν₀(1 - v/c)
             Some(Converter::new(
-                move |v_si| nu0 * (1.0 - v_si / SPEED_OF_LIGHT),
-                move |nu_si| SPEED_OF_LIGHT * (1.0 - nu_si / nu0),
+                move |v_si| {
+                    if v_si.abs() >= SPEED_OF_LIGHT {
+                        return Err(format!(
+                            "velocity must be less than speed of light, got {} m/s",
+                            v_si
+                        ));
+                    }
+                    Ok(nu0 * (1.0 - v_si / SPEED_OF_LIGHT))
+                },
+                move |nu_si| {
+                    if nu_si <= 0.0 {
+                        return Err(format!("frequency must be positive, got {}", nu_si));
+                    }
+                    Ok(SPEED_OF_LIGHT * (1.0 - nu_si / nu0))
+                },
             ))
         }
     })
@@ -106,14 +132,42 @@ pub fn doppler_optical(rest_freq: Quantity) -> Equivalency {
         if is_freq_to_vel {
             // ν → v: v = c(ν₀/ν - 1)
             Some(Converter::new(
-                move |nu_si| SPEED_OF_LIGHT * (nu0 / nu_si - 1.0),
-                move |v_si| nu0 / (1.0 + v_si / SPEED_OF_LIGHT),
+                move |nu_si| {
+                    if nu_si <= 0.0 {
+                        return Err(format!("frequency must be positive, got {}", nu_si));
+                    }
+                    Ok(SPEED_OF_LIGHT * (nu0 / nu_si - 1.0))
+                },
+                move |v_si| {
+                    // In optical convention, v can exceed c for high redshifts
+                    // but v < -c would give negative frequency
+                    if v_si <= -SPEED_OF_LIGHT {
+                        return Err(format!(
+                            "velocity must be greater than -c, got {} m/s",
+                            v_si
+                        ));
+                    }
+                    Ok(nu0 / (1.0 + v_si / SPEED_OF_LIGHT))
+                },
             ))
         } else {
             // v → ν: ν = ν₀/(1 + v/c)
             Some(Converter::new(
-                move |v_si| nu0 / (1.0 + v_si / SPEED_OF_LIGHT),
-                move |nu_si| SPEED_OF_LIGHT * (nu0 / nu_si - 1.0),
+                move |v_si| {
+                    if v_si <= -SPEED_OF_LIGHT {
+                        return Err(format!(
+                            "velocity must be greater than -c, got {} m/s",
+                            v_si
+                        ));
+                    }
+                    Ok(nu0 / (1.0 + v_si / SPEED_OF_LIGHT))
+                },
+                move |nu_si| {
+                    if nu_si <= 0.0 {
+                        return Err(format!("frequency must be positive, got {}", nu_si));
+                    }
+                    Ok(SPEED_OF_LIGHT * (nu0 / nu_si - 1.0))
+                },
             ))
         }
     })
@@ -147,25 +201,43 @@ pub fn doppler_relativistic(rest_freq: Quantity) -> Equivalency {
             // ν → v: v = c(ν₀² - ν²)/(ν₀² + ν²)
             Some(Converter::new(
                 move |nu_si| {
+                    if nu_si <= 0.0 {
+                        return Err(format!("frequency must be positive, got {}", nu_si));
+                    }
                     let nu_sq = nu_si * nu_si;
-                    SPEED_OF_LIGHT * (nu0_sq - nu_sq) / (nu0_sq + nu_sq)
+                    Ok(SPEED_OF_LIGHT * (nu0_sq - nu_sq) / (nu0_sq + nu_sq))
                 },
                 move |v_si| {
                     // ν = ν₀ * sqrt((1 - v/c)/(1 + v/c))
+                    if v_si.abs() >= SPEED_OF_LIGHT {
+                        return Err(format!(
+                            "velocity must be less than speed of light, got {} m/s",
+                            v_si
+                        ));
+                    }
                     let beta = v_si / SPEED_OF_LIGHT;
-                    nu0 * ((1.0 - beta) / (1.0 + beta)).sqrt()
+                    Ok(nu0 * ((1.0 - beta) / (1.0 + beta)).sqrt())
                 },
             ))
         } else {
             // v → ν: ν = ν₀ * sqrt((1 - v/c)/(1 + v/c))
             Some(Converter::new(
                 move |v_si| {
+                    if v_si.abs() >= SPEED_OF_LIGHT {
+                        return Err(format!(
+                            "velocity must be less than speed of light, got {} m/s",
+                            v_si
+                        ));
+                    }
                     let beta = v_si / SPEED_OF_LIGHT;
-                    nu0 * ((1.0 - beta) / (1.0 + beta)).sqrt()
+                    Ok(nu0 * ((1.0 - beta) / (1.0 + beta)).sqrt())
                 },
                 move |nu_si| {
+                    if nu_si <= 0.0 {
+                        return Err(format!("frequency must be positive, got {}", nu_si));
+                    }
                     let nu_sq = nu_si * nu_si;
-                    SPEED_OF_LIGHT * (nu0_sq - nu_sq) / (nu0_sq + nu_sq)
+                    Ok(SPEED_OF_LIGHT * (nu0_sq - nu_sq) / (nu0_sq + nu_sq))
                 },
             ))
         }
@@ -236,5 +308,43 @@ mod tests {
         // All should be very close for small velocities
         assert!((freq_radio.value() - freq_optical.value()).abs() / freq_radio.value() < 1e-6);
         assert!((freq_radio.value() - freq_rel.value()).abs() / freq_radio.value() < 1e-6);
+    }
+
+    fn m_per_s() -> Unit {
+        &*M / &*S
+    }
+
+    #[test]
+    fn test_superluminal_radio_fails() {
+        let rest_freq = 1e9 * HZ.clone();
+        // Velocity at speed of light
+        let velocity = SPEED_OF_LIGHT * m_per_s();
+        let result = velocity.to_equiv(&HZ, doppler_radio(rest_freq));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_superluminal_relativistic_fails() {
+        let rest_freq = 1e9 * HZ.clone();
+        // Velocity at speed of light
+        let velocity = SPEED_OF_LIGHT * m_per_s();
+        let result = velocity.to_equiv(&HZ, doppler_relativistic(rest_freq));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_zero_frequency_fails() {
+        let rest_freq = 1e9 * HZ.clone();
+        let frequency = 0.0 * HZ.clone();
+        let result = frequency.to_equiv(&km_per_s(), doppler_radio(rest_freq));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_negative_frequency_fails() {
+        let rest_freq = 1e9 * HZ.clone();
+        let frequency = -1e9 * HZ.clone();
+        let result = frequency.to_equiv(&km_per_s(), doppler_relativistic(rest_freq));
+        assert!(result.is_err());
     }
 }

@@ -90,84 +90,146 @@ pub fn spectral() -> Equivalency {
     })
 }
 
+/// Validate that a spectral value is positive (non-zero and non-negative).
+fn validate_positive(value: f64, quantity_name: &str) -> Result<f64, String> {
+    if value <= 0.0 {
+        Err(format!(
+            "{} must be positive, got {}",
+            quantity_name, value
+        ))
+    } else {
+        Ok(value)
+    }
+}
+
 fn create_spectral_converter(
     from_type: SpectralType,
     to_type: SpectralType,
-    from_scale: f64,
-    to_scale: f64,
+    _from_scale: f64,
+    _to_scale: f64,
 ) -> Converter {
     use SpectralType::*;
 
     // All conversions go through SI units (m, Hz, J, 1/m)
-    let forward: Box<dyn Fn(f64) -> f64 + Send + Sync> = match (from_type, to_type) {
+    // All spectral quantities must be positive for physical validity
+    let forward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync> = match (from_type, to_type)
+    {
         // Wavelength -> Frequency: ν = c/λ
-        (Wavelength, Frequency) => Box::new(move |lambda_si| SPEED_OF_LIGHT / lambda_si),
+        (Wavelength, Frequency) => Box::new(move |lambda_si| {
+            validate_positive(lambda_si, "wavelength")?;
+            Ok(SPEED_OF_LIGHT / lambda_si)
+        }),
 
         // Frequency -> Wavelength: λ = c/ν
-        (Frequency, Wavelength) => Box::new(move |nu_si| SPEED_OF_LIGHT / nu_si),
+        (Frequency, Wavelength) => Box::new(move |nu_si| {
+            validate_positive(nu_si, "frequency")?;
+            Ok(SPEED_OF_LIGHT / nu_si)
+        }),
 
         // Wavelength -> Energy: E = hc/λ
-        (Wavelength, Energy) => {
-            Box::new(move |lambda_si| PLANCK_CONSTANT * SPEED_OF_LIGHT / lambda_si)
-        }
+        (Wavelength, Energy) => Box::new(move |lambda_si| {
+            validate_positive(lambda_si, "wavelength")?;
+            Ok(PLANCK_CONSTANT * SPEED_OF_LIGHT / lambda_si)
+        }),
 
         // Energy -> Wavelength: λ = hc/E
-        (Energy, Wavelength) => {
-            Box::new(move |e_si| PLANCK_CONSTANT * SPEED_OF_LIGHT / e_si)
-        }
+        (Energy, Wavelength) => Box::new(move |e_si| {
+            validate_positive(e_si, "energy")?;
+            Ok(PLANCK_CONSTANT * SPEED_OF_LIGHT / e_si)
+        }),
 
         // Wavelength -> Wavenumber: k = 1/λ
-        (Wavelength, Wavenumber) => Box::new(move |lambda_si| 1.0 / lambda_si),
+        (Wavelength, Wavenumber) => Box::new(move |lambda_si| {
+            validate_positive(lambda_si, "wavelength")?;
+            Ok(1.0 / lambda_si)
+        }),
 
         // Wavenumber -> Wavelength: λ = 1/k
-        (Wavenumber, Wavelength) => Box::new(move |k_si| 1.0 / k_si),
+        (Wavenumber, Wavelength) => Box::new(move |k_si| {
+            validate_positive(k_si, "wavenumber")?;
+            Ok(1.0 / k_si)
+        }),
 
         // Frequency -> Energy: E = hν
-        (Frequency, Energy) => Box::new(move |nu_si| PLANCK_CONSTANT * nu_si),
+        (Frequency, Energy) => Box::new(move |nu_si| {
+            validate_positive(nu_si, "frequency")?;
+            Ok(PLANCK_CONSTANT * nu_si)
+        }),
 
         // Energy -> Frequency: ν = E/h
-        (Energy, Frequency) => Box::new(move |e_si| e_si / PLANCK_CONSTANT),
+        (Energy, Frequency) => Box::new(move |e_si| {
+            validate_positive(e_si, "energy")?;
+            Ok(e_si / PLANCK_CONSTANT)
+        }),
 
         // Frequency -> Wavenumber: k = ν/c
-        (Frequency, Wavenumber) => Box::new(move |nu_si| nu_si / SPEED_OF_LIGHT),
+        (Frequency, Wavenumber) => Box::new(move |nu_si| {
+            validate_positive(nu_si, "frequency")?;
+            Ok(nu_si / SPEED_OF_LIGHT)
+        }),
 
         // Wavenumber -> Frequency: ν = kc
-        (Wavenumber, Frequency) => Box::new(move |k_si| k_si * SPEED_OF_LIGHT),
+        (Wavenumber, Frequency) => Box::new(move |k_si| {
+            validate_positive(k_si, "wavenumber")?;
+            Ok(k_si * SPEED_OF_LIGHT)
+        }),
 
         // Energy -> Wavenumber: k = E/(hc)
-        (Energy, Wavenumber) => {
-            Box::new(move |e_si| e_si / (PLANCK_CONSTANT * SPEED_OF_LIGHT))
-        }
+        (Energy, Wavenumber) => Box::new(move |e_si| {
+            validate_positive(e_si, "energy")?;
+            Ok(e_si / (PLANCK_CONSTANT * SPEED_OF_LIGHT))
+        }),
 
         // Wavenumber -> Energy: E = hck
-        (Wavenumber, Energy) => {
-            Box::new(move |k_si| PLANCK_CONSTANT * SPEED_OF_LIGHT * k_si)
-        }
+        (Wavenumber, Energy) => Box::new(move |k_si| {
+            validate_positive(k_si, "wavenumber")?;
+            Ok(PLANCK_CONSTANT * SPEED_OF_LIGHT * k_si)
+        }),
 
         // Same type shouldn't reach here
-        _ => Box::new(|x| x),
+        _ => Box::new(|x| Ok(x)),
     };
 
     // The backward conversion is the inverse operation
-    let backward: Box<dyn Fn(f64) -> f64 + Send + Sync> = match (from_type, to_type) {
-        (Wavelength, Frequency) | (Frequency, Wavelength) => {
-            Box::new(move |x| SPEED_OF_LIGHT / x)
-        }
-        (Wavelength, Energy) | (Energy, Wavelength) => {
-            Box::new(move |x| PLANCK_CONSTANT * SPEED_OF_LIGHT / x)
-        }
-        (Wavelength, Wavenumber) | (Wavenumber, Wavelength) => Box::new(move |x| 1.0 / x),
-        (Frequency, Energy) => Box::new(move |e_si| e_si / PLANCK_CONSTANT),
-        (Energy, Frequency) => Box::new(move |nu_si| PLANCK_CONSTANT * nu_si),
-        (Frequency, Wavenumber) => Box::new(move |k_si| k_si * SPEED_OF_LIGHT),
-        (Wavenumber, Frequency) => Box::new(move |nu_si| nu_si / SPEED_OF_LIGHT),
-        (Energy, Wavenumber) => {
-            Box::new(move |k_si| PLANCK_CONSTANT * SPEED_OF_LIGHT * k_si)
-        }
-        (Wavenumber, Energy) => {
-            Box::new(move |e_si| e_si / (PLANCK_CONSTANT * SPEED_OF_LIGHT))
-        }
-        _ => Box::new(|x| x),
+    let backward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync> = match (from_type, to_type)
+    {
+        (Wavelength, Frequency) | (Frequency, Wavelength) => Box::new(move |x| {
+            validate_positive(x, "frequency/wavelength")?;
+            Ok(SPEED_OF_LIGHT / x)
+        }),
+        (Wavelength, Energy) | (Energy, Wavelength) => Box::new(move |x| {
+            validate_positive(x, "energy/wavelength")?;
+            Ok(PLANCK_CONSTANT * SPEED_OF_LIGHT / x)
+        }),
+        (Wavelength, Wavenumber) | (Wavenumber, Wavelength) => Box::new(move |x| {
+            validate_positive(x, "wavelength/wavenumber")?;
+            Ok(1.0 / x)
+        }),
+        (Frequency, Energy) => Box::new(move |e_si| {
+            validate_positive(e_si, "energy")?;
+            Ok(e_si / PLANCK_CONSTANT)
+        }),
+        (Energy, Frequency) => Box::new(move |nu_si| {
+            validate_positive(nu_si, "frequency")?;
+            Ok(PLANCK_CONSTANT * nu_si)
+        }),
+        (Frequency, Wavenumber) => Box::new(move |k_si| {
+            validate_positive(k_si, "wavenumber")?;
+            Ok(k_si * SPEED_OF_LIGHT)
+        }),
+        (Wavenumber, Frequency) => Box::new(move |nu_si| {
+            validate_positive(nu_si, "frequency")?;
+            Ok(nu_si / SPEED_OF_LIGHT)
+        }),
+        (Energy, Wavenumber) => Box::new(move |k_si| {
+            validate_positive(k_si, "wavenumber")?;
+            Ok(PLANCK_CONSTANT * SPEED_OF_LIGHT * k_si)
+        }),
+        (Wavenumber, Energy) => Box::new(move |e_si| {
+            validate_positive(e_si, "energy")?;
+            Ok(e_si / (PLANCK_CONSTANT * SPEED_OF_LIGHT))
+        }),
+        _ => Box::new(|x| Ok(x)),
     };
 
     Converter { forward, backward }
@@ -219,5 +281,33 @@ mod tests {
         let e_joules = 1.602176634e-19; // 1 eV in J
         let expected = PLANCK_CONSTANT * SPEED_OF_LIGHT / e_joules * 1e9;
         assert!((wavelength.value() - expected).abs() / expected < 1e-6);
+    }
+
+    #[test]
+    fn test_zero_wavelength_fails() {
+        let wavelength = 0.0 * NM.clone();
+        let result = wavelength.to_equiv(&HZ, spectral());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_negative_wavelength_fails() {
+        let wavelength = -500.0 * NM.clone();
+        let result = wavelength.to_equiv(&HZ, spectral());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_zero_frequency_fails() {
+        let frequency = 0.0 * HZ.clone();
+        let result = frequency.to_equiv(&NM, spectral());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_negative_energy_fails() {
+        let energy = -1.0 * EV.clone();
+        let result = energy.to_equiv(&NM, spectral());
+        assert!(result.is_err());
     }
 }
