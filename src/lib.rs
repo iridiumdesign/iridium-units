@@ -36,6 +36,24 @@
 //! - **Astrophysical units**: parsec, AU, solar mass, light year, etc.
 //! - **Imperial units**: mile, foot, inch, pound, etc.
 //!
+//! ## Parsing Units and Quantities
+//!
+//! Units and quantities can be parsed from strings:
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//! use std::str::FromStr;
+//!
+//! // Parse units from strings
+//! let meter = Unit::from_str("m").unwrap();
+//! let velocity_unit = Unit::from_str("km/s").unwrap();
+//! let accel_unit = Unit::from_str("m/s^2").unwrap();
+//!
+//! // Parse quantities (value + unit)
+//! let distance: Quantity = "100 km".parse().unwrap();
+//! let speed: Quantity = "9.8 m/s^2".parse().unwrap();
+//! ```
+//!
 //! ## Equivalencies
 //!
 //! Some physical quantities can be converted through physical laws even though
@@ -56,6 +74,7 @@ pub mod unit;
 
 pub mod constants;
 pub mod equivalencies;
+pub mod parsing;
 pub mod systems;
 
 // Re-export main types
@@ -63,6 +82,9 @@ pub use dimension::{Dimension, Rational8};
 pub use error::{UnitError, UnitResult};
 pub use quantity::Quantity;
 pub use unit::Unit;
+
+// Re-export parsing functions
+pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit};
 
 /// Prelude module for convenient imports.
 ///
@@ -76,6 +98,9 @@ pub mod prelude {
     pub use crate::error::{UnitError, UnitResult};
     pub use crate::quantity::Quantity;
     pub use crate::unit::Unit;
+
+    // Re-export parsing functions
+    pub use crate::parsing::{parse_unit, parse_quantity, lookup_unit, register_unit};
 
     // Re-export common SI units
     pub use crate::systems::si::{
