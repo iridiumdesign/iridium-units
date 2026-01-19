@@ -18,6 +18,7 @@
 //! ```
 
 pub mod brightness_temperature;
+pub mod dimensionless_angles;
 pub mod doppler;
 pub mod logarithmic;
 pub mod mass_energy;
@@ -154,6 +155,7 @@ impl Quantity {
 
 // Re-export commonly used equivalencies
 pub use brightness_temperature::{brightness_temperature, brightness_temperature_intensity, brightness_temperature_planck};
+pub use dimensionless_angles::dimensionless_angles;
 pub use doppler::{doppler_optical, doppler_radio, doppler_relativistic};
 pub use logarithmic::{magnitude_flux, db_power, db_amplitude, dex_ratio};
 pub use mass_energy::mass_energy;

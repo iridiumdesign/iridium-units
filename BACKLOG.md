@@ -158,20 +158,38 @@ let mag = flux_nu.to_equiv(&MAG, ab_magnitude())?;
 let flux_jy = ab_mag_to_jansky(20.0);  // 3.631e-5 Jy
 ```
 
+### Dimensionless Angles Equivalency ✅
+
+Implemented equivalency to treat angles as dimensionless for physics equations.
+
+**The Problem:** Rotational mechanics equations produce "polluted" dimensions:
+- E = ½Iω² gives kg·m²·rad²/s² instead of J (kg·m²/s²)
+- Angular frequency ω = 2πf gives rad/s instead of matching Hz
+
+**The Solution:**
+```rust
+use iridium_units::equivalencies::dimensionless_angles;
+
+let I = 2.0 * &*KG * &*M * &*M;
+let omega = 3.0 * &*RAD / &*S;
+let E_raw = 0.5 * &I * &omega * &omega;  // kg·m²·rad²/s²
+
+let E = E_raw.to_equiv(&J, dimensionless_angles())?;  // Now in Joules
+```
+
+**Use cases:**
+- Rotational mechanics: E = ½Iω², τ = Iα, L = Iω
+- Angular frequency: rad/s ↔ Hz
+- Work from torque: W = τθ
+- Radiant intensity: W/sr × sr = W
+
+**Helper functions:**
+- `has_angle_dimension(unit)` - Check if unit contains angle dimensions
+- `angle_power(unit)` - Get total angle exponent
+
 ---
 
 ## Planned Features
-
-### Dimensionless Angles Equivalency
-
-**Status:** Not started
-**Needed for:** Rotational mechanics, small angle approximations
-
-Treat angles as dimensionless in specific contexts:
-- Rotational energy: E = ½Iω² (ω in rad/s, but rad is dimensionless)
-- Small angle: sin(θ) ≈ θ for θ << 1
-
----
 
 ### Pixel/Plate Scale
 
