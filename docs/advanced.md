@@ -40,6 +40,44 @@ let specialized_registry = create_specialized_registry();
 main_registry.merge(&specialized_registry);
 ```
 
+### Example: Furlongs per Fortnight
+
+The classic obscure velocity unit, useful for proving your unit library actually works:
+
+```rust
+use iridium_units::prelude::*;
+use iridium_units::parsing::UnitRegistry;
+
+// Create custom units
+let furlong = Unit::Base(BaseUnit::new(
+    "furlong", "fur", &["furlongs"],
+    Dimension::LENGTH,
+    201.168  // 1 furlong = 201.168 meters (1/8 mile)
+));
+
+let fortnight = Unit::Base(BaseUnit::new(
+    "fortnight", "ftn", &["fortnights"],
+    Dimension::TIME,
+    1_209_600.0  // 14 days in seconds
+));
+
+// Register them
+let mut registry = UnitRegistry::with_builtins();
+registry.register(&["furlong", "fur", "furlongs"], furlong.clone());
+registry.register(&["fortnight", "ftn", "fortnights"], fortnight.clone());
+
+// Now convert the speed of light to furlongs per fortnight
+let c = 299_792_458.0 * &*M / &*S;
+let fur_per_ftn = &furlong / &fortnight;
+let c_obscure = c.to(&fur_per_ftn)?;
+println!("{}", c_obscure);  // ~1.803e12 fur/ftn
+
+// Or parse directly
+let speed = registry.parse_quantity("100 fur/ftn")?;
+let in_mph = speed.to(&(&*MILE / &*H))?;
+println!("{}", in_mph);  // ~0.000372 mph (a very slow speed)
+```
+
 ---
 
 ## Dimensional Analysis
