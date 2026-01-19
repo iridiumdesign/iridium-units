@@ -241,6 +241,50 @@ lazy_static! {
     ));
 
     // =============================================================================
+    // CGS Spectral Flux Density Units
+    // =============================================================================
+
+    /// CGS spectral flux density per frequency: erg/s/cm²/Hz
+    /// This is the traditional unit for Fν in optical/UV astronomy.
+    /// 1 erg/s/cm²/Hz = 10⁻³ W/m²/Hz = 10²³ Jy
+    pub static ref FLAM_NU: Unit = Unit::Base(BaseUnit::new(
+        "erg_per_s_cm2_Hz", "erg/(s cm^2 Hz)", &["erg/s/cm2/Hz", "cgs_fnu"],
+        Dimension::MASS
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
+        1e-3  // 1 erg/s/cm²/Hz = 10⁻³ W/m²/Hz
+    ));
+
+    /// CGS spectral flux density per wavelength: erg/s/cm²/Å
+    /// This is the traditional unit for Fλ in optical/UV astronomy.
+    /// 1 erg/s/cm²/Å = 10⁻³ W/m²/Å = 10⁷ W/m³
+    pub static ref FLAM: Unit = Unit::Base(BaseUnit::new(
+        "erg_per_s_cm2_angstrom", "erg/(s cm^2 Angstrom)", &["erg/s/cm2/A", "FLAM", "flam"],
+        Dimension::MASS
+            .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-3, 1))),
+        1e7  // 1 erg/s/cm²/Å = 10⁷ W/m³
+    ));
+
+    /// Photon flux per wavelength: photon/s/cm²/Å
+    /// Used for photon-counting detectors.
+    pub static ref PHOTLAM: Unit = Unit::Base(BaseUnit::new(
+        "photon_per_s_cm2_angstrom", "photon/(s cm^2 Angstrom)", &["PHOTLAM", "photlam"],
+        Dimension::PHOTON
+            .mul(&Dimension::LENGTH.pow(Rational16::new(-3, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-1, 1))),
+        1e14  // 1 photon/s/cm²/Å = 10¹⁴ photon/s/m³
+    ));
+
+    /// Photon flux per frequency: photon/s/cm²/Hz
+    pub static ref PHOTNU: Unit = Unit::Base(BaseUnit::new(
+        "photon_per_s_cm2_Hz", "photon/(s cm^2 Hz)", &["PHOTNU", "photnu"],
+        Dimension::PHOTON
+            .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
+        1e4  // 1 photon/s/cm²/Hz = 10⁴ photon/s/m²/Hz
+    ));
+
+    // =============================================================================
     // Photon/Count Units
     // =============================================================================
 

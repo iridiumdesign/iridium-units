@@ -116,21 +116,51 @@ let sum = (&a + &b)?;  // No cloning of a or b
 - Use `batch_convert` for array operations instead of mapping `.to()`
 - Get `conversion_factor` once for repeated manual conversions
 
+### Spectral Flux Density Conversions ✅
+
+Implemented comprehensive spectral flux density conversions:
+
+**Equivalencies:**
+- `spectral_density(wavelength_or_freq)` - Convert Fλ ↔ Fν at a given spectral position
+- `ab_magnitude()` - Convert flux density Fν ↔ AB magnitude
+- `ab_magnitude_lambda(wavelength)` - Convert Fλ ↔ AB magnitude directly
+
+**Physics:**
+- Fλ = Fν × c/λ² (energy conservation across spectral bands)
+- m_AB = -2.5 × log10(Fν / 3631 Jy)
+
+**Units:**
+- `JANSKY`, `MJY`, `UJY` - Flux per frequency (already existed)
+- `FLAM_NU` - erg/s/cm²/Hz (CGS flux per frequency)
+- `FLAM` - erg/s/cm²/Å (CGS flux per wavelength)
+- `PHOTLAM` - photon/s/cm²/Å (photon flux per wavelength)
+- `PHOTNU` - photon/s/cm²/Hz (photon flux per frequency)
+
+**Convenience functions:**
+- `ab_mag_to_jansky(mag)` / `jansky_to_ab_mag(flux)`
+- `f_nu_to_f_lambda(f_nu, wavelength)` / `f_lambda_to_f_nu(f_lambda, wavelength)`
+
+Example usage:
+```rust
+use iridium_units::prelude::*;
+use iridium_units::equivalencies::{spectral_density, ab_magnitude};
+use iridium_units::systems::astrophysical::{JANSKY, FLAM};
+
+// Convert 1 Jy to erg/s/cm²/Å at 500 nm
+let wavelength = 500.0 * &*NM;
+let flux_nu = 1.0 * &*JANSKY;
+let flux_lambda = flux_nu.to_equiv(&FLAM, spectral_density(wavelength))?;
+
+// Convert flux to AB magnitude
+let mag = flux_nu.to_equiv(&MAG, ab_magnitude())?;
+
+// Convenience: AB mag ↔ Jansky
+let flux_jy = ab_mag_to_jansky(20.0);  // 3.631e-5 Jy
+```
+
 ---
 
 ## Planned Features
-
-### Spectral Flux Density Conversions
-
-**Status:** Not started
-**Needed for:** Observational astronomy, photometry
-
-Convert between:
-- Fλ (per wavelength) ↔ Fν (per frequency)
-- Flux density ↔ AB magnitude
-- Jansky ↔ erg/s/cm²/Hz
-
----
 
 ### Dimensionless Angles Equivalency
 

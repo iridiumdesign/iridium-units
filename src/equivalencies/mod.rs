@@ -23,6 +23,7 @@ pub mod logarithmic;
 pub mod mass_energy;
 pub mod parallax;
 pub mod spectral;
+pub mod spectral_density;
 pub mod temperature;
 
 use crate::error::{UnitError, UnitResult};
@@ -158,4 +159,5 @@ pub use logarithmic::{magnitude_flux, db_power, db_amplitude, dex_ratio};
 pub use mass_energy::mass_energy;
 pub use parallax::parallax;
 pub use spectral::spectral;
+pub use spectral_density::{spectral_density, ab_magnitude, ab_magnitude_lambda};
 pub use temperature::{temperature, temperature_energy};
