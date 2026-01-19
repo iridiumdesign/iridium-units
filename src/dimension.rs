@@ -6,16 +6,20 @@
 use std::fmt;
 use std::ops::{Add, Mul, Neg, Sub};
 
-/// A compact rational number using i8 for numerator and denominator.
+/// A rational number using i16 for numerator and denominator.
 ///
 /// Used to represent dimensional exponents, which can be fractional
 /// (e.g., sqrt(meter) has length exponent 1/2).
+///
+/// The i16 storage provides ample headroom for intermediate calculations
+/// during arithmetic operations, avoiding overflow for any realistic
+/// physics unit combinations.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Rational8 {
     /// Numerator
-    pub numer: i8,
+    pub numer: i16,
     /// Denominator (always positive after normalization)
-    pub denom: i8,
+    pub denom: i16,
 }
 
 impl Rational8 {
@@ -26,7 +30,7 @@ impl Rational8 {
     pub const ONE: Rational8 = Rational8 { numer: 1, denom: 1 };
 
     /// Create a new rational number, automatically normalized.
-    pub fn new(numer: i8, denom: i8) -> Self {
+    pub fn new(numer: i16, denom: i16) -> Self {
         if denom == 0 {
             panic!("denominator cannot be zero");
         }
@@ -50,8 +54,8 @@ impl Rational8 {
 
         // Reduce to lowest terms
         let g = gcd(self.numer.unsigned_abs(), self.denom.unsigned_abs());
-        self.numer /= g as i8;
-        self.denom /= g as i8;
+        self.numer /= g as i16;
+        self.denom /= g as i16;
     }
 
     /// Check if this rational is zero.
@@ -66,7 +70,7 @@ impl Rational8 {
 }
 
 /// Greatest common divisor using Euclidean algorithm.
-fn gcd(mut a: u8, mut b: u8) -> u8 {
+fn gcd(mut a: u16, mut b: u16) -> u16 {
     while b != 0 {
         let t = b;
         b = a % b;
@@ -80,10 +84,11 @@ impl Add for Rational8 {
 
     fn add(self, rhs: Self) -> Self {
         // a/b + c/d = (ad + bc) / bd
-        let numer = (self.numer as i16 * rhs.denom as i16
-            + rhs.numer as i16 * self.denom as i16) as i8;
-        let denom = (self.denom as i16 * rhs.denom as i16) as i8;
-        Rational8::new(numer, denom)
+        // Use i32 for intermediate calculations to avoid overflow
+        let numer = self.numer as i32 * rhs.denom as i32
+            + rhs.numer as i32 * self.denom as i32;
+        let denom = self.denom as i32 * rhs.denom as i32;
+        Rational8::new(numer as i16, denom as i16)
     }
 }
 
@@ -107,9 +112,10 @@ impl Mul for Rational8 {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
-        let numer = (self.numer as i16 * rhs.numer as i16) as i8;
-        let denom = (self.denom as i16 * rhs.denom as i16) as i8;
-        Rational8::new(numer, denom)
+        // Use i32 for intermediate calculations to avoid overflow
+        let numer = self.numer as i32 * rhs.numer as i32;
+        let denom = self.denom as i32 * rhs.denom as i32;
+        Rational8::new(numer as i16, denom as i16)
     }
 }
 
@@ -117,7 +123,7 @@ impl Mul<i8> for Rational8 {
     type Output = Self;
 
     fn mul(self, rhs: i8) -> Self {
-        Rational8::new(self.numer * rhs, self.denom)
+        Rational8::new(self.numer * rhs as i16, self.denom)
     }
 }
 
@@ -143,13 +149,19 @@ impl fmt::Display for Rational8 {
 
 impl From<i8> for Rational8 {
     fn from(n: i8) -> Self {
+        Rational8::new(n as i16, 1)
+    }
+}
+
+impl From<i16> for Rational8 {
+    fn from(n: i16) -> Self {
         Rational8::new(n, 1)
     }
 }
 
 impl From<i32> for Rational8 {
     fn from(n: i32) -> Self {
-        Rational8::new(n as i8, 1)
+        Rational8::new(n as i16, 1)
     }
 }
 
@@ -412,5 +424,47 @@ mod tests {
     fn test_dimensionless() {
         let d = Dimension::LENGTH.div(&Dimension::LENGTH);
         assert!(d.is_dimensionless());
+    }
+
+    #[test]
+    fn test_rational_large_denominators() {
+        // This test would have caused overflow with i8 (12 * 12 = 144 > 127)
+        // but works correctly with i16
+        let a = Rational8::new(1, 12);
+        let b = Rational8::new(1, 12);
+        let c = a + b;
+        // 1/12 + 1/12 = 2/12 = 1/6
+        assert_eq!(c.numer, 1);
+        assert_eq!(c.denom, 6);
+    }
+
+    #[test]
+    fn test_rational_multiply_large() {
+        // Test multiplication that would overflow i8
+        let a = Rational8::new(50, 1);
+        let b = Rational8::new(50, 1);
+        let c = a * b;
+        // 50 * 50 = 2500, which overflows i8 but fits in i16
+        assert_eq!(c.numer, 2500);
+        assert_eq!(c.denom, 1);
+    }
+
+    #[test]
+    fn test_rational_complex_fraction() {
+        // Test with denominators that would overflow when multiplied in i8
+        let a = Rational8::new(1, 15);
+        let b = Rational8::new(1, 15);
+        let c = a * b;
+        // 1/15 * 1/15 = 1/225
+        assert_eq!(c.numer, 1);
+        assert_eq!(c.denom, 225);
+    }
+
+    #[test]
+    fn test_dimension_high_power() {
+        // Test dimension with larger exponents
+        let high_power = Dimension::LENGTH.pow(Rational8::new(100, 1));
+        assert_eq!(high_power.length.numer, 100);
+        assert_eq!(high_power.length.denom, 1);
     }
 }

@@ -1100,10 +1100,10 @@ fn parse_power(s: &str) -> UnitResult<Rational8> {
         let (num_str, den_str) = s.split_at(idx);
         let den_str = &den_str[1..];
 
-        let num: i8 = num_str.trim().parse().map_err(|_| {
+        let num: i16 = num_str.trim().parse().map_err(|_| {
             UnitError::ParseError(format!("invalid power numerator: {}", num_str))
         })?;
-        let den: i8 = den_str.trim().parse().map_err(|_| {
+        let den: i16 = den_str.trim().parse().map_err(|_| {
             UnitError::ParseError(format!("invalid power denominator: {}", den_str))
         })?;
 
@@ -1114,7 +1114,7 @@ fn parse_power(s: &str) -> UnitResult<Rational8> {
         Ok(Rational8::new(num, den))
     } else {
         // Simple integer power
-        let exp: i8 = s.parse().map_err(|_| {
+        let exp: i16 = s.parse().map_err(|_| {
             UnitError::ParseError(format!("invalid power: {}", s))
         })?;
         Ok(Rational8::new(exp, 1))
