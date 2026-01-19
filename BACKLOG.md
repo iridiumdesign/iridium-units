@@ -49,22 +49,35 @@ let flux_ratio = star.mag_to_flux_ratio()?;  // 0.01
 let combined = combine_magnitudes(5.0, 5.0);  // ≈ 4.25 mag
 ```
 
+### Brightness Temperature Equivalency ✅
+
+Implemented brightness temperature conversions for radio astronomy:
+- **Rayleigh-Jeans approximation**: `brightness_temperature(freq, beam)` - Fast, valid for hν << kT
+- **Full Planck function**: `brightness_temperature_planck(freq, beam)` - Accurate at all temperatures
+- **Spectral radiance variant**: `brightness_temperature_intensity(freq)` - For W/(m² Hz sr)
+
+Features:
+- Context-aware conversions (frequency and beam solid angle)
+- Automatic validation of physical constraints
+- Helper function `rayleigh_jeans_validity_temperature()` to check approximation validity
+
+Example usage:
+```rust
+use iridium_units::prelude::*;
+use iridium_units::equivalencies::brightness_temperature;
+use iridium_units::systems::astrophysical::JANSKY;
+
+// 21 cm hydrogen line observation
+let freq = 1.420405751768e9 * &*HZ;
+let beam = 1e-6 * &*SR;  // 1 µsr beam
+
+let flux = 1.0 * &*JANSKY;
+let temp = flux.to_equiv(&K, brightness_temperature(freq, beam))?;
+```
+
 ---
 
 ## Planned Features
-
-### Brightness Temperature Equivalency
-
-**Status:** Not started
-**Priority:** High
-**Needed for:** Radio astronomy, CMB studies
-
-Convert between flux density and brightness temperature:
-- Requires frequency/wavelength context
-- Rayleigh-Jeans approximation for radio
-- Planck function for general case
-
----
 
 ### Spectral Flux Density Conversions
 

@@ -17,6 +17,7 @@
 //! let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
 //! ```
 
+pub mod brightness_temperature;
 pub mod doppler;
 pub mod logarithmic;
 pub mod mass_energy;
@@ -151,6 +152,7 @@ impl Quantity {
 }
 
 // Re-export commonly used equivalencies
+pub use brightness_temperature::{brightness_temperature, brightness_temperature_intensity, brightness_temperature_planck};
 pub use doppler::{doppler_optical, doppler_radio, doppler_relativistic};
 pub use logarithmic::{magnitude_flux, db_power, db_amplitude, dex_ratio};
 pub use mass_energy::mass_energy;
