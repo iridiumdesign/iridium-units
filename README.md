@@ -1,25 +1,40 @@
 # iridium-units
 
-A high-performance runtime unit-of-measure library.
+A high-performance runtime unit-of-measure library for Rust.
 
-⚠️ **Early Alpha / Under Active Development**
+[![Crates.io](https://img.shields.io/crates/v/iridium-units.svg)](https://crates.io/crates/iridium-units)
+[![Documentation](https://docs.rs/iridium-units/badge.svg)](https://docs.rs/iridium-units)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-iridium-units is a **new project** and should be considered **early alpha
-software**.
+## Features
 
-The library is actively evolving, APIs may change without notice, and behavior
-may be unstable. A significant portion of the initial design and implementation
-was informed by **AI-assisted analysis and code generation**, and I am still in
-the process of reviewing, validating, and refining that generated code.
+- **Runtime dimensional analysis** - Catch unit errors at runtime with helpful error messages
+- **High performance** - Batch conversion API (~80x faster), optimized operators
+- **Flexible parsing** - Unicode (`m²`, `µm`, `Ω`), LaTeX (`m^{2}`), natural language (`km per hour`)
+- **Comprehensive unit systems** - SI, CGS, astrophysical, imperial, logarithmic
+- **12 equivalencies** - Spectral, Doppler, parallax, mass-energy, temperature, and more
+- **Exact rational exponents** - No floating-point errors in dimensional analysis
 
-The project is publicly available at this stage so others can explore it,
-experiment with it, and provide feedback while I confirm its correctness,
-performance characteristics, and real-world utility.
+## Quick Start
 
-If you’re looking for a mature, battle-tested units library, this may not be
-the right fit *yet*. If you’re interested in early-stage experimentation,
-performance-focused design, or helping shape a new library, you’re very welcome
-here.
+```rust
+use iridium_units::prelude::*;
+
+// Create quantities
+let distance = 100.0 * &*KM;
+let time = 2.0 * &*H;
+let speed = &distance / &time;
+
+// Convert units
+let speed_ms = speed.to(&(&*M / &*S))?;
+println!("{}", speed_ms);  // 13.888... m/s
+
+// Parse from strings
+let wavelength = parse_quantity("500 nm")?;
+let frequency = wavelength.to_equiv(&HZ, spectral())?;
+```
+
+See the [documentation](docs/getting-started.md) for more examples.
 
 ## The Story So Far
 
