@@ -42,6 +42,10 @@ pub enum UnitError {
     /// Overflow in dimension exponent calculation.
     #[error("overflow in dimension exponent calculation")]
     DimensionOverflow,
+
+    /// Invalid input for batch operation.
+    #[error("batch operation error: {0}")]
+    BatchError(String),
 }
 
 /// Result type alias for unit operations.

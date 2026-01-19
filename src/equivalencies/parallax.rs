@@ -11,7 +11,7 @@ use crate::dimension::Dimension;
 use crate::unit::Unit;
 
 // 1 parsec in meters
-const PARSEC_M: f64 = 3.085_677_581_491_367_3e16;
+const PARSEC_M: f64 = 3.085_677_581_491_367e16;
 
 // 1 arcsecond in radians
 const ARCSEC_RAD: f64 = std::f64::consts::PI / 180.0 / 3600.0;
@@ -43,7 +43,7 @@ fn is_length(unit: &Unit) -> bool {
 /// ```
 pub fn parallax() -> Equivalency {
     Equivalency::new("parallax", |from, to| {
-        let (is_angle_to_dist, from_scale, to_scale) = if is_angle(from) && is_length(to) {
+        let (is_angle_to_dist, _from_scale, _to_scale) = if is_angle(from) && is_length(to) {
             (true, from.scale(), to.scale())
         } else if is_length(from) && is_angle(to) {
             (false, from.scale(), to.scale())

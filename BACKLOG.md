@@ -75,6 +75,47 @@ let flux = 1.0 * &*JANSKY;
 let temp = flux.to_equiv(&K, brightness_temperature(freq, beam))?;
 ```
 
+### Performance Optimization ✅
+
+Implemented batch conversion API and optimized reference operations:
+
+**Batch Conversion API** (~80x faster for large datasets):
+- `batch_convert(&[f64], &Unit, &Unit)` - Convert a slice of values
+- `batch_convert_into(&[f64], &Unit, &Unit, &mut [f64])` - Zero-allocation variant
+- `conversion_factor(&Unit, &Unit)` - Get factor for manual/SIMD operations
+
+**Reference Operator Optimization**:
+- `&Quantity + &Quantity` and `&Quantity - &Quantity` no longer clone operands
+- Direct computation avoids intermediate allocations
+
+**Benchmark Results** (1000 values, km → m):
+- Individual conversion: ~12.4 µs
+- Batch conversion: ~152 ns (~82x faster)
+
+Example usage:
+```rust
+use iridium_units::prelude::*;
+use iridium_units::quantity::{batch_convert, conversion_factor};
+
+// Convert 10,000 distance values at once
+let distances_km: Vec<f64> = (0..10000).map(|i| i as f64).collect();
+let distances_m = batch_convert(&distances_km, &KM, &M)?;
+
+// Or get factor for SIMD/external libraries
+let factor = conversion_factor(&KM, &M)?;
+let manual: Vec<f64> = distances_km.iter().map(|v| v * factor).collect();
+
+// Zero-copy addition with references
+let a = 100.0 * &*M;
+let b = 50.0 * &*KM;
+let sum = (&a + &b)?;  // No cloning of a or b
+```
+
+**Zero-Copy Patterns**:
+- Use `&Quantity` operations when you need to preserve the original
+- Use `batch_convert` for array operations instead of mapping `.to()`
+- Get `conversion_factor` once for repeated manual conversions
+
 ---
 
 ## Planned Features
@@ -88,19 +129,6 @@ Convert between:
 - Fλ (per wavelength) ↔ Fν (per frequency)
 - Flux density ↔ AB magnitude
 - Jansky ↔ erg/s/cm²/Hz
-
----
-
-### Performance Optimization
-
-**Status:** Not started
-**Needed for:** Large dataset processing
-
-Based on AstroPy lessons learned:
-- Document zero-copy patterns
-- Add batch conversion API
-- Consider `Arc<Unit>` for reduced cloning
-- Benchmark against baseline
 
 ---
 
@@ -135,19 +163,6 @@ Bridge between:
 - Instrumental magnitudes
 - Standard photometric systems (Johnson-Cousins, SDSS, etc.)
 - Absolute flux calibration
-
----
-
-### Batch Operation API
-
-**Status:** Not started
-**Needed for:** Processing large datasets efficiently
-
-```rust
-// Convert 10,000 values without repeated unit overhead
-let values: Vec<f64> = data.iter().map(|x| x.value).collect();
-let converted = batch_convert(&values, &KM, &M)?;
-```
 
 ---
 

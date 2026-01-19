@@ -233,6 +233,86 @@ impl Quantity {
     }
 }
 
+// =============================================================================
+// Batch Conversion API
+// =============================================================================
+
+/// Convert a slice of values from one unit to another.
+///
+/// This is more efficient than creating individual `Quantity` objects when
+/// processing large datasets, as it computes the conversion factor once
+/// and applies it to all values.
+///
+/// # Example
+///
+/// ```
+/// use iridium_units::prelude::*;
+/// use iridium_units::quantity::batch_convert;
+///
+/// let distances_km = vec![1.0, 2.0, 3.0, 100.0, 42.195];
+/// let distances_m = batch_convert(&distances_km, &KM, &M).unwrap();
+/// assert!((distances_m[0] - 1000.0).abs() < 1e-10);
+/// assert!((distances_m[4] - 42195.0).abs() < 1e-10);
+/// ```
+pub fn batch_convert(values: &[f64], from: &Unit, to: &Unit) -> UnitResult<Vec<f64>> {
+    let factor = from.conversion_factor(to)?;
+    Ok(values.iter().map(|v| v * factor).collect())
+}
+
+/// Convert a slice of values from one unit to another, writing into a pre-allocated buffer.
+///
+/// This variant avoids allocation when the output buffer already exists.
+/// Returns `Err` if the units have incompatible dimensions or if the output
+/// slice length doesn't match the input.
+///
+/// # Example
+///
+/// ```
+/// use iridium_units::prelude::*;
+/// use iridium_units::quantity::batch_convert_into;
+///
+/// let distances_km = [1.0, 2.0, 3.0];
+/// let mut distances_m = [0.0; 3];
+/// batch_convert_into(&distances_km, &KM, &M, &mut distances_m).unwrap();
+/// assert!((distances_m[0] - 1000.0).abs() < 1e-10);
+/// ```
+pub fn batch_convert_into(values: &[f64], from: &Unit, to: &Unit, out: &mut [f64]) -> UnitResult<()> {
+    if values.len() != out.len() {
+        return Err(UnitError::BatchError(format!(
+            "input length {} doesn't match output length {}",
+            values.len(),
+            out.len()
+        )));
+    }
+    let factor = from.conversion_factor(to)?;
+    for (i, v) in values.iter().enumerate() {
+        out[i] = v * factor;
+    }
+    Ok(())
+}
+
+/// Get the conversion factor between two units for manual batch operations.
+///
+/// This is useful when you need to apply the conversion factor yourself,
+/// such as in SIMD operations or when working with external array libraries.
+///
+/// # Example
+///
+/// ```
+/// use iridium_units::prelude::*;
+/// use iridium_units::quantity::conversion_factor;
+///
+/// let factor = conversion_factor(&KM, &M).unwrap();
+/// assert!((factor - 1000.0).abs() < 1e-10);
+///
+/// // Apply manually to any data structure
+/// let value_km = 5.0;
+/// let value_m = value_km * factor;
+/// ```
+pub fn conversion_factor(from: &Unit, to: &Unit) -> UnitResult<f64> {
+    from.conversion_factor(to)
+}
+
 impl fmt::Display for Quantity {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let unit_str = self.unit.to_string();
@@ -278,7 +358,15 @@ impl Add for &Quantity {
     type Output = UnitResult<Quantity>;
 
     fn add(self, rhs: &Quantity) -> UnitResult<Quantity> {
-        self.clone() + rhs.clone()
+        if self.unit.dimension() != rhs.unit.dimension() {
+            return Err(UnitError::IncompatibleDimensions {
+                lhs: self.unit.to_string(),
+                rhs: rhs.unit.to_string(),
+            });
+        }
+        // Convert rhs to self's unit without cloning
+        let factor = rhs.unit.conversion_factor(&self.unit)?;
+        Ok(Quantity::new(self.value + rhs.value * factor, self.unit.clone()))
     }
 }
 
@@ -302,7 +390,15 @@ impl Sub for &Quantity {
     type Output = UnitResult<Quantity>;
 
     fn sub(self, rhs: &Quantity) -> UnitResult<Quantity> {
-        self.clone() - rhs.clone()
+        if self.unit.dimension() != rhs.unit.dimension() {
+            return Err(UnitError::IncompatibleDimensions {
+                lhs: self.unit.to_string(),
+                rhs: rhs.unit.to_string(),
+            });
+        }
+        // Convert rhs to self's unit without cloning
+        let factor = rhs.unit.conversion_factor(&self.unit)?;
+        Ok(Quantity::new(self.value - rhs.value * factor, self.unit.clone()))
     }
 }
 
@@ -615,5 +711,73 @@ mod tests {
     fn test_quantity_display() {
         let q = 5.5 * meter();
         assert_eq!(format!("{}", q), "5.5 m");
+    }
+
+    #[test]
+    fn test_ref_addition_no_clone() {
+        // Test that reference addition works correctly
+        let a = 1.0 * kilometer();
+        let b = 500.0 * meter();
+        let c = (&a + &b).unwrap();
+        assert!((c.value() - 1.5).abs() < 1e-10); // 1.5 km
+        // Original values should still be accessible
+        assert!((a.value() - 1.0).abs() < 1e-10);
+        assert!((b.value() - 500.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_ref_subtraction_no_clone() {
+        // Test that reference subtraction works correctly
+        let a = 1.0 * kilometer();
+        let b = 500.0 * meter();
+        let c = (&a - &b).unwrap();
+        assert!((c.value() - 0.5).abs() < 1e-10); // 0.5 km
+    }
+
+    #[test]
+    fn test_batch_convert() {
+        use super::batch_convert;
+        let values = vec![1.0, 2.0, 3.0, 100.0];
+        let converted = batch_convert(&values, &kilometer(), &meter()).unwrap();
+        assert_eq!(converted.len(), 4);
+        assert!((converted[0] - 1000.0).abs() < 1e-10);
+        assert!((converted[1] - 2000.0).abs() < 1e-10);
+        assert!((converted[2] - 3000.0).abs() < 1e-10);
+        assert!((converted[3] - 100000.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_batch_convert_into() {
+        use super::batch_convert_into;
+        let values = [1.0, 2.0, 3.0];
+        let mut out = [0.0; 3];
+        batch_convert_into(&values, &kilometer(), &meter(), &mut out).unwrap();
+        assert!((out[0] - 1000.0).abs() < 1e-10);
+        assert!((out[1] - 2000.0).abs() < 1e-10);
+        assert!((out[2] - 3000.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_batch_convert_into_length_mismatch() {
+        use super::batch_convert_into;
+        let values = [1.0, 2.0, 3.0];
+        let mut out = [0.0; 2]; // Wrong length
+        let result = batch_convert_into(&values, &kilometer(), &meter(), &mut out);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_batch_convert_incompatible_units() {
+        use super::batch_convert;
+        let values = vec![1.0, 2.0];
+        let result = batch_convert(&values, &meter(), &second());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_conversion_factor() {
+        use super::conversion_factor;
+        let factor = conversion_factor(&kilometer(), &meter()).unwrap();
+        assert!((factor - 1000.0).abs() < 1e-10);
     }
 }

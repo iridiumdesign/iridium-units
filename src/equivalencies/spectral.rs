@@ -187,7 +187,7 @@ fn create_spectral_converter(
         }),
 
         // Same type shouldn't reach here
-        _ => Box::new(|x| Ok(x)),
+        _ => Box::new(Ok),
     };
 
     // The backward conversion is the inverse operation
@@ -229,7 +229,7 @@ fn create_spectral_converter(
             validate_positive(e_si, "energy")?;
             Ok(e_si / (PLANCK_CONSTANT * SPEED_OF_LIGHT))
         }),
-        _ => Box::new(|x| Ok(x)),
+        _ => Box::new(Ok),
     };
 
     Converter { forward, backward }

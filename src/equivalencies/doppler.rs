@@ -53,7 +53,7 @@ pub fn doppler_radio(rest_freq: Quantity) -> Equivalency {
     let nu0_hz = rest_freq.value() * rest_freq.unit().scale();
 
     Equivalency::new("doppler_radio", move |from, to| {
-        let (is_freq_to_vel, from_scale, to_scale) = if is_frequency(from) && is_velocity(to) {
+        let (is_freq_to_vel, _from_scale, _to_scale) = if is_frequency(from) && is_velocity(to) {
             (true, from.scale(), to.scale())
         } else if is_velocity(from) && is_frequency(to) {
             (false, from.scale(), to.scale())

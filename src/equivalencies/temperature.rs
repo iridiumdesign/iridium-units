@@ -224,7 +224,7 @@ fn create_temp_converter(
             },
         ),
 
-        _ => Converter::new(|x| Ok(x), |x| Ok(x)),
+        _ => Converter::new(Ok, Ok),
     }
 }
 
@@ -246,7 +246,7 @@ fn create_temp_converter(
 /// ```
 pub fn temperature_energy() -> Equivalency {
     Equivalency::new("temperature_energy", |from, to| {
-        let (is_temp_to_energy, from_scale, to_scale) =
+        let (is_temp_to_energy, _from_scale, _to_scale) =
             if is_temperature(from) && is_energy(to) {
                 (true, from.scale(), to.scale())
             } else if is_energy(from) && is_temperature(to) {

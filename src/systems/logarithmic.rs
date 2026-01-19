@@ -62,7 +62,7 @@ use lazy_static::lazy_static;
 
 /// Pogson ratio: 10^0.4 ≈ 2.5118864315
 /// One magnitude difference corresponds to this flux ratio.
-pub const POGSON_RATIO: f64 = 2.511_886_431_509_580;
+pub const POGSON_RATIO: f64 = 2.511_886_431_509_58;
 
 /// Log base 10 of Pogson ratio = 0.4
 pub const LOG10_POGSON: f64 = 0.4;

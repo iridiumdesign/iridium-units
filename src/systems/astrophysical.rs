@@ -12,7 +12,7 @@ use lazy_static::lazy_static;
 // Physical constants for unit definitions (2018 CODATA values)
 const C_M_S: f64 = 299_792_458.0; // m/s (exact)
 const AU_M: f64 = 1.495_978_707e11; // m (exact, IAU 2012)
-const PC_M: f64 = 3.085_677_581_491_367_3e16; // m (IAU 2015)
+const PC_M: f64 = 3.085_677_581_491_367e16; // m (IAU 2015)
 const LY_M: f64 = 9.460_730_472_580_8e15; // m (Julian year)
 
 // Solar units (IAU 2015 Resolution B3)

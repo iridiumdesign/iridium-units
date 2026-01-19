@@ -95,7 +95,7 @@ pub const HARTREE_ENERGY: f64 = 4.359_744_722_2071e-18;
 pub const ASTRONOMICAL_UNIT: f64 = 1.495_978_707e11;
 
 /// Parsec (m) - derived from AU
-pub const PARSEC: f64 = 3.085_677_581_491_367_3e16;
+pub const PARSEC: f64 = 3.085_677_581_491_367e16;
 
 /// Light-year (m) - based on Julian year
 pub const LIGHT_YEAR: f64 = 9.460_730_472_580_8e15;
