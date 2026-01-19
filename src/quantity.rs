@@ -84,13 +84,13 @@ impl Quantity {
 
     /// Get the dimension components for the decomposed unit.
     fn dimension_components(&self) -> Vec<crate::unit::composite::UnitComponent> {
-        use crate::dimension::{Dimension, Rational8};
+        use crate::dimension::{Dimension, Rational16};
         use crate::unit::composite::UnitComponent;
 
         let dim = self.unit.dimension();
         let mut components = Vec::new();
 
-        let add_if_nonzero = |comps: &mut Vec<UnitComponent>, symbol: &str, base_dim: Dimension, exp: Rational8| {
+        let add_if_nonzero = |comps: &mut Vec<UnitComponent>, symbol: &str, base_dim: Dimension, exp: Rational16| {
             if !exp.is_zero() {
                 comps.push(UnitComponent::new(symbol, base_dim, 1.0, exp));
             }

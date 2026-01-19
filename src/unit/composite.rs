@@ -1,6 +1,6 @@
 //! Composite unit definitions.
 
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use std::fmt;
 
 /// A component of a composite unit: a unit symbol with its power.
@@ -13,12 +13,12 @@ pub struct UnitComponent {
     /// The scale factor of this component
     pub scale: f64,
     /// The power/exponent of this component
-    pub power: Rational8,
+    pub power: Rational16,
 }
 
 impl UnitComponent {
     /// Create a new unit component.
-    pub fn new(symbol: impl Into<String>, dimension: Dimension, scale: f64, power: Rational8) -> Self {
+    pub fn new(symbol: impl Into<String>, dimension: Dimension, scale: f64, power: Rational16) -> Self {
         UnitComponent {
             symbol: symbol.into(),
             dimension,
@@ -67,7 +67,7 @@ impl CompositeUnit {
     pub fn from_base(symbol: impl Into<String>, dimension: Dimension, scale: f64) -> Self {
         CompositeUnit {
             scale: 1.0,
-            components: vec![UnitComponent::new(symbol, dimension, scale, Rational8::ONE)],
+            components: vec![UnitComponent::new(symbol, dimension, scale, Rational16::ONE)],
         }
     }
 
@@ -140,7 +140,7 @@ impl CompositeUnit {
     }
 
     /// Raise this composite unit to a power.
-    pub fn pow(&self, power: Rational8) -> CompositeUnit {
+    pub fn pow(&self, power: Rational16) -> CompositeUnit {
         CompositeUnit {
             scale: self.scale.powf(power.to_f64()),
             components: self
@@ -182,7 +182,7 @@ impl fmt::Display for CompositeUnit {
         let pos_str: Vec<String> = positive
             .iter()
             .map(|c| {
-                if c.power == Rational8::ONE {
+                if c.power == Rational16::ONE {
                     c.symbol.clone()
                 } else {
                     format!("{}^{}", c.symbol, c.power)
@@ -194,8 +194,8 @@ impl fmt::Display for CompositeUnit {
         let neg_str: Vec<String> = negative
             .iter()
             .map(|c| {
-                let abs_power = Rational8::new(-c.power.numer, c.power.denom);
-                if abs_power == Rational8::ONE {
+                let abs_power = Rational16::new(-c.power.numer, c.power.denom);
+                if abs_power == Rational16::ONE {
                     c.symbol.clone()
                 } else {
                     format!("{}^{}", c.symbol, abs_power)

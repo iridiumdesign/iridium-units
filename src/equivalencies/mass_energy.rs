@@ -5,7 +5,7 @@
 
 use super::{Converter, Equivalency};
 use crate::constants::SPEED_OF_LIGHT;
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use crate::unit::Unit;
 
 /// Check if a unit has mass dimension
@@ -16,8 +16,8 @@ fn is_mass(unit: &Unit) -> bool {
 /// Check if a unit has energy dimension (M L² T⁻²)
 fn is_energy(unit: &Unit) -> bool {
     let energy_dim = Dimension::MASS
-        .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-        .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)));
+        .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+        .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
     unit.dimension() == energy_dim
 }
 

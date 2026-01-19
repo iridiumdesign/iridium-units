@@ -2,39 +2,107 @@
 //!
 //! This module provides the [`Dimension`] type which represents physical dimensions
 //! as a product of powers of 11 base dimensions, following AstroPy's model.
+//!
+//! # Rational Exponents
+//!
+//! Physical dimensions use rational (fractional) exponents to support operations
+//! like square roots. For example:
+//!
+//! - Velocity has dimension L¹T⁻¹ (length per time)
+//! - Energy has dimension M¹L²T⁻² (mass × length² / time²)
+//! - Square root of area: √(L²) = L¹ (length^(2 × 1/2) = length^1)
+//!
+//! The [`Rational16`] type stores these exponents as exact fractions (numerator/denominator)
+//! rather than floating-point, ensuring precise dimensional analysis without rounding errors.
+//!
+//! # Example: Why Rationals Matter
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! // Square root of area (m²) should give length (m)
+//! let area_unit = M.pow(Rational16::new(2, 1));  // m²
+//! let length_unit = area_unit.pow(Rational16::new(1, 2));  // √(m²) = m
+//!
+//! // The exponent 2 × 1/2 = 1 exactly (no floating-point error)
+//! assert_eq!(length_unit.dimension().length, Rational16::ONE);
+//! ```
 
 use std::fmt;
 use std::ops::{Add, Mul, Neg, Sub};
 
-/// A rational number using i16 for numerator and denominator.
+/// A rational number (fraction) for exact dimensional exponents.
 ///
-/// Used to represent dimensional exponents, which can be fractional
-/// (e.g., sqrt(meter) has length exponent 1/2).
+/// Rational numbers are used instead of floating-point to represent dimensional
+/// exponents because they provide **exact arithmetic** without rounding errors.
+/// This is critical for dimensional analysis where we need to verify that
+/// dimensions match exactly.
 ///
-/// The i16 storage provides ample headroom for intermediate calculations
-/// during arithmetic operations, avoiding overflow for any realistic
-/// physics unit combinations.
+/// # Why Rationals Instead of Floats?
+///
+/// Consider checking if two dimensions are equal:
+/// - With floats: `0.5 + 0.5 == 1.0` might fail due to rounding
+/// - With rationals: `1/2 + 1/2 == 1/1` is always exactly true
+///
+/// # Storage
+///
+/// Uses `i16` for numerator and denominator, providing:
+/// - Range: -32,768 to 32,767 for both numerator and denominator
+/// - Intermediate calculations use `i32` to prevent overflow
+/// - Automatically normalized to lowest terms (e.g., 2/4 → 1/2)
+/// - Denominator is always positive after normalization
+///
+/// # Common Values
+///
+/// | Exponent | Rational | Meaning |
+/// |----------|----------|---------|
+/// | 1 | 1/1 | Linear (e.g., length) |
+/// | 2 | 2/1 | Squared (e.g., area) |
+/// | -1 | -1/1 | Inverse (e.g., frequency = 1/time) |
+/// | -2 | -2/1 | Inverse squared (e.g., acceleration = length/time²) |
+/// | 1/2 | 1/2 | Square root |
+/// | 1/3 | 1/3 | Cube root |
+/// | 3/2 | 3/2 | Square root of cube (e.g., Kepler's third law) |
+///
+/// # Example
+///
+/// ```
+/// use iridium_units::Rational16;
+///
+/// let half = Rational16::new(1, 2);
+/// let third = Rational16::new(1, 3);
+///
+/// // Addition: 1/2 + 1/3 = 5/6
+/// let sum = half + third;
+/// assert_eq!(sum.numer, 5);
+/// assert_eq!(sum.denom, 6);
+///
+/// // Multiplication: 1/2 × 1/3 = 1/6
+/// let product = half * third;
+/// assert_eq!(product.numer, 1);
+/// assert_eq!(product.denom, 6);
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub struct Rational8 {
-    /// Numerator
+pub struct Rational16 {
+    /// Numerator (can be negative)
     pub numer: i16,
     /// Denominator (always positive after normalization)
     pub denom: i16,
 }
 
-impl Rational8 {
+impl Rational16 {
     /// Zero
-    pub const ZERO: Rational8 = Rational8 { numer: 0, denom: 1 };
+    pub const ZERO: Rational16 = Rational16 { numer: 0, denom: 1 };
 
     /// One
-    pub const ONE: Rational8 = Rational8 { numer: 1, denom: 1 };
+    pub const ONE: Rational16 = Rational16 { numer: 1, denom: 1 };
 
     /// Create a new rational number, automatically normalized.
     pub fn new(numer: i16, denom: i16) -> Self {
         if denom == 0 {
             panic!("denominator cannot be zero");
         }
-        let mut r = Rational8 { numer, denom };
+        let mut r = Rational16 { numer, denom };
         r.normalize();
         r
     }
@@ -79,7 +147,7 @@ fn gcd(mut a: u16, mut b: u16) -> u16 {
     a.max(1)
 }
 
-impl Add for Rational8 {
+impl Add for Rational16 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
@@ -88,11 +156,11 @@ impl Add for Rational8 {
         let numer = self.numer as i32 * rhs.denom as i32
             + rhs.numer as i32 * self.denom as i32;
         let denom = self.denom as i32 * rhs.denom as i32;
-        Rational8::new(numer as i16, denom as i16)
+        Rational16::new(numer as i16, denom as i16)
     }
 }
 
-impl Sub for Rational8 {
+impl Sub for Rational16 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
@@ -100,34 +168,34 @@ impl Sub for Rational8 {
     }
 }
 
-impl Neg for Rational8 {
+impl Neg for Rational16 {
     type Output = Self;
 
     fn neg(self) -> Self {
-        Rational8::new(-self.numer, self.denom)
+        Rational16::new(-self.numer, self.denom)
     }
 }
 
-impl Mul for Rational8 {
+impl Mul for Rational16 {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
         // Use i32 for intermediate calculations to avoid overflow
         let numer = self.numer as i32 * rhs.numer as i32;
         let denom = self.denom as i32 * rhs.denom as i32;
-        Rational8::new(numer as i16, denom as i16)
+        Rational16::new(numer as i16, denom as i16)
     }
 }
 
-impl Mul<i8> for Rational8 {
+impl Mul<i8> for Rational16 {
     type Output = Self;
 
     fn mul(self, rhs: i8) -> Self {
-        Rational8::new(self.numer * rhs as i16, self.denom)
+        Rational16::new(self.numer * rhs as i16, self.denom)
     }
 }
 
-impl fmt::Debug for Rational8 {
+impl fmt::Debug for Rational16 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.denom == 1 {
             write!(f, "{}", self.numer)
@@ -137,7 +205,7 @@ impl fmt::Debug for Rational8 {
     }
 }
 
-impl fmt::Display for Rational8 {
+impl fmt::Display for Rational16 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.denom == 1 {
             write!(f, "{}", self.numer)
@@ -147,21 +215,21 @@ impl fmt::Display for Rational8 {
     }
 }
 
-impl From<i8> for Rational8 {
+impl From<i8> for Rational16 {
     fn from(n: i8) -> Self {
-        Rational8::new(n as i16, 1)
+        Rational16::new(n as i16, 1)
     }
 }
 
-impl From<i16> for Rational8 {
+impl From<i16> for Rational16 {
     fn from(n: i16) -> Self {
-        Rational8::new(n, 1)
+        Rational16::new(n, 1)
     }
 }
 
-impl From<i32> for Rational8 {
+impl From<i32> for Rational16 {
     fn from(n: i32) -> Self {
-        Rational8::new(n as i16, 1)
+        Rational16::new(n as i16, 1)
     }
 }
 
@@ -177,98 +245,98 @@ impl From<i32> for Rational8 {
 /// - amount (moles), photon (photon count)
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Dimension {
-    pub length: Rational8,
-    pub time: Rational8,
-    pub mass: Rational8,
-    pub current: Rational8,
-    pub temperature: Rational8,
-    pub angle: Rational8,
-    pub solid_angle: Rational8,
-    pub luminous_intensity: Rational8,
-    pub magnitude: Rational8,
-    pub amount: Rational8,
-    pub photon: Rational8,
+    pub length: Rational16,
+    pub time: Rational16,
+    pub mass: Rational16,
+    pub current: Rational16,
+    pub temperature: Rational16,
+    pub angle: Rational16,
+    pub solid_angle: Rational16,
+    pub luminous_intensity: Rational16,
+    pub magnitude: Rational16,
+    pub amount: Rational16,
+    pub photon: Rational16,
 }
 
 impl Dimension {
     /// Dimensionless (all exponents zero).
     pub const DIMENSIONLESS: Dimension = Dimension {
-        length: Rational8::ZERO,
-        time: Rational8::ZERO,
-        mass: Rational8::ZERO,
-        current: Rational8::ZERO,
-        temperature: Rational8::ZERO,
-        angle: Rational8::ZERO,
-        solid_angle: Rational8::ZERO,
-        luminous_intensity: Rational8::ZERO,
-        magnitude: Rational8::ZERO,
-        amount: Rational8::ZERO,
-        photon: Rational8::ZERO,
+        length: Rational16::ZERO,
+        time: Rational16::ZERO,
+        mass: Rational16::ZERO,
+        current: Rational16::ZERO,
+        temperature: Rational16::ZERO,
+        angle: Rational16::ZERO,
+        solid_angle: Rational16::ZERO,
+        luminous_intensity: Rational16::ZERO,
+        magnitude: Rational16::ZERO,
+        amount: Rational16::ZERO,
+        photon: Rational16::ZERO,
     };
 
     /// Length dimension (L).
     pub const LENGTH: Dimension = Dimension {
-        length: Rational8::ONE,
+        length: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Time dimension (T).
     pub const TIME: Dimension = Dimension {
-        time: Rational8::ONE,
+        time: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Mass dimension (M).
     pub const MASS: Dimension = Dimension {
-        mass: Rational8::ONE,
+        mass: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Electric current dimension (I).
     pub const CURRENT: Dimension = Dimension {
-        current: Rational8::ONE,
+        current: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Temperature dimension (Θ).
     pub const TEMPERATURE: Dimension = Dimension {
-        temperature: Rational8::ONE,
+        temperature: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Angle dimension.
     pub const ANGLE: Dimension = Dimension {
-        angle: Rational8::ONE,
+        angle: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Solid angle dimension.
     pub const SOLID_ANGLE: Dimension = Dimension {
-        solid_angle: Rational8::ONE,
+        solid_angle: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Luminous intensity dimension (J).
     pub const LUMINOUS_INTENSITY: Dimension = Dimension {
-        luminous_intensity: Rational8::ONE,
+        luminous_intensity: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Magnitude dimension (for stellar magnitudes).
     pub const MAGNITUDE: Dimension = Dimension {
-        magnitude: Rational8::ONE,
+        magnitude: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Amount of substance dimension (N).
     pub const AMOUNT: Dimension = Dimension {
-        amount: Rational8::ONE,
+        amount: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
     /// Photon count dimension.
     pub const PHOTON: Dimension = Dimension {
-        photon: Rational8::ONE,
+        photon: Rational16::ONE,
         ..Self::DIMENSIONLESS
     };
 
@@ -312,7 +380,7 @@ impl Dimension {
     }
 
     /// Raise dimension to a power (multiply all exponents).
-    pub fn pow(&self, power: Rational8) -> Dimension {
+    pub fn pow(&self, power: Rational16) -> Dimension {
         Dimension {
             length: self.length * power,
             time: self.time * power,
@@ -330,7 +398,7 @@ impl Dimension {
 
     /// Invert dimension (negate all exponents).
     pub fn inv(&self) -> Dimension {
-        self.pow(Rational8::new(-1, 1))
+        self.pow(Rational16::new(-1, 1))
     }
 }
 
@@ -357,7 +425,7 @@ impl fmt::Debug for Dimension {
 
         for (name, exp) in dims {
             if !exp.is_zero() {
-                if exp == Rational8::ONE {
+                if exp == Rational16::ONE {
                     parts.push(name.to_string());
                 } else {
                     parts.push(format!("{}^{}", name, exp));
@@ -381,22 +449,22 @@ mod tests {
 
     #[test]
     fn test_rational_basic() {
-        let r = Rational8::new(2, 4);
+        let r = Rational16::new(2, 4);
         assert_eq!(r.numer, 1);
         assert_eq!(r.denom, 2);
     }
 
     #[test]
     fn test_rational_negative_denom() {
-        let r = Rational8::new(1, -2);
+        let r = Rational16::new(1, -2);
         assert_eq!(r.numer, -1);
         assert_eq!(r.denom, 2);
     }
 
     #[test]
     fn test_rational_add() {
-        let a = Rational8::new(1, 2);
-        let b = Rational8::new(1, 3);
+        let a = Rational16::new(1, 2);
+        let b = Rational16::new(1, 3);
         let c = a + b;
         assert_eq!(c.numer, 5);
         assert_eq!(c.denom, 6);
@@ -405,19 +473,19 @@ mod tests {
     #[test]
     fn test_dimension_velocity() {
         let velocity = Dimension::LENGTH.div(&Dimension::TIME);
-        assert_eq!(velocity.length, Rational8::ONE);
-        assert_eq!(velocity.time, Rational8::new(-1, 1));
+        assert_eq!(velocity.length, Rational16::ONE);
+        assert_eq!(velocity.time, Rational16::new(-1, 1));
     }
 
     #[test]
     fn test_dimension_energy() {
         // Energy = M L^2 T^-2
         let energy = Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)));
-        assert_eq!(energy.mass, Rational8::ONE);
-        assert_eq!(energy.length, Rational8::new(2, 1));
-        assert_eq!(energy.time, Rational8::new(-2, 1));
+            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
+        assert_eq!(energy.mass, Rational16::ONE);
+        assert_eq!(energy.length, Rational16::new(2, 1));
+        assert_eq!(energy.time, Rational16::new(-2, 1));
     }
 
     #[test]
@@ -430,8 +498,8 @@ mod tests {
     fn test_rational_large_denominators() {
         // This test would have caused overflow with i8 (12 * 12 = 144 > 127)
         // but works correctly with i16
-        let a = Rational8::new(1, 12);
-        let b = Rational8::new(1, 12);
+        let a = Rational16::new(1, 12);
+        let b = Rational16::new(1, 12);
         let c = a + b;
         // 1/12 + 1/12 = 2/12 = 1/6
         assert_eq!(c.numer, 1);
@@ -441,8 +509,8 @@ mod tests {
     #[test]
     fn test_rational_multiply_large() {
         // Test multiplication that would overflow i8
-        let a = Rational8::new(50, 1);
-        let b = Rational8::new(50, 1);
+        let a = Rational16::new(50, 1);
+        let b = Rational16::new(50, 1);
         let c = a * b;
         // 50 * 50 = 2500, which overflows i8 but fits in i16
         assert_eq!(c.numer, 2500);
@@ -452,8 +520,8 @@ mod tests {
     #[test]
     fn test_rational_complex_fraction() {
         // Test with denominators that would overflow when multiplied in i8
-        let a = Rational8::new(1, 15);
-        let b = Rational8::new(1, 15);
+        let a = Rational16::new(1, 15);
+        let b = Rational16::new(1, 15);
         let c = a * b;
         // 1/15 * 1/15 = 1/225
         assert_eq!(c.numer, 1);
@@ -463,7 +531,7 @@ mod tests {
     #[test]
     fn test_dimension_high_power() {
         // Test dimension with larger exponents
-        let high_power = Dimension::LENGTH.pow(Rational8::new(100, 1));
+        let high_power = Dimension::LENGTH.pow(Rational16::new(100, 1));
         assert_eq!(high_power.length.numer, 100);
         assert_eq!(high_power.length.denom, 1);
     }

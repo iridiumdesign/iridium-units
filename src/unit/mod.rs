@@ -3,7 +3,7 @@
 pub mod base;
 pub mod composite;
 
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use crate::error::{UnitError, UnitResult};
 use base::BaseUnit;
 use composite::CompositeUnit;
@@ -88,7 +88,7 @@ impl Unit {
     }
 
     /// Raise this unit to a power.
-    pub fn pow(&self, exp: impl Into<Rational8>) -> Unit {
+    pub fn pow(&self, exp: impl Into<Rational16>) -> Unit {
         let exp = exp.into();
         if exp.is_zero() {
             return Unit::dimensionless();
@@ -98,12 +98,12 @@ impl Unit {
 
     /// Take the square root of this unit.
     pub fn sqrt(&self) -> Unit {
-        self.pow(Rational8::new(1, 2))
+        self.pow(Rational16::new(1, 2))
     }
 
     /// Invert this unit (raise to power -1).
     pub fn inv(&self) -> Unit {
-        self.pow(Rational8::new(-1, 1))
+        self.pow(Rational16::new(-1, 1))
     }
 
     /// Get the symbol/string representation for this unit.
@@ -225,8 +225,8 @@ mod tests {
     fn test_unit_division() {
         let velocity = meter() / second();
         let dim = velocity.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-1, 1));
     }
 
     #[test]
@@ -250,7 +250,7 @@ mod tests {
         let m = meter();
         let m2 = m.pow(2);
         let dim = m2.dimension();
-        assert_eq!(dim.length, Rational8::new(2, 1));
+        assert_eq!(dim.length, Rational16::new(2, 1));
     }
 
     #[test]
@@ -259,6 +259,6 @@ mod tests {
         let m2 = &m * &m;
         let sqrt_m2 = m2.sqrt();
         let dim = sqrt_m2.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
+        assert_eq!(dim.length, Rational16::ONE);
     }
 }

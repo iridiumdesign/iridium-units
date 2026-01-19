@@ -102,7 +102,7 @@ pub mod parsing;
 pub mod systems;
 
 // Re-export main types
-pub use dimension::{Dimension, Rational8};
+pub use dimension::{Dimension, Rational16};
 pub use error::{UnitError, UnitResult};
 pub use quantity::Quantity;
 pub use unit::Unit;
@@ -118,7 +118,7 @@ pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRe
 /// use iridium_units::prelude::*;
 /// ```
 pub mod prelude {
-    pub use crate::dimension::{Dimension, Rational8};
+    pub use crate::dimension::{Dimension, Rational16};
     pub use crate::error::{UnitError, UnitResult};
     pub use crate::quantity::Quantity;
     pub use crate::unit::Unit;

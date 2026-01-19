@@ -3,7 +3,7 @@
 //! The CGS system was the first coherent metric system and is still
 //! commonly used in astrophysics and electromagnetism.
 
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;
 use crate::unit::Unit;
 use lazy_static::lazy_static;
@@ -34,7 +34,7 @@ lazy_static! {
         "dyne", "dyn", &[],
         Dimension::MASS
             .mul(&Dimension::LENGTH)
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-5
     ));
 
@@ -42,8 +42,8 @@ lazy_static! {
     pub static ref ERG: Unit = Unit::Base(BaseUnit::new(
         "erg", "erg", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-7
     ));
 
@@ -51,8 +51,8 @@ lazy_static! {
     pub static ref BARYE: Unit = Unit::Base(BaseUnit::new(
         "barye", "Ba", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(-1, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         0.1
     ));
 
@@ -60,23 +60,23 @@ lazy_static! {
     pub static ref POISE: Unit = Unit::Base(BaseUnit::new(
         "poise", "P", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(-1, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-1, 1))),
         0.1
     ));
 
     /// Stokes - CGS unit of kinematic viscosity (cm^2 / s = 10^-4 m^2/s)
     pub static ref STOKES: Unit = Unit::Base(BaseUnit::new(
         "stokes", "St", &[],
-        Dimension::LENGTH.pow(Rational8::new(2, 1))
-            .mul(&Dimension::TIME.pow(Rational8::new(-1, 1))),
+        Dimension::LENGTH.pow(Rational16::new(2, 1))
+            .mul(&Dimension::TIME.pow(Rational16::new(-1, 1))),
         1e-4
     ));
 
     /// Kayser - CGS unit of wavenumber (1/cm)
     pub static ref KAYSER: Unit = Unit::Base(BaseUnit::new(
         "kayser", "kayser", &["cm^-1"],
-        Dimension::LENGTH.pow(Rational8::new(-1, 1)),
+        Dimension::LENGTH.pow(Rational16::new(-1, 1)),
         100.0  // 1/cm = 100 /m
     ));
 
@@ -88,8 +88,8 @@ lazy_static! {
     pub static ref GAUSS: Unit = Unit::Base(BaseUnit::new(
         "gauss", "G", &["Gauss"],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1))),
         1e-4
     ));
 
@@ -97,9 +97,9 @@ lazy_static! {
     pub static ref MAXWELL: Unit = Unit::Base(BaseUnit::new(
         "maxwell", "Mx", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1))),
         1e-8
     ));
 
@@ -108,8 +108,8 @@ lazy_static! {
     pub static ref OERSTED: Unit = Unit::Base(BaseUnit::new(
         "oersted", "Oe", &[],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1))),
         1e-4 / (4.0 * std::f64::consts::PI) * 1e3  // 1000/(4π) A/m in SI terms
     ));
 
@@ -131,9 +131,9 @@ lazy_static! {
     pub static ref STATVOLT: Unit = Unit::Base(BaseUnit::new(
         "statvolt", "statV", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-3, 1)))
-            .mul(&Dimension::CURRENT.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-3, 1)))
+            .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1))),
         299.792458
     ));
 

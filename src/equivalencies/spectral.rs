@@ -13,7 +13,7 @@
 
 use super::{Converter, Equivalency};
 use crate::constants::{PLANCK_CONSTANT, SPEED_OF_LIGHT};
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use crate::unit::Unit;
 
 /// Physical type classification for spectral equivalency
@@ -40,8 +40,8 @@ fn classify_spectral(unit: &Unit) -> Option<SpectralType> {
 
     // Energy: M L^2 T^-2
     let energy_dim = Dimension::MASS
-        .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-        .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)));
+        .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+        .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
     if dim == energy_dim {
         return Some(SpectralType::Energy);
     }

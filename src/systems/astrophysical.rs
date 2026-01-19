@@ -4,7 +4,7 @@
 //! including distance units (parsec, AU, light-year), solar units, and
 //! spectroscopic units.
 
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;
 use crate::unit::Unit;
 use lazy_static::lazy_static;
@@ -102,8 +102,8 @@ lazy_static! {
     pub static ref SOLAR_LUMINOSITY: Unit = Unit::Base(BaseUnit::new(
         "solar_luminosity", "L_sun", &["Lsun", "solLum", "L_sol"],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-3, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-3, 1))),
         LSUN_W
     ));
 
@@ -154,7 +154,7 @@ lazy_static! {
     pub static ref JANSKY: Unit = Unit::Base(BaseUnit::new(
         "jansky", "Jy", &[],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-26
     ));
 
@@ -162,7 +162,7 @@ lazy_static! {
     pub static ref MJY: Unit = Unit::Base(BaseUnit::new(
         "millijansky", "mJy", &[],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-29
     ));
 
@@ -170,7 +170,7 @@ lazy_static! {
     pub static ref UJY: Unit = Unit::Base(BaseUnit::new(
         "microjansky", "uJy", &[],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-32
     ));
 
@@ -178,9 +178,9 @@ lazy_static! {
     pub static ref RAYLEIGH: Unit = Unit::Base(BaseUnit::new(
         "rayleigh", "R", &[],
         Dimension::PHOTON
-            .mul(&Dimension::LENGTH.pow(Rational8::new(-2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-1, 1)))
-            .mul(&Dimension::SOLID_ANGLE.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-1, 1)))
+            .mul(&Dimension::SOLID_ANGLE.pow(Rational16::new(-1, 1))),
         1e10
     ));
 
@@ -191,21 +191,21 @@ lazy_static! {
     /// Barn - nuclear cross section (10^-28 m^2)
     pub static ref BARN: Unit = Unit::Base(BaseUnit::new(
         "barn", "barn", &["b"],
-        Dimension::LENGTH.pow(Rational8::new(2, 1)),
+        Dimension::LENGTH.pow(Rational16::new(2, 1)),
         1e-28
     ));
 
     /// Millibarn (10^-3 barn)
     pub static ref MBARN: Unit = Unit::Base(BaseUnit::new(
         "millibarn", "mbarn", &["mb"],
-        Dimension::LENGTH.pow(Rational8::new(2, 1)),
+        Dimension::LENGTH.pow(Rational16::new(2, 1)),
         1e-31
     ));
 
     /// Microbarn (10^-6 barn)
     pub static ref UBARN: Unit = Unit::Base(BaseUnit::new(
         "microbarn", "ubarn", &["ub"],
-        Dimension::LENGTH.pow(Rational8::new(2, 1)),
+        Dimension::LENGTH.pow(Rational16::new(2, 1)),
         1e-34
     ));
 
@@ -217,8 +217,8 @@ lazy_static! {
     pub static ref ERG: Unit = Unit::Base(BaseUnit::new(
         "erg", "erg", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-7
     ));
 
@@ -227,7 +227,7 @@ lazy_static! {
         "dyne", "dyn", &[],
         Dimension::MASS
             .mul(&Dimension::LENGTH)
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
         1e-5
     ));
 
@@ -235,8 +235,8 @@ lazy_static! {
     pub static ref GAUSS: Unit = Unit::Base(BaseUnit::new(
         "gauss", "G", &["Gauss"],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(Rational8::new(-1, 1))),
+            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1))),
         1e-4
     ));
 

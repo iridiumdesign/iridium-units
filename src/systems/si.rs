@@ -193,7 +193,7 @@ lazy_static! {
     /// Newton - force (kg m / s^2)
     pub static ref N: Unit = Unit::Base(BaseUnit::new(
         "newton", "N", &[],
-        Dimension::MASS.mul(&Dimension::LENGTH).mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+        Dimension::MASS.mul(&Dimension::LENGTH).mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -201,8 +201,8 @@ lazy_static! {
     pub static ref J: Unit = Unit::Base(BaseUnit::new(
         "joule", "J", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -210,8 +210,8 @@ lazy_static! {
     pub static ref EV: Unit = Unit::Base(BaseUnit::new(
         "electronvolt", "eV", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.602176634e-19
     ));
 
@@ -219,8 +219,8 @@ lazy_static! {
     pub static ref KEV: Unit = Unit::Base(BaseUnit::new(
         "kiloelectronvolt", "keV", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.602176634e-16
     ));
 
@@ -228,8 +228,8 @@ lazy_static! {
     pub static ref MEV: Unit = Unit::Base(BaseUnit::new(
         "megaelectronvolt", "MeV", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.602176634e-13
     ));
 
@@ -237,8 +237,8 @@ lazy_static! {
     pub static ref GEV: Unit = Unit::Base(BaseUnit::new(
         "gigaelectronvolt", "GeV", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.602176634e-10
     ));
 
@@ -246,8 +246,8 @@ lazy_static! {
     pub static ref W: Unit = Unit::Base(BaseUnit::new(
         "watt", "W", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-3, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1))),
         1.0
     ));
 
@@ -255,8 +255,8 @@ lazy_static! {
     pub static ref KW: Unit = Unit::Base(BaseUnit::new(
         "kilowatt", "kW", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-3, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1))),
         1e3
     ));
 
@@ -264,8 +264,8 @@ lazy_static! {
     pub static ref MW: Unit = Unit::Base(BaseUnit::new(
         "megawatt", "MW", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-3, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1))),
         1e6
     ));
 
@@ -273,8 +273,8 @@ lazy_static! {
     pub static ref PA: Unit = Unit::Base(BaseUnit::new(
         "pascal", "Pa", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(-1, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-1, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -289,19 +289,19 @@ lazy_static! {
     pub static ref V: Unit = Unit::Base(BaseUnit::new(
         "volt", "V", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-3, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational8::new(-1, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1)))
+            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-1, 1))),
         1.0
     ));
 
     /// Farad - capacitance (A^2 s^4 / kg / m^2)
     pub static ref F: Unit = Unit::Base(BaseUnit::new(
         "farad", "F", &[],
-        Dimension::CURRENT.pow(crate::dimension::Rational8::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(4, 1)))
-            .mul(&Dimension::MASS.pow(crate::dimension::Rational8::new(-1, 1)))
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(-2, 1))),
+        Dimension::CURRENT.pow(crate::dimension::Rational16::new(2, 1))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(4, 1)))
+            .mul(&Dimension::MASS.pow(crate::dimension::Rational16::new(-1, 1)))
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -309,19 +309,19 @@ lazy_static! {
     pub static ref OHM: Unit = Unit::Base(BaseUnit::new(
         "ohm", "Ohm", &["ohm"],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-3, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1)))
+            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
     /// Siemens - electrical conductance (A^2 s^3 / kg / m^2)
     pub static ref SIEMENS: Unit = Unit::Base(BaseUnit::new(
         "siemens", "S", &[],
-        Dimension::CURRENT.pow(crate::dimension::Rational8::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(3, 1)))
-            .mul(&Dimension::MASS.pow(crate::dimension::Rational8::new(-1, 1)))
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(-2, 1))),
+        Dimension::CURRENT.pow(crate::dimension::Rational16::new(2, 1))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(3, 1)))
+            .mul(&Dimension::MASS.pow(crate::dimension::Rational16::new(-1, 1)))
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -329,9 +329,9 @@ lazy_static! {
     pub static ref WB: Unit = Unit::Base(BaseUnit::new(
         "weber", "Wb", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational8::new(-1, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-1, 1))),
         1.0
     ));
 
@@ -339,8 +339,8 @@ lazy_static! {
     pub static ref T: Unit = Unit::Base(BaseUnit::new(
         "tesla", "T", &[],
         Dimension::MASS
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational8::new(-1, 1))),
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-1, 1))),
         1.0
     ));
 
@@ -348,9 +348,9 @@ lazy_static! {
     pub static ref HENRY: Unit = Unit::Base(BaseUnit::new(
         "henry", "H", &[],
         Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1)))
+            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -366,7 +366,7 @@ lazy_static! {
         "lux", "lx", &[],
         Dimension::LUMINOUS_INTENSITY
             .mul(&Dimension::SOLID_ANGLE)
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational8::new(-2, 1))),
+            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -380,16 +380,16 @@ lazy_static! {
     /// Gray - absorbed dose (m^2 / s^2)
     pub static ref GY: Unit = Unit::Base(BaseUnit::new(
         "gray", "Gy", &[],
-        Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+        Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
     /// Sievert - equivalent dose (m^2 / s^2)
     pub static ref SV: Unit = Unit::Base(BaseUnit::new(
         "sievert", "Sv", &[],
-        Dimension::LENGTH.pow(crate::dimension::Rational8::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational8::new(-2, 1))),
+        Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1))
+            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
         1.0
     ));
 
@@ -470,8 +470,8 @@ mod tests {
         // 1 J = 1 kg m^2 / s^2
         let energy = 1.0 * J.clone();
         let dim = energy.unit().dimension();
-        assert_eq!(dim.mass, crate::dimension::Rational8::ONE);
-        assert_eq!(dim.length, crate::dimension::Rational8::new(2, 1));
-        assert_eq!(dim.time, crate::dimension::Rational8::new(-2, 1));
+        assert_eq!(dim.mass, crate::dimension::Rational16::ONE);
+        assert_eq!(dim.length, crate::dimension::Rational16::new(2, 1));
+        assert_eq!(dim.time, crate::dimension::Rational16::new(-2, 1));
     }
 }

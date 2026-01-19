@@ -10,13 +10,13 @@
 
 use super::{Converter, Equivalency};
 use crate::constants::SPEED_OF_LIGHT;
-use crate::dimension::{Dimension, Rational8};
+use crate::dimension::{Dimension, Rational16};
 use crate::quantity::Quantity;
 use crate::unit::Unit;
 
 /// Check if a unit has velocity dimension (L/T)
 fn is_velocity(unit: &Unit) -> bool {
-    let velocity_dim = Dimension::LENGTH.mul(&Dimension::TIME.pow(Rational8::new(-1, 1)));
+    let velocity_dim = Dimension::LENGTH.mul(&Dimension::TIME.pow(Rational16::new(-1, 1)));
     unit.dimension() == velocity_dim
 }
 

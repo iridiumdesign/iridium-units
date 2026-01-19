@@ -214,7 +214,7 @@
 //! - **Mass**: `lb`, `oz`, `ton`
 //! - **Other**: `psi`, `mph`, `hp`, `btu`, `gal`, `pt`, `qt`
 
-use crate::dimension::Rational8;
+use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::quantity::Quantity;
 use crate::unit::Unit;
@@ -1092,7 +1092,7 @@ fn parse_unit_with_power_registry(s: &str, registry: &HashMap<String, UnitEntry>
 }
 
 /// Parse a power exponent (integer or fraction)
-fn parse_power(s: &str) -> UnitResult<Rational8> {
+fn parse_power(s: &str) -> UnitResult<Rational16> {
     let s = s.trim();
 
     // Check for fraction notation (e.g., "1/2")
@@ -1111,13 +1111,13 @@ fn parse_power(s: &str) -> UnitResult<Rational8> {
             return Err(UnitError::ParseError("power denominator cannot be zero".into()));
         }
 
-        Ok(Rational8::new(num, den))
+        Ok(Rational16::new(num, den))
     } else {
         // Simple integer power
         let exp: i16 = s.parse().map_err(|_| {
             UnitError::ParseError(format!("invalid power: {}", s))
         })?;
-        Ok(Rational8::new(exp, 1))
+        Ok(Rational16::new(exp, 1))
     }
 }
 
@@ -1267,27 +1267,27 @@ mod tests {
     fn test_parse_unit_with_power() {
         let m2 = parse_unit("m^2").unwrap();
         let dim = m2.dimension();
-        assert_eq!(dim.length, Rational8::new(2, 1));
+        assert_eq!(dim.length, Rational16::new(2, 1));
 
         let s_inv = parse_unit("s^-1").unwrap();
         let dim = s_inv.dimension();
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.time, Rational16::new(-1, 1));
     }
 
     #[test]
     fn test_parse_unit_division() {
         let velocity = parse_unit("m/s").unwrap();
         let dim = velocity.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-1, 1));
     }
 
     #[test]
     fn test_parse_unit_product() {
         let momentum = parse_unit("kg m").unwrap();
         let dim = momentum.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::ONE);
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::ONE);
 
         // With asterisk
         let momentum2 = parse_unit("kg*m").unwrap();
@@ -1299,17 +1299,17 @@ mod tests {
         // Energy: kg m^2 / s^2
         let energy = parse_unit("kg m^2 / s^2").unwrap();
         let dim = energy.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::new(2, 1));
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
     fn test_parse_acceleration() {
         let accel = parse_unit("m/s^2").unwrap();
         let dim = accel.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
@@ -1324,8 +1324,8 @@ mod tests {
         let q = parse_quantity("10 m/s").unwrap();
         assert!((q.value() - 10.0).abs() < 1e-10);
         let dim = q.unit().dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-1, 1));
     }
 
     #[test]
@@ -1408,7 +1408,7 @@ mod tests {
     fn test_fractional_power() {
         let sqrt_m = parse_unit("m^1/2").unwrap();
         let dim = sqrt_m.dimension();
-        assert_eq!(dim.length, Rational8::new(1, 2));
+        assert_eq!(dim.length, Rational16::new(1, 2));
     }
 
     // ========================================================================
@@ -1419,23 +1419,23 @@ mod tests {
     fn test_unicode_superscript_power() {
         let m2 = parse_unit("m²").unwrap();
         let dim = m2.dimension();
-        assert_eq!(dim.length, Rational8::new(2, 1));
+        assert_eq!(dim.length, Rational16::new(2, 1));
 
         let m3 = parse_unit("m³").unwrap();
         let dim = m3.dimension();
-        assert_eq!(dim.length, Rational8::new(3, 1));
+        assert_eq!(dim.length, Rational16::new(3, 1));
     }
 
     #[test]
     fn test_unicode_negative_power() {
         let s_inv = parse_unit("s⁻¹").unwrap();
         let dim = s_inv.dimension();
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.time, Rational16::new(-1, 1));
 
         let accel = parse_unit("m/s²").unwrap();
         let dim = accel.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
@@ -1448,8 +1448,8 @@ mod tests {
     fn test_unicode_multiplication() {
         let momentum = parse_unit("kg·m").unwrap();
         let dim = momentum.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::ONE);
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::ONE);
 
         let momentum2 = parse_unit("kg×m").unwrap();
         assert_eq!(momentum2.dimension(), momentum.dimension());
@@ -1459,8 +1459,8 @@ mod tests {
     fn test_unicode_division() {
         let velocity = parse_unit("m÷s").unwrap();
         let dim = velocity.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-1, 1));
     }
 
     // ========================================================================
@@ -1471,28 +1471,28 @@ mod tests {
     fn test_latex_braces() {
         let m2 = parse_unit("m^{2}").unwrap();
         let dim = m2.dimension();
-        assert_eq!(dim.length, Rational8::new(2, 1));
+        assert_eq!(dim.length, Rational16::new(2, 1));
 
         let energy = parse_unit("kg m^{2} / s^{2}").unwrap();
         let dim = energy.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::new(2, 1));
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
     fn test_latex_cdot() {
         let momentum = parse_unit(r"kg \cdot m").unwrap();
         let dim = momentum.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::ONE);
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::ONE);
     }
 
     #[test]
     fn test_latex_times() {
         let area = parse_unit(r"m \times m").unwrap();
         let dim = area.dimension();
-        assert_eq!(dim.length, Rational8::new(2, 1));
+        assert_eq!(dim.length, Rational16::new(2, 1));
     }
 
     // ========================================================================
@@ -1503,8 +1503,8 @@ mod tests {
     fn test_per_notation() {
         let velocity = parse_unit("km per hour").unwrap();
         let dim = velocity.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-1, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-1, 1));
 
         let velocity2 = parse_unit("m per s").unwrap();
         assert_eq!(velocity2.dimension(), (&*M / &*S).dimension());
@@ -1547,34 +1547,34 @@ mod tests {
     fn test_parentheses_simple() {
         let force = parse_unit("(kg m)/s^2").unwrap();
         let dim = force.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
     fn test_parentheses_denominator() {
         let unit = parse_unit("m/(s^2)").unwrap();
         let dim = unit.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
     fn test_parentheses_with_power() {
         let unit = parse_unit("(m/s)^2").unwrap();
         let dim = unit.dimension();
-        assert_eq!(dim.length, Rational8::new(2, 1));
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
     fn test_parentheses_complex() {
         let unit = parse_unit("(kg m^2)/(s^2)").unwrap();
         let dim = unit.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::new(2, 1));
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
@@ -1641,9 +1641,9 @@ mod tests {
 
         let energy = registry.parse_unit("kg m^2 / s^2").unwrap();
         let dim = energy.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.length, Rational8::new(2, 1));
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]
@@ -1748,16 +1748,16 @@ mod tests {
         let dim = flux.dimension();
         // Energy / area / time = mass * length^2 / time^2 / length^2 / time
         // = mass / time^3
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-3, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-3, 1));
     }
 
     #[test]
     fn test_unicode_astrophysical() {
         let flux = parse_unit("erg/cm²/s").unwrap();
         let dim = flux.dimension();
-        assert_eq!(dim.mass, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-3, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-3, 1));
     }
 
     #[test]
@@ -1765,7 +1765,7 @@ mod tests {
         // Unicode superscript with division
         let accel = parse_unit("m·s⁻²").unwrap();
         let dim = accel.dimension();
-        assert_eq!(dim.length, Rational8::ONE);
-        assert_eq!(dim.time, Rational8::new(-2, 1));
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 }
