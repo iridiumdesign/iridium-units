@@ -18,6 +18,7 @@
 //! ```
 
 pub mod doppler;
+pub mod logarithmic;
 pub mod mass_energy;
 pub mod parallax;
 pub mod spectral;
@@ -151,6 +152,7 @@ impl Quantity {
 
 // Re-export commonly used equivalencies
 pub use doppler::{doppler_optical, doppler_radio, doppler_relativistic};
+pub use logarithmic::{magnitude_flux, db_power, db_amplitude, dex_ratio};
 pub use mass_energy::mass_energy;
 pub use parallax::parallax;
 pub use spectral::spectral;

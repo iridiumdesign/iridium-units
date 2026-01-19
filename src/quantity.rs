@@ -128,6 +128,109 @@ impl Quantity {
     pub fn abs(&self) -> Quantity {
         Quantity::new(self.value.abs(), self.unit.clone())
     }
+
+    // =========================================================================
+    // Logarithmic Unit Helpers
+    // =========================================================================
+
+    /// Check if this quantity has a logarithmic unit (magnitude dimension).
+    ///
+    /// Logarithmic units include magnitudes, decibels, and dex.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iridium_units::prelude::*;
+    /// use iridium_units::systems::logarithmic::MAG;
+    ///
+    /// let mag = 5.0 * &*MAG;
+    /// assert!(mag.is_logarithmic());
+    ///
+    /// let length = 10.0 * &*M;
+    /// assert!(!length.is_logarithmic());
+    /// ```
+    pub fn is_logarithmic(&self) -> bool {
+        self.unit.dimension() == crate::dimension::Dimension::MAGNITUDE
+    }
+
+    /// Convert a magnitude quantity to a flux ratio.
+    ///
+    /// Uses the Pogson formula: F/F₀ = 10^(-0.4 * m)
+    ///
+    /// Returns `Err` if this quantity does not have magnitude dimension.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iridium_units::prelude::*;
+    /// use iridium_units::systems::logarithmic::MAG;
+    ///
+    /// let star = 5.0 * &*MAG;  // 5th magnitude
+    /// let flux = star.mag_to_flux_ratio().unwrap();
+    /// assert!((flux - 0.01).abs() < 1e-10);  // 1/100 of reference flux
+    /// ```
+    pub fn mag_to_flux_ratio(&self) -> UnitResult<f64> {
+        if !self.is_logarithmic() {
+            return Err(UnitError::LogarithmicError(
+                "quantity is not a magnitude".to_string()
+            ));
+        }
+        // Convert to standard magnitude (scale = 1)
+        let mag = self.value * self.unit.scale();
+        Ok(10.0_f64.powf(-0.4 * mag))
+    }
+
+    /// Convert a decibel quantity to a power ratio.
+    ///
+    /// Uses the formula: P/P₀ = 10^(dB/10)
+    ///
+    /// Returns `Err` if this quantity does not have magnitude dimension.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iridium_units::prelude::*;
+    /// use iridium_units::systems::logarithmic::DB;
+    ///
+    /// let signal = 10.0 * &*DB;  // 10 dB
+    /// let power = signal.db_to_power_ratio().unwrap();
+    /// assert!((power - 10.0).abs() < 1e-10);  // 10x power
+    /// ```
+    pub fn db_to_power_ratio(&self) -> UnitResult<f64> {
+        if !self.is_logarithmic() {
+            return Err(UnitError::LogarithmicError(
+                "quantity is not in decibels".to_string()
+            ));
+        }
+        let db = self.value * self.unit.scale();
+        Ok(10.0_f64.powf(db / 10.0))
+    }
+
+    /// Convert a dex quantity to a linear ratio.
+    ///
+    /// Uses the formula: x/x₀ = 10^dex
+    ///
+    /// Returns `Err` if this quantity does not have magnitude dimension.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use iridium_units::prelude::*;
+    /// use iridium_units::systems::logarithmic::DEX;
+    ///
+    /// let order = 2.0 * &*DEX;  // 2 orders of magnitude
+    /// let ratio = order.dex_to_ratio().unwrap();
+    /// assert!((ratio - 100.0).abs() < 1e-10);  // factor of 100
+    /// ```
+    pub fn dex_to_ratio(&self) -> UnitResult<f64> {
+        if !self.is_logarithmic() {
+            return Err(UnitError::LogarithmicError(
+                "quantity is not in dex".to_string()
+            ));
+        }
+        let dex = self.value * self.unit.scale();
+        Ok(10.0_f64.powf(dex))
+    }
 }
 
 impl fmt::Display for Quantity {

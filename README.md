@@ -94,6 +94,77 @@ There are some things this library intentionally does *not* try to be:
 iridium-units prioritizes correctness, clarity, and performance over
 theoretical completeness.
 
+## Improvements Over AstroPy
+
+While inspired by AstroPy's excellent design, iridium-units makes several
+deliberate improvements:
+
+### Exact Rational Exponents
+
+AstroPy uses floating-point for dimensional exponents, which can lead to
+rounding errors in edge cases. iridium-units uses `Rational16` (exact fractions)
+to ensure dimensional analysis is always precise:
+
+```rust
+// √(m²) = m, exactly (exponent: 2 × 1/2 = 1, not 0.9999999...)
+let area = M.pow(Rational16::new(2, 1));
+let length = area.pow(Rational16::new(1, 2));
+assert_eq!(length.dimension(), M.dimension());  // Always passes
+```
+
+### Extended Base Dimensions
+
+AstroPy tracks 7 base dimensions. iridium-units tracks 11, adding native support
+for quantities common in astrophysics:
+
+| Dimension | AstroPy | iridium-units |
+|-----------|---------|---------------|
+| Length, Time, Mass, Current, Temperature | ✅ | ✅ |
+| Amount (moles) | ✅ | ✅ |
+| Luminous Intensity | ✅ | ✅ |
+| **Angle** | ❌ | ✅ |
+| **Solid Angle** | ❌ | ✅ |
+| **Magnitude** | ❌ | ✅ |
+| **Photon Count** | ❌ | ✅ |
+
+### Flexible Unit Parsing
+
+iridium-units accepts a wider variety of input formats:
+
+```rust
+// Unicode symbols
+parse_unit("m²")?;        // Superscript
+parse_unit("µm")?;        // Micro sign
+parse_unit("Ω")?;         // Ohm symbol
+
+// LaTeX notation
+parse_unit("m^{2}")?;     // Braced exponents
+parse_unit(r"kg \cdot m")?;  // \cdot multiplication
+
+// Natural language
+parse_unit("km per hour")?;
+
+// Astrophysical subscripts
+parse_unit("M_sun")?;     // Solar mass
+parse_unit("R_jup")?;     // Jupiter radius
+```
+
+### Helpful Error Messages
+
+When a unit isn't recognized, iridium-units suggests alternatives:
+
+```rust
+let result = parse_unit("metrs");
+// Error: unknown unit 'metrs', did you mean 'meters'?
+```
+
+### Rust Advantages
+
+- **Type Safety**: Compile-time guarantees that Python can't provide
+- **No GIL**: True parallelism for batch processing
+- **Zero-Cost Abstractions**: Performance without sacrificing expressiveness
+- **Memory Safety**: No null pointer exceptions or buffer overflows
+
 ## About iridiumdesign
 
 Iridiumdesign—and the iridiumdesign.com domain—started back in 2000 while I was
