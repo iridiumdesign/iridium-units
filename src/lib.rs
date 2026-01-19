@@ -38,7 +38,7 @@
 //!
 //! ## Parsing Units and Quantities
 //!
-//! Units and quantities can be parsed from strings:
+//! Units and quantities can be parsed from strings with flexible syntax support:
 //!
 //! ```
 //! use iridium_units::prelude::*;
@@ -52,6 +52,30 @@
 //! // Parse quantities (value + unit)
 //! let distance: Quantity = "100 km".parse().unwrap();
 //! let speed: Quantity = "9.8 m/s^2".parse().unwrap();
+//!
+//! // Unicode and technical formats are supported
+//! let area = parse_unit("m²").unwrap();           // Unicode superscript
+//! let wavelength = parse_unit("µm").unwrap();     // Unicode micro
+//! let flux = parse_unit("erg/cm²/s").unwrap();    // Astrophysical
+//! let latex = parse_unit("kg m^{2} / s^{2}").unwrap();  // LaTeX braces
+//! let natural = parse_unit("km per hour").unwrap();     // Natural language
+//! let astro = parse_unit("M_sun").unwrap();       // Astrophysical subscripts
+//! let parens = parse_unit("(kg m)/s^2").unwrap(); // Parentheses
+//! ```
+//!
+//! See the [`parsing`] module for comprehensive documentation of supported formats.
+//!
+//! ## Custom Unit Registry
+//!
+//! For applications needing custom units (e.g., loaded from a database):
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! let registry = UnitRegistry::with_builtins()
+//!     .with_alias(&["my_unit", "mu"], M.clone());
+//!
+//! let unit = registry.parse_unit("my_unit").unwrap();
 //! ```
 //!
 //! ## Equivalencies
@@ -83,8 +107,8 @@ pub use error::{UnitError, UnitResult};
 pub use quantity::Quantity;
 pub use unit::Unit;
 
-// Re-export parsing functions
-pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit};
+// Re-export parsing functions and types
+pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRegistry};
 
 /// Prelude module for convenient imports.
 ///
@@ -99,8 +123,8 @@ pub mod prelude {
     pub use crate::quantity::Quantity;
     pub use crate::unit::Unit;
 
-    // Re-export parsing functions
-    pub use crate::parsing::{parse_unit, parse_quantity, lookup_unit, register_unit};
+    // Re-export parsing functions and types
+    pub use crate::parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRegistry};
 
     // Re-export common SI units
     pub use crate::systems::si::{

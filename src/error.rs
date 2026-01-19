@@ -14,8 +14,14 @@ pub enum UnitError {
     IncompatibleDimensions { lhs: String, rhs: String },
 
     /// Unknown unit name in string parsing.
-    #[error("unknown unit: {0}")]
-    UnknownUnit(String),
+    #[error("unknown unit: '{name}'{}",
+        if suggestions.is_empty() { String::new() }
+        else { format!(", did you mean '{}'?", suggestions.join("' or '")) }
+    )]
+    UnknownUnit {
+        name: String,
+        suggestions: Vec<String>,
+    },
 
     /// Failed to parse a unit string.
     #[error("failed to parse unit string: {0}")]
