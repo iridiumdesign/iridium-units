@@ -114,7 +114,7 @@ impl Rational16 {
     /// Create a new rational number, returning an error if the denominator is zero.
     pub fn checked_new(numer: i16, denom: i16) -> Result<Self, crate::error::UnitError> {
         if denom == 0 {
-            return Err(crate::error::UnitError::DimensionOverflow);
+            return Err(crate::error::UnitError::ZeroDenominator);
         }
         let mut r = Rational16 { numer, denom };
         r.normalize();
@@ -605,7 +605,7 @@ mod tests {
     #[test]
     fn test_rational_add_reduces_before_cast() {
         // 1/200 + 1/200: intermediate denom = 200*200 = 40000 > i16::MAX
-        // but after reduction: 2/40000 = 1/20000, which fits
+        // intermediate numer = 1*200 + 1*200 = 400, so 400/40000 reduces to 1/100, which fits
         let a = Rational16::new(1, 200);
         let b = Rational16::new(1, 200);
         let c = a + b;
