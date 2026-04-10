@@ -17,13 +17,19 @@
 //! let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
 //! ```
 
+#[cfg(feature = "astrophysics")]
 pub mod brightness_temperature;
 pub mod dimensionless_angles;
+#[cfg(feature = "astrophysics")]
 pub mod doppler;
+#[cfg(feature = "logarithmic")]
 pub mod logarithmic;
 pub mod mass_energy;
+#[cfg(feature = "astrophysics")]
 pub mod parallax;
+#[cfg(feature = "astrophysics")]
 pub mod spectral;
+#[cfg(feature = "astrophysics")]
 pub mod spectral_density;
 pub mod temperature;
 
@@ -154,12 +160,18 @@ impl Quantity {
 }
 
 // Re-export commonly used equivalencies
+#[cfg(feature = "astrophysics")]
 pub use brightness_temperature::{brightness_temperature, brightness_temperature_intensity, brightness_temperature_planck};
 pub use dimensionless_angles::dimensionless_angles;
+#[cfg(feature = "astrophysics")]
 pub use doppler::{doppler_optical, doppler_radio, doppler_relativistic};
+#[cfg(feature = "logarithmic")]
 pub use logarithmic::{magnitude_flux, db_power, db_amplitude, dex_ratio};
 pub use mass_energy::mass_energy;
+#[cfg(feature = "astrophysics")]
 pub use parallax::parallax;
+#[cfg(feature = "astrophysics")]
 pub use spectral::spectral;
+#[cfg(feature = "astrophysics")]
 pub use spectral_density::{spectral_density, ab_magnitude, ab_magnitude_lambda};
 pub use temperature::{temperature, temperature_energy};

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-iridium-units is a Rust library for units of measure with runtime dimensional analysis, inspired by AstroPy's units module. It is designed to support astrophysics calculations.
+iridium-units is a Rust library for units of measure with runtime dimensional analysis. It is designed to support astrophysics calculations.
 
 ## Build Commands
 

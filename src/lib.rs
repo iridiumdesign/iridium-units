@@ -1,6 +1,6 @@
 //! # iridium-units
 //!
-//! A runtime dimensional analysis library inspired by AstroPy's units module.
+//! A high-performance runtime dimensional analysis library for Rust.
 //!
 //! This library provides physical units and quantities with automatic dimensional
 //! analysis at runtime. It supports SI, CGS, and astrophysical unit systems,
@@ -40,7 +40,7 @@
 //!
 //! Units and quantities can be parsed from strings with flexible syntax support:
 //!
-//! ```
+//! ```ignore
 //! use iridium_units::prelude::*;
 //! use std::str::FromStr;
 //!
@@ -139,12 +139,14 @@ pub mod prelude {
     };
 
     // Re-export astrophysical units
+    #[cfg(feature = "astrophysics")]
     pub use crate::systems::astrophysical::{
         ANGSTROM, AU, BARN, DYN, ERG, GAUSS, JANSKY, LIGHT_YEAR, PARSEC,
         SOLAR_LUMINOSITY, SOLAR_MASS, SOLAR_RADIUS,
     };
 
     // Re-export CGS units
+    #[cfg(feature = "cgs")]
     pub use crate::systems::cgs::{
         CENTIMETER, DYNE, ERG as ERG_CGS, GRAM,
     };

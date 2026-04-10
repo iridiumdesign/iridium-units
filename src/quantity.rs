@@ -139,7 +139,7 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::MAG;
     ///
@@ -161,7 +161,7 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::MAG;
     ///
@@ -188,7 +188,7 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::DB;
     ///
@@ -214,7 +214,7 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::DEX;
     ///

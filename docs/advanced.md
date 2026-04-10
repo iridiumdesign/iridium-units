@@ -367,15 +367,3 @@ for handle in handles {
 ```
 
 ---
-
-## Comparison with AstroPy
-
-| Feature | AstroPy | iridium-units |
-|---------|---------|---------------|
-| Language | Python | Rust |
-| Dimensional exponents | float | Rational16 (exact) |
-| Base dimensions | 7 | 11 |
-| Parsing flexibility | Standard | Unicode, LaTeX, subscripts |
-| Error messages | Basic | Suggestions ("did you mean?") |
-| Thread safety | GIL-limited | Full |
-| Batch performance | NumPy-dependent | Native ~80× faster |

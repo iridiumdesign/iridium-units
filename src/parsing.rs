@@ -22,7 +22,6 @@
 //! // Unicode and technical formats work too
 //! let area = parse_unit("m²").unwrap();           // Unicode superscript
 //! let wavelength = parse_unit("µm").unwrap();     // Unicode micro
-//! let flux = parse_unit("erg/cm²/s").unwrap();    // Mixed formats
 //! ```
 //!
 //! # Supported Syntax
@@ -106,7 +105,7 @@
 //! | `M_earth`, `M_⊕` | Earth mass |
 //! | `R_earth`, `R_⊕` | Earth radius |
 //!
-//! ```
+//! ```ignore
 //! # use iridium_units::prelude::*;
 //! let stellar_mass = parse_unit("M_sun").unwrap();
 //! let planet_radius = parse_unit("R_jup").unwrap();
@@ -697,15 +696,7 @@ lazy_static! {
 /// Register all built-in units with the registry.
 fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     use crate::systems::si::*;
-    use crate::systems::astrophysical::{
-        AU, PARSEC, KPC, MPC, GPC, LIGHT_YEAR,
-        SOLAR_MASS, SOLAR_RADIUS, SOLAR_LUMINOSITY,
-        JUPITER_MASS, JUPITER_RADIUS, EARTH_MASS, EARTH_RADIUS,
-        ANGSTROM, JANSKY, MJY, UJY, BARN,
-        ERG, DYN, GAUSS,
-    };
     use crate::systems::imperial::*;
-    use crate::systems::cgs::{CENTIMETER, GRAM};
 
     // Helper to register a unit with multiple names
     macro_rules! register {
@@ -787,37 +778,6 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, *MAS, "mas", "milliarcsecond", "milliarcseconds");
     register!(map, *UAS, "uas", "microarcsecond", "microarcseconds");
 
-    // Astrophysical - Distance
-    register!(map, *AU, "au", "astronomical_unit");
-    register!(map, *PARSEC, "pc", "parsec", "parsecs");
-    register!(map, *KPC, "kpc", "kiloparsec", "kiloparsecs");
-    register!(map, *MPC, "mpc", "megaparsec", "megaparsecs");
-    register!(map, *GPC, "gpc", "gigaparsec", "gigaparsecs");
-    register!(map, *LIGHT_YEAR, "ly", "lyr", "lightyear", "lightyears", "light_year", "light_years");
-
-    // Astrophysical - Solar
-    register!(map, *SOLAR_MASS, "m_sun", "msun", "solmass", "solar_mass");
-    register!(map, *SOLAR_RADIUS, "r_sun", "rsun", "solrad", "solar_radius");
-    register!(map, *SOLAR_LUMINOSITY, "l_sun", "lsun", "sollum", "solar_luminosity");
-
-    // Astrophysical - Planetary
-    register!(map, *JUPITER_MASS, "m_jup", "mjup", "jupiter_mass");
-    register!(map, *JUPITER_RADIUS, "r_jup", "rjup", "jupiter_radius");
-    register!(map, *EARTH_MASS, "m_earth", "mearth", "earth_mass");
-    register!(map, *EARTH_RADIUS, "r_earth", "rearth", "earth_radius");
-
-    // Astrophysical - Spectroscopic
-    register!(map, *ANGSTROM, "angstrom", "aa");
-    register!(map, *JANSKY, "jy", "jansky");
-    register!(map, *MJY, "mjy", "millijansky");
-    register!(map, *UJY, "ujy", "microjansky");
-    register!(map, *BARN, "barn", "barns");
-
-    // Astrophysical - CGS commonly used
-    register!(map, *ERG, "erg", "ergs");
-    register!(map, *DYN, "dyn", "dyne", "dynes");
-    register!(map, *GAUSS, "gauss");
-
     // Imperial - Length
     register!(map, *INCH, "in", "inch", "inches");
     register!(map, *FOOT, "ft", "foot", "feet");
@@ -842,7 +802,77 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, *HORSEPOWER, "hp", "horsepower");
     register!(map, *BTU, "btu");
 
-    // CGS
+    #[cfg(feature = "astrophysics")]
+    register_astrophysical_units(map);
+
+    #[cfg(feature = "cgs")]
+    register_cgs_units(map);
+}
+
+#[cfg(feature = "astrophysics")]
+fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
+    use crate::systems::astrophysical::{
+        AU, PARSEC, KPC, MPC, GPC, LIGHT_YEAR,
+        SOLAR_MASS, SOLAR_RADIUS, SOLAR_LUMINOSITY,
+        JUPITER_MASS, JUPITER_RADIUS, EARTH_MASS, EARTH_RADIUS,
+        ANGSTROM, JANSKY, MJY, UJY, BARN,
+        ERG, DYN, GAUSS,
+    };
+
+    macro_rules! register {
+        ($map:expr, $unit:expr, $($name:expr),+) => {
+            let entry = UnitEntry { unit: $unit.clone() };
+            $(
+                $map.insert($name.to_lowercase(), entry.clone());
+            )+
+        };
+    }
+
+    // Distance
+    register!(map, *AU, "au", "astronomical_unit");
+    register!(map, *PARSEC, "pc", "parsec", "parsecs");
+    register!(map, *KPC, "kpc", "kiloparsec", "kiloparsecs");
+    register!(map, *MPC, "mpc", "megaparsec", "megaparsecs");
+    register!(map, *GPC, "gpc", "gigaparsec", "gigaparsecs");
+    register!(map, *LIGHT_YEAR, "ly", "lyr", "lightyear", "lightyears", "light_year", "light_years");
+
+    // Solar
+    register!(map, *SOLAR_MASS, "m_sun", "msun", "solmass", "solar_mass");
+    register!(map, *SOLAR_RADIUS, "r_sun", "rsun", "solrad", "solar_radius");
+    register!(map, *SOLAR_LUMINOSITY, "l_sun", "lsun", "sollum", "solar_luminosity");
+
+    // Planetary
+    register!(map, *JUPITER_MASS, "m_jup", "mjup", "jupiter_mass");
+    register!(map, *JUPITER_RADIUS, "r_jup", "rjup", "jupiter_radius");
+    register!(map, *EARTH_MASS, "m_earth", "mearth", "earth_mass");
+    register!(map, *EARTH_RADIUS, "r_earth", "rearth", "earth_radius");
+
+    // Spectroscopic
+    register!(map, *ANGSTROM, "angstrom", "aa");
+    register!(map, *JANSKY, "jy", "jansky");
+    register!(map, *MJY, "mjy", "millijansky");
+    register!(map, *UJY, "ujy", "microjansky");
+    register!(map, *BARN, "barn", "barns");
+
+    // CGS commonly used in astrophysics
+    register!(map, *ERG, "erg", "ergs");
+    register!(map, *DYN, "dyn", "dyne", "dynes");
+    register!(map, *GAUSS, "gauss");
+}
+
+#[cfg(feature = "cgs")]
+fn register_cgs_units(map: &mut HashMap<String, UnitEntry>) {
+    use crate::systems::cgs::{CENTIMETER, GRAM};
+
+    macro_rules! register {
+        ($map:expr, $unit:expr, $($name:expr),+) => {
+            let entry = UnitEntry { unit: $unit.clone() };
+            $(
+                $map.insert($name.to_lowercase(), entry.clone());
+            )+
+        };
+    }
+
     register!(map, *CENTIMETER, "centimeter_cgs");
     register!(map, *GRAM, "gram_cgs");
 }
@@ -850,11 +880,6 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
 /// Register extended Unicode and academic aliases.
 fn register_extended_aliases(map: &mut HashMap<String, UnitEntry>) {
     use crate::systems::si::*;
-    use crate::systems::astrophysical::{
-        SOLAR_MASS, SOLAR_RADIUS, SOLAR_LUMINOSITY,
-        JUPITER_MASS, JUPITER_RADIUS, EARTH_MASS, EARTH_RADIUS,
-        ANGSTROM,
-    };
 
     macro_rules! register {
         ($map:expr, $unit:expr, $($name:expr),+) => {
@@ -873,15 +898,36 @@ fn register_extended_aliases(map: &mut HashMap<String, UnitEntry>) {
     // Ohm with Unicode
     register!(map, *OHM, "ω");
 
-    // Angstrom with Unicode
-    register!(map, *ANGSTROM, "å");
-
     // Degree symbol
     register!(map, *DEG, "°");
 
     // Arc minute/second with Unicode
     register!(map, *ARCMIN, "′");
     register!(map, *ARCSEC, "″");
+
+    #[cfg(feature = "astrophysics")]
+    register_astrophysical_aliases(map);
+}
+
+#[cfg(feature = "astrophysics")]
+fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
+    use crate::systems::astrophysical::{
+        SOLAR_MASS, SOLAR_RADIUS, SOLAR_LUMINOSITY,
+        JUPITER_MASS, JUPITER_RADIUS, EARTH_MASS, EARTH_RADIUS,
+        ANGSTROM,
+    };
+
+    macro_rules! register {
+        ($map:expr, $unit:expr, $($name:expr),+) => {
+            let entry = UnitEntry { unit: $unit.clone() };
+            $(
+                $map.insert($name.to_lowercase(), entry.clone());
+            )+
+        };
+    }
+
+    // Angstrom with Unicode
+    register!(map, *ANGSTROM, "å");
 
     // Extended astrophysical aliases
     register!(map, *SOLAR_MASS, "m⊙", "solmass", "sol_mass");
@@ -1375,6 +1421,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "astrophysics")]
     #[test]
     fn test_astrophysical_units() {
         let pc = parse_unit("pc").unwrap();
@@ -1521,6 +1568,7 @@ mod tests {
     // Subscript/Astrophysical Notation Tests
     // ========================================================================
 
+    #[cfg(feature = "astrophysics")]
     #[test]
     fn test_subscript_solar() {
         let msun = parse_unit("M_sun").unwrap();
@@ -1530,6 +1578,7 @@ mod tests {
         assert_eq!(rsun.dimension(), M.dimension());
     }
 
+    #[cfg(feature = "astrophysics")]
     #[test]
     fn test_subscript_planetary() {
         let mjup = parse_unit("M_jup").unwrap();
@@ -1742,6 +1791,7 @@ mod tests {
     // Combined/Integration Tests
     // ========================================================================
 
+    #[cfg(feature = "astrophysics")]
     #[test]
     fn test_astrophysical_flux_unit() {
         let flux = parse_unit("erg/cm^2/s").unwrap();
@@ -1752,6 +1802,7 @@ mod tests {
         assert_eq!(dim.time, Rational16::new(-3, 1));
     }
 
+    #[cfg(feature = "astrophysics")]
     #[test]
     fn test_unicode_astrophysical() {
         let flux = parse_unit("erg/cm²/s").unwrap();

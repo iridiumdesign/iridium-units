@@ -8,9 +8,12 @@
 //! - [`imperial`]: Imperial/US customary units
 //! - [`logarithmic`]: Logarithmic units (magnitudes, decibels, dex)
 
+#[cfg(feature = "astrophysics")]
 pub mod astrophysical;
+#[cfg(feature = "cgs")]
 pub mod cgs;
 pub mod imperial;
+#[cfg(feature = "logarithmic")]
 pub mod logarithmic;
 pub mod si;
 
@@ -23,8 +26,11 @@ pub mod si;
 /// ```
 pub mod u {
     pub use super::si::*;
+    #[cfg(feature = "astrophysics")]
     pub use super::astrophysical::*;
+    #[cfg(feature = "cgs")]
     pub use super::cgs::GRAM;
     pub use super::imperial::{FOOT, INCH, MILE, POUND, YARD};
+    #[cfg(feature = "logarithmic")]
     pub use super::logarithmic::{MAG, APPARENT_MAG, ABSOLUTE_MAG, DB, DEX, MILLIMAG};
 }

@@ -3,10 +3,16 @@ name = "iridium-units"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Units of measure inspired by AstroPy"
+description = "A high-performance runtime unit-of-measure library for Rust"
 keywords = ["units", "dimensional-analysis", "physics", "astronomy"]
 categories = ["science", "mathematics"]
-repository = "https://github.com/bsiegfreid/iridium-units"
+repository = "https://github.com/iridiumdesign/iridium-units"
+
+[features]
+default = ["cgs", "astrophysics", "logarithmic"]
+cgs = []
+astrophysics = []
+logarithmic = []
 
 [dependencies]
 thiserror = "2.0"

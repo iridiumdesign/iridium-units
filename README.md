@@ -30,55 +30,19 @@ let speed_ms = speed.to(&(&*M / &*S))?;
 println!("{}", speed_ms);  // 13.888... m/s
 
 // Parse from strings
-let wavelength = parse_quantity("500 nm")?;
-let frequency = wavelength.to_equiv(&HZ, spectral())?;
+let distance = parse_quantity("100 km")?;
+let speed = parse_quantity("9.8 m/s^2")?;
 ```
 
 See the [documentation](docs/getting-started.md) for more examples.
 
-## The Story So Far
+## Overview
 
-I built this library because I needed a units system in a real production
-environment—and I’m not a mathematician, a physicist, or someone who spends
-their days thinking deeply about dimensional analysis. I’m a software engineer
-who just wanted code involving units to be *correct*, *safe*, and *fast*,
-without constantly second-guessing myself.
-
-I’ve used AstroPy’s units library before, and it’s genuinely excellent. It set
-a very high bar for what a unit system can look like in terms of clarity and
-expressiveness. Unfortunately, when I tried to use it in a production setting
-with real runtime constraints, the performance just wasn’t where I needed it to
-be.
-
-So instead of trying to force an existing solution to fit, I decided to learn
-from it.
-
-With the help of AI, I analyzed AstroPy and a number of other unit-of-measure
-libraries—looking at their APIs, internal models, and performance
-characteristics. The result is **iridium-units**: a runtime dimensional
-analysis library inspired by AstroPy’s ergonomics, but designed from the ground
-up with production performance in mind.
-
-This project exists because I wanted something that felt *safe* without feeling
-*fragile*, and *correct* without being *slow*.
-
-## Motivation
-
-Unit errors are one of those problems that feel obvious in hindsight and
-painful in production. They’re easy to introduce, hard to spot in review, and
-often invisible until the worst possible moment.
-
-In my experience, most unit libraries fall into one of two camps:
-
-- **Compile-time unit systems**, which are powerful but rigid,
-language-specific, and often overkill for day-to-day work
-- **Runtime unit systems**, which are flexible and expressive, but frequently
-too slow for high-throughput or latency-sensitive code
-
-iridium-units is my attempt to sit comfortably between those two extremes: a
-runtime unit system that’s fast enough for production use, strict enough to
-catch real mistakes, and approachable enough that you don’t need a physics
-background to use it confidently.
+iridium-units is a runtime dimensional analysis library for Rust, designed for
+production use. It catches unit errors at runtime with helpful error messages,
+supports exact rational exponents to avoid floating-point rounding in
+dimensional algebra, and provides comprehensive unit systems for SI, CGS,
+astrophysics, and imperial measurement.
 
 ## Design Goals
 
@@ -91,8 +55,8 @@ notebooks and experiments.
 - **Low cognitive overhead**  You shouldn’t need to think about dimensional
 algebra every time you write code.
 
-- **AstroPy-inspired ergonomics**  Natural arithmetic, readable unit
-expressions, and explicit conversions where they matter.
+- **Ergonomic API**  Natural arithmetic, readable unit expressions, and
+explicit conversions where they matter.
 
 - **Extensible unit systems**  Start with SI units, but don’t paint yourself
 into a corner if your domain needs something else.
@@ -109,42 +73,39 @@ There are some things this library intentionally does *not* try to be:
 iridium-units prioritizes correctness, clarity, and performance over
 theoretical completeness.
 
-## Improvements Over AstroPy
-
-While inspired by AstroPy's excellent design, iridium-units makes several
-deliberate improvements:
+## Capabilities
 
 ### Exact Rational Exponents
 
-AstroPy uses floating-point for dimensional exponents, which can lead to
-rounding errors in edge cases. iridium-units uses `Rational16` (exact fractions)
-to ensure dimensional analysis is always precise:
+Dimensional exponents are stored as exact fractions (`Rational16`), so
+dimensional analysis is always precise:
 
 ```rust
-// √(m²) = m, exactly (exponent: 2 × 1/2 = 1, not 0.9999999...)
+// √(m²) = m, exactly — no floating-point rounding
 let area = M.pow(Rational16::new(2, 1));
 let length = area.pow(Rational16::new(1, 2));
-assert_eq!(length.dimension(), M.dimension());  // Always passes
+assert_eq!(length.dimension(), M.dimension());
 ```
 
-### Extended Base Dimensions
+### 11 Base Dimensions
 
-AstroPy tracks 7 base dimensions. iridium-units tracks 11, adding native support
-for quantities common in astrophysics:
+iridium-units tracks 11 base dimensions, including those common in astrophysics:
 
-| Dimension | AstroPy | iridium-units |
-|-----------|---------|---------------|
-| Length, Time, Mass, Current, Temperature | ✅ | ✅ |
-| Amount (moles) | ✅ | ✅ |
-| Luminous Intensity | ✅ | ✅ |
-| **Angle** | ❌ | ✅ |
-| **Solid Angle** | ❌ | ✅ |
-| **Magnitude** | ❌ | ✅ |
-| **Photon Count** | ❌ | ✅ |
+- Amount
+- Angle
+- Current
+- Length
+- Luminous Intensity
+- Magnitude
+- Mass
+- Photon Count
+- Solid Angle
+- Temperature
+- Time
 
 ### Flexible Unit Parsing
 
-iridium-units accepts a wider variety of input formats:
+Multiple input formats are supported:
 
 ```rust
 // Unicode symbols
@@ -166,36 +127,53 @@ parse_unit("R_jup")?;     // Jupiter radius
 
 ### Helpful Error Messages
 
-When a unit isn't recognized, iridium-units suggests alternatives:
+When a unit isn’t recognized, alternatives are suggested:
 
 ```rust
 let result = parse_unit("metrs");
-// Error: unknown unit 'metrs', did you mean 'meters'?
+// Error: unknown unit ‘metrs’, did you mean ‘meters’?
 ```
 
-### Rust Advantages
+## Feature Flags
 
-- **Type Safety**: Compile-time guarantees that Python can't provide
-- **No GIL**: True parallelism for batch processing
-- **Zero-Cost Abstractions**: Performance without sacrificing expressiveness
-- **Memory Safety**: No null pointer exceptions or buffer overflows
+All features are enabled by default. Disable default features and enable only
+what you need to reduce compile scope:
 
-## About iridiumdesign
+```toml
+[dependencies]
+iridium-units = { version = "0.1", default-features = false, features = ["astrophysics"] }
+```
 
-Iridiumdesign—and the iridiumdesign.com domain—started back in 2000 while I was
-finishing design school. At the time, it was meant to support freelance work in
-graphic design and web development.
+| Feature | What it includes |
+|---------|-----------------|
+| `cgs` | CGS unit system (centimeter, gram, dyne, erg, gauss, etc.) |
+| `astrophysics` | Astrophysical units (parsec, AU, solar units, Jansky, etc.) and equivalencies (spectral, Doppler, parallax, brightness temperature, spectral density) |
+| `logarithmic` | Logarithmic units (magnitudes, decibels, dex) and equivalencies |
 
-Over the years, as I moved into full-time corporate software engineering,
-Iridiumdesign became less of a business and more of a sandbox. It’s where I
-experiment, learn, and build things that don’t always fit neatly into my day
-job.
+The core library (SI, imperial, temperature, mass-energy, dimensionless angles,
+parsing, batch conversion, and physical constants) is always available.
 
-These days I’m a senior software engineer and don’t do much design work
-anymore, but the *iridium* name stuck. I use it as a prefix for my personal
-libraries and projects so they’re easy to identify and group together.
+## Verification
 
-iridium-units is one of those projects: something I built because I needed it,
-learned from, and decided was worth sharing.
+Physical constants are sourced from CODATA 2018 and verified against published
+values. Astronomical constants follow IAU 2015 nominal values. Unit conversion
+factors are checked against authoritative references.
 
-*Brad Siegfreid*
+The test suite includes 200+ tests covering:
+
+- Arithmetic with dimensional analysis
+- Unit conversion round-trips
+- Equivalency physics validated against known results
+- Edge cases (zero values, negative inputs, invalid conversions)
+- Parsing across all supported formats
+
+## Development
+
+This library was developed with AI assistance. The core type system, SI units,
+imperial units, and fundamental physics equivalencies (temperature, mass-energy,
+dimensionless angles) have been validated through direct use.
+
+The CGS, astrophysics, and logarithmic modules were developed primarily through
+AI assistance and verified against published references rather than personal
+domain expertise. These modules are behind feature flags. Contributions and
+corrections from domain experts are welcome.

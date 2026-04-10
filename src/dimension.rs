@@ -1,7 +1,7 @@
 //! Dimensional analysis types.
 //!
 //! This module provides the [`Dimension`] type which represents physical dimensions
-//! as a product of powers of 11 base dimensions, following AstroPy's model.
+//! as a product of powers of 11 base dimensions.
 //!
 //! # Rational Exponents
 //!
@@ -238,7 +238,7 @@ impl From<i32> for Rational16 {
 /// Each field stores the rational power of that base dimension.
 /// For example, velocity (m/s) has length=1, time=-1, all others=0.
 ///
-/// The 11 base dimensions follow AstroPy's model:
+/// The 11 base dimensions are:
 /// - length, time, mass, current, temperature (SI base)
 /// - angle, solid_angle (angular)
 /// - luminous_intensity, magnitude (photometric)

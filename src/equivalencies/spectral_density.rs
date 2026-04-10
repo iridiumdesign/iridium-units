@@ -425,6 +425,7 @@ pub fn f_lambda_to_f_nu(f_lambda: f64, wavelength_m: f64) -> f64 {
 mod tests {
     use super::*;
     use crate::systems::astrophysical::JANSKY;
+    #[cfg(feature = "logarithmic")]
     use crate::systems::logarithmic::MAG;
     use crate::systems::si::{NM, M, HZ, W};
 
@@ -438,6 +439,7 @@ mod tests {
         &*W / (&*M * &*M * &*HZ)
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_zero_point() {
         // 3631 Jy should be 0 AB mag
@@ -446,6 +448,7 @@ mod tests {
         assert!((mag.value() - 0.0).abs() < 1e-10);
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_mag_1jy() {
         // 1 Jy should be about 8.9 AB mag
@@ -456,6 +459,7 @@ mod tests {
         assert!((mag.value() - 8.9).abs() < 0.05);
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_mag_to_flux() {
         // 0 AB mag should be 3631 Jy
@@ -464,6 +468,7 @@ mod tests {
         assert!((flux.value() - 3631.0).abs() < 1e-6);
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_mag_20() {
         // 20 AB mag should be 3631 * 10^-8 Jy = 3.631e-5 Jy
@@ -473,6 +478,7 @@ mod tests {
         assert!((flux.value() - expected).abs() / expected < 1e-10);
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_mag_roundtrip() {
         let original_flux = 100.0 * &*JANSKY;
