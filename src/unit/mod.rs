@@ -70,22 +70,31 @@ impl Unit {
     /// Most units have offset 0.0. Offset units like Celsius (273.15)
     /// and Fahrenheit (459.67) use this for affine conversions.
     /// The formula is: `SI_value = (value + offset) * scale`.
+    ///
+    /// Offsets are only defined for [`Unit::Base`]. Composite units are
+    /// treated as interval units, so composing an offset base unit does
+    /// **not** preserve its additive offset.
     pub fn offset(&self) -> f64 {
         match self {
             Unit::Base(b) => b.offset,
-            _ => 0.0,
+            Unit::Composite(_) | Unit::Dimensionless { .. } => 0.0,
         }
     }
 
     /// Check if this unit has an additive offset (e.g., Celsius, Fahrenheit).
+    ///
+    /// Only true for [`Unit::Base`] values with a non-zero offset.
     pub fn has_offset(&self) -> bool {
         self.offset() != 0.0
     }
 
     /// Convert a value in this unit to SI base units.
     ///
-    /// For simple units: `value * scale`
-    /// For offset units: `(value + offset) * scale`
+    /// For pure scale units: `value * scale`
+    /// For offset base units: `(value + offset) * scale`
+    ///
+    /// Affine offsets are only applied for [`Unit::Base`]. Composite
+    /// units are converted using scale alone (interval semantics).
     pub fn to_si(&self, value: f64) -> f64 {
         (value + self.offset()) * self.scale()
     }
@@ -304,5 +313,15 @@ mod tests {
         let sqrt_m2 = m2.sqrt();
         let dim = sqrt_m2.dimension();
         assert_eq!(dim.length, Rational16::ONE);
+    }
+
+    #[test]
+    fn test_offset_unit_conversion_factor_rejected() {
+        let kelvin = Unit::Base(BaseUnit::new("kelvin", "K", &[], Dimension::TEMPERATURE, 1.0));
+        let celsius = Unit::Base(BaseUnit::with_offset(
+            "celsius", "°C", &[], Dimension::TEMPERATURE, 1.0, 273.15,
+        ));
+        let result = celsius.conversion_factor(&kelvin);
+        assert!(matches!(result, Err(UnitError::OffsetConversion { .. })));
     }
 }

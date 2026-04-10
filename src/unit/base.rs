@@ -41,7 +41,7 @@ impl BaseUnit {
     }
 
     /// Create a new base unit with an additive offset.
-    /// Units with offsets require equivalency-based conversion.
+    /// Offset units use affine conversion via their `scale` and `offset`.
     pub const fn with_offset(
         name: &'static str,
         symbol: &'static str,

@@ -55,7 +55,7 @@ lazy_static! {
     pub static ref SR: Unit = Unit::Base(STERADIAN.clone());
 
     // =============================================================================
-    // Temperature units (offset scales — conversions handled by temperature equivalency)
+    // Temperature units (offset scales — conversions handled natively via unit offset)
     // =============================================================================
 
     /// Degree Celsius (offset from Kelvin by +273.15)

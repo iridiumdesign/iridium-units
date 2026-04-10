@@ -36,11 +36,8 @@ fn identify_temp_scale(unit: &Unit) -> Option<TempScale> {
     }
 
     // Use the offset field to identify offset scales
-    if unit.has_offset() {
-        let offset = match unit {
-            Unit::Base(b) => b.offset,
-            _ => return Some(TempScale::Kelvin),
-        };
+    if let Unit::Base(b) = unit {
+        let offset = b.offset;
         // Celsius: offset ≈ 273.15 (K = °C + 273.15)
         if (offset - 273.15).abs() < 1e-6 {
             return Some(TempScale::Celsius);
@@ -89,11 +86,6 @@ pub fn temperature() -> Equivalency {
         ))
     })
 }
-
-/// Absolute zero in Celsius
-const ABS_ZERO_C: f64 = -273.15;
-/// Absolute zero in Fahrenheit
-const ABS_ZERO_F: f64 = -459.67;
 
 /// Create a converter between temperature scales.
 ///
