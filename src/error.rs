@@ -43,6 +43,10 @@ pub enum UnitError {
     #[error("overflow in dimension exponent calculation")]
     DimensionOverflow,
 
+    /// Zero denominator in rational exponent.
+    #[error("zero denominator in rational exponent")]
+    ZeroDenominator,
+
     /// Invalid input for batch operation.
     #[error("batch operation error: {0}")]
     BatchError(String),
