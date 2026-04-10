@@ -78,9 +78,8 @@ impl Quantity {
 
     /// Decompose to SI base units.
     pub fn decompose(&self) -> Quantity {
-        // Convert to SI base units by applying the scale factor
         Quantity::new(
-            self.value * self.unit.scale(),
+            self.unit.to_si(self.value),
             Unit::Composite(crate::unit::composite::CompositeUnit::new(
                 1.0,
                 self.dimension_components(),
@@ -301,6 +300,9 @@ impl Quantity {
 /// processing large datasets, as it computes the conversion factor once
 /// and applies it to all values.
 ///
+/// Note: This uses a single multiplicative factor, so it does not support
+/// offset units like Celsius or Fahrenheit. Use [`Quantity::to()`] for those.
+///
 /// # Example
 ///
 /// ```
@@ -320,8 +322,8 @@ pub fn batch_convert(values: &[f64], from: &Unit, to: &Unit) -> UnitResult<Vec<f
 /// Convert a slice of values from one unit to another, writing into a pre-allocated buffer.
 ///
 /// This variant avoids allocation when the output buffer already exists.
-/// Returns `Err` if the units have incompatible dimensions or if the output
-/// slice length doesn't match the input.
+/// Returns `Err` if the units have incompatible dimensions, if either unit
+/// has an additive offset, or if the output slice length doesn't match the input.
 ///
 /// # Example
 ///
@@ -353,6 +355,9 @@ pub fn batch_convert_into(values: &[f64], from: &Unit, to: &Unit, out: &mut [f64
 ///
 /// This is useful when you need to apply the conversion factor yourself,
 /// such as in SIMD operations or when working with external array libraries.
+///
+/// Does not support offset units (Celsius, Fahrenheit). Use [`Quantity::to()`]
+/// for those.
 ///
 /// # Example
 ///
@@ -389,8 +394,8 @@ impl PartialEq for Quantity {
         if self.unit.dimension() != other.unit.dimension() {
             return false;
         }
-        let self_si = self.value * self.unit.scale();
-        let other_si = other.value * other.unit.scale();
+        let self_si = self.unit.to_si(self.value);
+        let other_si = other.unit.to_si(other.value);
         (self_si - other_si).abs() < 1e-15 * self_si.abs().max(other_si.abs()).max(1e-15)
     }
 }
