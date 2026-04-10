@@ -234,6 +234,58 @@ impl Quantity {
 }
 
 // =============================================================================
+// Checked Arithmetic
+// =============================================================================
+
+impl Quantity {
+    /// Add two quantities, returning an error if their dimensions don't match.
+    ///
+    /// This is the fallible version of the `+` operator.
+    ///
+    /// ```
+    /// use iridium_units::prelude::*;
+    ///
+    /// let a = 1.0 * &*KM;
+    /// let b = 500.0 * &*M;
+    /// let c = a.checked_add(&b).unwrap();
+    /// assert!((c.value() - 1.5).abs() < 1e-10);
+    /// ```
+    pub fn checked_add(&self, rhs: &Quantity) -> UnitResult<Quantity> {
+        if self.unit.dimension() != rhs.unit.dimension() {
+            return Err(UnitError::IncompatibleDimensions {
+                lhs: self.unit.to_string(),
+                rhs: rhs.unit.to_string(),
+            });
+        }
+        let factor = rhs.unit.conversion_factor(&self.unit)?;
+        Ok(Quantity::new(self.value + rhs.value * factor, self.unit.clone()))
+    }
+
+    /// Subtract two quantities, returning an error if their dimensions don't match.
+    ///
+    /// This is the fallible version of the `-` operator.
+    ///
+    /// ```
+    /// use iridium_units::prelude::*;
+    ///
+    /// let a = 1.0 * &*KM;
+    /// let b = 500.0 * &*M;
+    /// let c = a.checked_sub(&b).unwrap();
+    /// assert!((c.value() - 0.5).abs() < 1e-10);
+    /// ```
+    pub fn checked_sub(&self, rhs: &Quantity) -> UnitResult<Quantity> {
+        if self.unit.dimension() != rhs.unit.dimension() {
+            return Err(UnitError::IncompatibleDimensions {
+                lhs: self.unit.to_string(),
+                rhs: rhs.unit.to_string(),
+            });
+        }
+        let factor = rhs.unit.conversion_factor(&self.unit)?;
+        Ok(Quantity::new(self.value - rhs.value * factor, self.unit.clone()))
+    }
+}
+
+// =============================================================================
 // Batch Conversion API
 // =============================================================================
 
@@ -338,67 +390,56 @@ impl PartialEq for Quantity {
 }
 
 // Quantity + Quantity
+//
+// Panics on dimension mismatch. Use `checked_add` for a fallible version.
 impl Add for Quantity {
-    type Output = UnitResult<Quantity>;
+    type Output = Quantity;
 
-    fn add(self, rhs: Quantity) -> UnitResult<Quantity> {
+    fn add(self, rhs: Quantity) -> Quantity {
         if self.unit.dimension() != rhs.unit.dimension() {
-            return Err(UnitError::IncompatibleDimensions {
+            panic!("{}", UnitError::IncompatibleDimensions {
                 lhs: self.unit.to_string(),
                 rhs: rhs.unit.to_string(),
             });
         }
-        // Convert rhs to self's unit
-        let rhs_converted = rhs.to(&self.unit)?;
-        Ok(Quantity::new(self.value + rhs_converted.value, self.unit))
+        let factor = rhs.unit.conversion_factor(&self.unit)
+            .unwrap_or_else(|e| panic!("{}", e));
+        Quantity::new(self.value + rhs.value * factor, self.unit)
     }
 }
 
 impl Add for &Quantity {
-    type Output = UnitResult<Quantity>;
+    type Output = Quantity;
 
-    fn add(self, rhs: &Quantity) -> UnitResult<Quantity> {
-        if self.unit.dimension() != rhs.unit.dimension() {
-            return Err(UnitError::IncompatibleDimensions {
-                lhs: self.unit.to_string(),
-                rhs: rhs.unit.to_string(),
-            });
-        }
-        // Convert rhs to self's unit without cloning
-        let factor = rhs.unit.conversion_factor(&self.unit)?;
-        Ok(Quantity::new(self.value + rhs.value * factor, self.unit.clone()))
+    fn add(self, rhs: &Quantity) -> Quantity {
+        self.checked_add(rhs).unwrap_or_else(|e| panic!("{}", e))
     }
 }
 
 // Quantity - Quantity
+//
+// Panics on dimension mismatch. Use `checked_sub` for a fallible version.
 impl Sub for Quantity {
-    type Output = UnitResult<Quantity>;
+    type Output = Quantity;
 
-    fn sub(self, rhs: Quantity) -> UnitResult<Quantity> {
+    fn sub(self, rhs: Quantity) -> Quantity {
         if self.unit.dimension() != rhs.unit.dimension() {
-            return Err(UnitError::IncompatibleDimensions {
+            panic!("{}", UnitError::IncompatibleDimensions {
                 lhs: self.unit.to_string(),
                 rhs: rhs.unit.to_string(),
             });
         }
-        let rhs_converted = rhs.to(&self.unit)?;
-        Ok(Quantity::new(self.value - rhs_converted.value, self.unit))
+        let factor = rhs.unit.conversion_factor(&self.unit)
+            .unwrap_or_else(|e| panic!("{}", e));
+        Quantity::new(self.value - rhs.value * factor, self.unit)
     }
 }
 
 impl Sub for &Quantity {
-    type Output = UnitResult<Quantity>;
+    type Output = Quantity;
 
-    fn sub(self, rhs: &Quantity) -> UnitResult<Quantity> {
-        if self.unit.dimension() != rhs.unit.dimension() {
-            return Err(UnitError::IncompatibleDimensions {
-                lhs: self.unit.to_string(),
-                rhs: rhs.unit.to_string(),
-            });
-        }
-        // Convert rhs to self's unit without cloning
-        let factor = rhs.unit.conversion_factor(&self.unit)?;
-        Ok(Quantity::new(self.value - rhs.value * factor, self.unit.clone()))
+    fn sub(self, rhs: &Quantity) -> Quantity {
+        self.checked_sub(rhs).unwrap_or_else(|e| panic!("{}", e))
     }
 }
 
@@ -671,7 +712,7 @@ mod tests {
     fn test_quantity_addition() {
         let a = 1.0 * kilometer();
         let b = 500.0 * meter();
-        let c = (a + b).unwrap();
+        let c = a + b;
         assert!((c.value() - 1.5).abs() < 1e-10); // 1.5 km
     }
 
@@ -679,7 +720,7 @@ mod tests {
     fn test_quantity_subtraction() {
         let a = 1.0 * kilometer();
         let b = 500.0 * meter();
-        let c = (a - b).unwrap();
+        let c = a - b;
         assert!((c.value() - 0.5).abs() < 1e-10); // 0.5 km
     }
 
@@ -700,10 +741,26 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "cannot add/subtract quantities with different dimensions")]
     fn test_incompatible_addition() {
         let a = 1.0 * meter();
         let b = 1.0 * second();
-        let result = a + b;
+        let _ = a + b;
+    }
+
+    #[test]
+    fn test_checked_add_incompatible() {
+        let a = 1.0 * meter();
+        let b = 1.0 * second();
+        let result = a.checked_add(&b);
+        assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
+    }
+
+    #[test]
+    fn test_checked_sub_incompatible() {
+        let a = 1.0 * meter();
+        let b = 1.0 * second();
+        let result = a.checked_sub(&b);
         assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
     }
 
@@ -718,7 +775,7 @@ mod tests {
         // Test that reference addition works correctly
         let a = 1.0 * kilometer();
         let b = 500.0 * meter();
-        let c = (&a + &b).unwrap();
+        let c = &a + &b;
         assert!((c.value() - 1.5).abs() < 1e-10); // 1.5 km
         // Original values should still be accessible
         assert!((a.value() - 1.0).abs() < 1e-10);
@@ -730,7 +787,7 @@ mod tests {
         // Test that reference subtraction works correctly
         let a = 1.0 * kilometer();
         let b = 500.0 * meter();
-        let c = (&a - &b).unwrap();
+        let c = &a - &b;
         assert!((c.value() - 0.5).abs() < 1e-10); // 0.5 km
     }
 
