@@ -59,8 +59,14 @@ impl Quantity {
     ///
     /// Returns `Err` if the units have incompatible dimensions.
     pub fn to(&self, target: &Unit) -> UnitResult<Quantity> {
-        let factor = self.unit.conversion_factor(target)?;
-        Ok(Quantity::new(self.value * factor, target.clone()))
+        if self.unit.dimension() != target.dimension() {
+            return Err(UnitError::DimensionMismatch {
+                from: self.unit.to_string(),
+                to: target.to_string(),
+            });
+        }
+        let si_value = self.unit.to_si(self.value);
+        Ok(Quantity::new(target.from_si(si_value), target.clone()))
     }
 
     /// Get the value in a target unit.
@@ -72,9 +78,8 @@ impl Quantity {
 
     /// Decompose to SI base units.
     pub fn decompose(&self) -> Quantity {
-        // Convert to SI base units by applying the scale factor
         Quantity::new(
-            self.value * self.unit.scale(),
+            self.unit.to_si(self.value),
             Unit::Composite(crate::unit::composite::CompositeUnit::new(
                 1.0,
                 self.dimension_components(),
@@ -257,8 +262,8 @@ impl Quantity {
                 rhs: rhs.unit.to_string(),
             });
         }
-        let factor = rhs.unit.conversion_factor(&self.unit)?;
-        Ok(Quantity::new(self.value + rhs.value * factor, self.unit.clone()))
+        let rhs_converted = self.unit.from_si(rhs.unit.to_si(rhs.value));
+        Ok(Quantity::new(self.value + rhs_converted, self.unit.clone()))
     }
 
     /// Subtract two quantities, returning an error if their dimensions don't match.
@@ -280,8 +285,8 @@ impl Quantity {
                 rhs: rhs.unit.to_string(),
             });
         }
-        let factor = rhs.unit.conversion_factor(&self.unit)?;
-        Ok(Quantity::new(self.value - rhs.value * factor, self.unit.clone()))
+        let rhs_converted = self.unit.from_si(rhs.unit.to_si(rhs.value));
+        Ok(Quantity::new(self.value - rhs_converted, self.unit.clone()))
     }
 }
 
@@ -294,6 +299,9 @@ impl Quantity {
 /// This is more efficient than creating individual `Quantity` objects when
 /// processing large datasets, as it computes the conversion factor once
 /// and applies it to all values.
+///
+/// Note: This uses a single multiplicative factor, so it does not support
+/// offset units like Celsius or Fahrenheit. Use [`Quantity::to()`] for those.
 ///
 /// # Example
 ///
@@ -314,8 +322,8 @@ pub fn batch_convert(values: &[f64], from: &Unit, to: &Unit) -> UnitResult<Vec<f
 /// Convert a slice of values from one unit to another, writing into a pre-allocated buffer.
 ///
 /// This variant avoids allocation when the output buffer already exists.
-/// Returns `Err` if the units have incompatible dimensions or if the output
-/// slice length doesn't match the input.
+/// Returns `Err` if the units have incompatible dimensions, if either unit
+/// has an additive offset, or if the output slice length doesn't match the input.
 ///
 /// # Example
 ///
@@ -347,6 +355,9 @@ pub fn batch_convert_into(values: &[f64], from: &Unit, to: &Unit, out: &mut [f64
 ///
 /// This is useful when you need to apply the conversion factor yourself,
 /// such as in SIMD operations or when working with external array libraries.
+///
+/// Does not support offset units (Celsius, Fahrenheit). Use [`Quantity::to()`]
+/// for those.
 ///
 /// # Example
 ///
@@ -383,8 +394,8 @@ impl PartialEq for Quantity {
         if self.unit.dimension() != other.unit.dimension() {
             return false;
         }
-        let self_si = self.value * self.unit.scale();
-        let other_si = other.value * other.unit.scale();
+        let self_si = self.unit.to_si(self.value);
+        let other_si = other.unit.to_si(other.value);
         (self_si - other_si).abs() < 1e-15 * self_si.abs().max(other_si.abs()).max(1e-15)
     }
 }
@@ -402,9 +413,8 @@ impl Add for Quantity {
                 rhs: rhs.unit.to_string(),
             });
         }
-        let factor = rhs.unit.conversion_factor(&self.unit)
-            .unwrap_or_else(|e| panic!("{}", e));
-        Quantity::new(self.value + rhs.value * factor, self.unit)
+        let rhs_converted = self.unit.from_si(rhs.unit.to_si(rhs.value));
+        Quantity::new(self.value + rhs_converted, self.unit)
     }
 }
 
@@ -429,9 +439,8 @@ impl Sub for Quantity {
                 rhs: rhs.unit.to_string(),
             });
         }
-        let factor = rhs.unit.conversion_factor(&self.unit)
-            .unwrap_or_else(|e| panic!("{}", e));
-        Quantity::new(self.value - rhs.value * factor, self.unit)
+        let rhs_converted = self.unit.from_si(rhs.unit.to_si(rhs.value));
+        Quantity::new(self.value - rhs_converted, self.unit)
     }
 }
 

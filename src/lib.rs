@@ -1,3 +1,4 @@
+#![recursion_limit = "256"]
 //! # iridium-units
 //!
 //! A high-performance runtime dimensional analysis library for Rust.
@@ -130,6 +131,8 @@ pub mod prelude {
     pub use crate::systems::si::{
         // Base units
         A, CD, K, KG, M, MOL, RAD, S, SR,
+        // Temperature
+        DEG_C, DEG_F,
         // Length
         CM, KM, MM, NM, UM,
         // Time

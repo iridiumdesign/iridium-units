@@ -35,45 +35,36 @@ fn identify_temp_scale(unit: &Unit) -> Option<TempScale> {
         return None;
     }
 
-    let symbol = unit.symbol().to_lowercase();
-
-    // Kelvin is the SI base unit with scale 1.0
-    if unit.scale() == 1.0 {
-        return Some(TempScale::Kelvin);
+    // Use the offset field to identify offset scales
+    if let Unit::Base(b) = unit {
+        let offset = b.offset;
+        // Celsius: offset ≈ 273.15 (K = °C + 273.15)
+        if (offset - 273.15).abs() < 1e-6 {
+            return Some(TempScale::Celsius);
+        }
+        // Fahrenheit: offset ≈ 459.67 (K = (°F + 459.67) × 5/9)
+        if (offset - 459.67).abs() < 1e-6 {
+            return Some(TempScale::Fahrenheit);
+        }
     }
 
-    // Check by symbol
-    if symbol.contains("deg") && symbol.contains("c") || symbol == "celsius" {
-        return Some(TempScale::Celsius);
-    }
-
-    if symbol.contains("deg") && symbol.contains("f") || symbol == "fahrenheit" {
-        return Some(TempScale::Fahrenheit);
-    }
-
-    // Rankine has scale 5/9 relative to Kelvin (same intervals as Fahrenheit)
-    if (unit.scale() - 5.0 / 9.0).abs() < 1e-10 {
-        // Rankine is an absolute scale, treat like Kelvin for intervals
-        return Some(TempScale::Kelvin);
-    }
-
-    // Default to Kelvin for unknown temperature units
+    // Absolute scales (Kelvin, Rankine, etc.)
     Some(TempScale::Kelvin)
 }
 
 /// Create a temperature equivalency for Celsius ↔ Fahrenheit ↔ Kelvin.
 ///
-/// Note: This handles the offset conversions between temperature scales.
-/// For interval/difference conversions (e.g., ΔT), use direct unit conversion.
+/// Note: Temperature scale conversions (K ↔ °C ↔ °F) are handled natively
+/// by [`Quantity::to()`] via the unit's offset field. This equivalency is
+/// provided for explicit use but is not required for basic conversions.
 ///
 /// # Example
 ///
 /// ```ignore
 /// use iridium_units::prelude::*;
-/// use iridium_units::equivalencies::temperature;
 ///
-/// // This would require special handling for offset temperature scales
-/// // Currently, the library treats all temperatures as intervals from absolute zero
+/// let temp = 100.0 * &*DEG_C;
+/// let kelvin = temp.to(&*K).unwrap(); // 373.15 K — no equivalency needed
 /// ```
 pub fn temperature() -> Equivalency {
     Equivalency::new("temperature", |from, to| {
@@ -96,136 +87,36 @@ pub fn temperature() -> Equivalency {
     })
 }
 
-/// Absolute zero in Celsius
-const ABS_ZERO_C: f64 = -273.15;
-/// Absolute zero in Fahrenheit
-const ABS_ZERO_F: f64 = -459.67;
-
+/// Create a converter between temperature scales.
+///
+/// The equivalency pipeline uses `Unit::to_si()` and `Unit::from_si()` to handle
+/// offsets, so the converter receives and returns values in Kelvin (SI). For
+/// same-dimension temperature conversions, this is a pass-through with validation.
 fn create_temp_converter(
     from: TempScale,
     to: TempScale,
     _from_scale: f64,
     _to_scale: f64,
 ) -> Converter {
-    use TempScale::*;
+    // Both from and to are temperature units. The pipeline has already converted
+    // the input to Kelvin via to_si() and will convert the output from Kelvin
+    // via from_si(). We just validate the Kelvin value.
+    let _ = (from, to);
 
-    match (from, to) {
-        (Kelvin, Celsius) => Converter::new(
-            |k| {
-                if k < 0.0 {
-                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
-                }
-                Ok(k - 273.15)
-            },
-            |c| {
-                if c < ABS_ZERO_C {
-                    return Err(format!(
-                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
-                        ABS_ZERO_C, c
-                    ));
-                }
-                Ok(c + 273.15)
-            },
-        ),
-
-        (Celsius, Kelvin) => Converter::new(
-            |c| {
-                if c < ABS_ZERO_C {
-                    return Err(format!(
-                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
-                        ABS_ZERO_C, c
-                    ));
-                }
-                Ok(c + 273.15)
-            },
-            |k| {
-                if k < 0.0 {
-                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
-                }
-                Ok(k - 273.15)
-            },
-        ),
-
-        (Kelvin, Fahrenheit) => Converter::new(
-            |k| {
-                if k < 0.0 {
-                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
-                }
-                Ok((k - 273.15) * 9.0 / 5.0 + 32.0)
-            },
-            |f| {
-                if f < ABS_ZERO_F {
-                    return Err(format!(
-                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
-                        ABS_ZERO_F, f
-                    ));
-                }
-                Ok((f - 32.0) * 5.0 / 9.0 + 273.15)
-            },
-        ),
-
-        (Fahrenheit, Kelvin) => Converter::new(
-            |f| {
-                if f < ABS_ZERO_F {
-                    return Err(format!(
-                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
-                        ABS_ZERO_F, f
-                    ));
-                }
-                Ok((f - 32.0) * 5.0 / 9.0 + 273.15)
-            },
-            |k| {
-                if k < 0.0 {
-                    return Err(format!("Kelvin temperature cannot be negative, got {}", k));
-                }
-                Ok((k - 273.15) * 9.0 / 5.0 + 32.0)
-            },
-        ),
-
-        (Celsius, Fahrenheit) => Converter::new(
-            |c| {
-                if c < ABS_ZERO_C {
-                    return Err(format!(
-                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
-                        ABS_ZERO_C, c
-                    ));
-                }
-                Ok(c * 9.0 / 5.0 + 32.0)
-            },
-            |f| {
-                if f < ABS_ZERO_F {
-                    return Err(format!(
-                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
-                        ABS_ZERO_F, f
-                    ));
-                }
-                Ok((f - 32.0) * 5.0 / 9.0)
-            },
-        ),
-
-        (Fahrenheit, Celsius) => Converter::new(
-            |f| {
-                if f < ABS_ZERO_F {
-                    return Err(format!(
-                        "Fahrenheit temperature cannot be below absolute zero ({:.2}°F), got {}",
-                        ABS_ZERO_F, f
-                    ));
-                }
-                Ok((f - 32.0) * 5.0 / 9.0)
-            },
-            |c| {
-                if c < ABS_ZERO_C {
-                    return Err(format!(
-                        "Celsius temperature cannot be below absolute zero ({:.2}°C), got {}",
-                        ABS_ZERO_C, c
-                    ));
-                }
-                Ok(c * 9.0 / 5.0 + 32.0)
-            },
-        ),
-
-        _ => Converter::new(Ok, Ok),
-    }
+    Converter::new(
+        |k| {
+            if k < 0.0 {
+                return Err(format!("temperature cannot be negative in Kelvin, got {}", k));
+            }
+            Ok(k)
+        },
+        |k| {
+            if k < 0.0 {
+                return Err(format!("temperature cannot be negative in Kelvin, got {}", k));
+            }
+            Ok(k)
+        },
+    )
 }
 
 /// Create a temperature-energy equivalency via E = kT.
@@ -300,7 +191,7 @@ pub fn temperature_energy() -> Equivalency {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{K, EV, J};
+    use crate::systems::si::{K, EV, J, DEG_C, DEG_F};
     use crate::Quantity;
 
     #[test]
@@ -354,5 +245,143 @@ mod tests {
         let result = temp.to_equiv(&J, temperature_energy());
         assert!(result.is_ok());
         assert!(result.unwrap().value().abs() < 1e-30);
+    }
+
+    // Temperature scale conversion tests (#18)
+    // These use Quantity::to() directly — offset conversions are native, no equivalency needed.
+
+    #[test]
+    fn test_kelvin_to_celsius() {
+        // 373.15 K = 100 °C (boiling point of water)
+        let temp = 373.15 * K.clone();
+        let celsius = temp.to(&DEG_C).unwrap();
+        assert!((celsius.value() - 100.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_celsius_to_kelvin() {
+        // 0 °C = 273.15 K (freezing point of water)
+        let temp = 0.0 * DEG_C.clone();
+        let kelvin = temp.to(&K).unwrap();
+        assert!((kelvin.value() - 273.15).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_kelvin_to_fahrenheit() {
+        // 373.15 K = 212 °F (boiling point of water)
+        let temp = 373.15 * K.clone();
+        let fahrenheit = temp.to(&DEG_F).unwrap();
+        assert!((fahrenheit.value() - 212.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_fahrenheit_to_kelvin() {
+        // 32 °F = 273.15 K (freezing point of water)
+        let temp = 32.0 * DEG_F.clone();
+        let kelvin = temp.to(&K).unwrap();
+        assert!((kelvin.value() - 273.15).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_celsius_to_fahrenheit() {
+        // 100 °C = 212 °F
+        let temp = 100.0 * DEG_C.clone();
+        let fahrenheit = temp.to(&DEG_F).unwrap();
+        assert!((fahrenheit.value() - 212.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_fahrenheit_to_celsius() {
+        // 32 °F = 0 °C
+        let temp = 32.0 * DEG_F.clone();
+        let celsius = temp.to(&DEG_C).unwrap();
+        assert!(celsius.value().abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_celsius_roundtrip() {
+        // °C → K → °C should be exact
+        let temp = 37.0 * DEG_C.clone();
+        let kelvin = temp.to(&K).unwrap();
+        let back = kelvin.to(&DEG_C).unwrap();
+        assert!((back.value() - 37.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_fahrenheit_roundtrip() {
+        // °F → K → °F should be exact
+        let temp = 98.6 * DEG_F.clone();
+        let kelvin = temp.to(&K).unwrap();
+        let back = kelvin.to(&DEG_F).unwrap();
+        assert!((back.value() - 98.6).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_celsius_fahrenheit_roundtrip() {
+        // °C → °F → °C without going through K
+        let temp = 37.0 * DEG_C.clone();
+        let f = temp.to(&DEG_F).unwrap();
+        let back = f.to(&DEG_C).unwrap();
+        assert!((back.value() - 37.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_absolute_zero_across_scales() {
+        // 0 K = -273.15 °C = -459.67 °F
+        let zero_k = 0.0 * K.clone();
+        let celsius = zero_k.to(&DEG_C).unwrap();
+        let fahrenheit = zero_k.to(&DEG_F).unwrap();
+        assert!((celsius.value() - (-273.15)).abs() < 1e-10);
+        assert!((fahrenheit.value() - (-459.67)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_minus_40_identity() {
+        // -40 °C = -40 °F (well-known identity)
+        let c = -40.0 * DEG_C.clone();
+        let f = c.to(&DEG_F).unwrap();
+        assert!((f.value() - (-40.0)).abs() < 1e-6);
+
+        let f2 = -40.0 * DEG_F.clone();
+        let c2 = f2.to(&DEG_C).unwrap();
+        assert!((c2.value() - (-40.0)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_temperature_equality_across_scales() {
+        // 100 °C == 212 °F == 373.15 K
+        let c = 100.0 * DEG_C.clone();
+        let f = 212.0 * DEG_F.clone();
+        let k = 373.15 * K.clone();
+        assert_eq!(c, k);
+        assert_eq!(c, f);
+        assert_eq!(f, k);
+    }
+
+    #[test]
+    fn test_celsius_decompose() {
+        // 100 °C should decompose to 373.15 K (SI)
+        let temp = 100.0 * DEG_C.clone();
+        let decomposed = temp.decompose();
+        assert!((decomposed.value() - 373.15).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_celsius_arithmetic() {
+        // 5 °C + 3 °C = 8 °C (interval addition)
+        let a = 5.0 * DEG_C.clone();
+        let b = 3.0 * DEG_C.clone();
+        let sum = a + b;
+        assert!((sum.value() - 8.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_temperature_energy_from_celsius() {
+        // temperature_energy equivalency should work with °C input
+        // 0 °C = 273.15 K → kT = k * 273.15
+        let temp = 0.0 * DEG_C.clone();
+        let energy = temp.to_equiv(&J, temperature_energy()).unwrap();
+        let expected = BOLTZMANN_CONSTANT * 273.15;
+        assert!((energy.value() - expected).abs() / expected < 1e-6);
     }
 }
