@@ -315,4 +315,73 @@ mod tests {
         let back = kelvin.to(&DEG_F).unwrap();
         assert!((back.value() - 98.6).abs() < 1e-10);
     }
+
+    #[test]
+    fn test_celsius_fahrenheit_roundtrip() {
+        // °C → °F → °C without going through K
+        let temp = 37.0 * DEG_C.clone();
+        let f = temp.to(&DEG_F).unwrap();
+        let back = f.to(&DEG_C).unwrap();
+        assert!((back.value() - 37.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_absolute_zero_across_scales() {
+        // 0 K = -273.15 °C = -459.67 °F
+        let zero_k = 0.0 * K.clone();
+        let celsius = zero_k.to(&DEG_C).unwrap();
+        let fahrenheit = zero_k.to(&DEG_F).unwrap();
+        assert!((celsius.value() - (-273.15)).abs() < 1e-10);
+        assert!((fahrenheit.value() - (-459.67)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_minus_40_identity() {
+        // -40 °C = -40 °F (well-known identity)
+        let c = -40.0 * DEG_C.clone();
+        let f = c.to(&DEG_F).unwrap();
+        assert!((f.value() - (-40.0)).abs() < 1e-6);
+
+        let f2 = -40.0 * DEG_F.clone();
+        let c2 = f2.to(&DEG_C).unwrap();
+        assert!((c2.value() - (-40.0)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_temperature_equality_across_scales() {
+        // 100 °C == 212 °F == 373.15 K
+        let c = 100.0 * DEG_C.clone();
+        let f = 212.0 * DEG_F.clone();
+        let k = 373.15 * K.clone();
+        assert_eq!(c, k);
+        assert_eq!(c, f);
+        assert_eq!(f, k);
+    }
+
+    #[test]
+    fn test_celsius_decompose() {
+        // 100 °C should decompose to 373.15 K (SI)
+        let temp = 100.0 * DEG_C.clone();
+        let decomposed = temp.decompose();
+        assert!((decomposed.value() - 373.15).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_celsius_arithmetic() {
+        // 5 °C + 3 °C = 8 °C (interval addition)
+        let a = 5.0 * DEG_C.clone();
+        let b = 3.0 * DEG_C.clone();
+        let sum = a + b;
+        assert!((sum.value() - 8.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_temperature_energy_from_celsius() {
+        // temperature_energy equivalency should work with °C input
+        // 0 °C = 273.15 K → kT = k * 273.15
+        let temp = 0.0 * DEG_C.clone();
+        let energy = temp.to_equiv(&J, temperature_energy()).unwrap();
+        let expected = BOLTZMANN_CONSTANT * 273.15;
+        assert!((energy.value() - expected).abs() / expected < 1e-6);
+    }
 }
