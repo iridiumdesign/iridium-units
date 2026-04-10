@@ -98,6 +98,10 @@ impl Rational16 {
     pub const ONE: Rational16 = Rational16 { numer: 1, denom: 1 };
 
     /// Create a new rational number, automatically normalized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `denom` is zero.
     pub fn new(numer: i16, denom: i16) -> Self {
         if denom == 0 {
             panic!("denominator cannot be zero");
@@ -105,6 +109,16 @@ impl Rational16 {
         let mut r = Rational16 { numer, denom };
         r.normalize();
         r
+    }
+
+    /// Create a new rational number, returning an error if the denominator is zero.
+    pub fn checked_new(numer: i16, denom: i16) -> Result<Self, crate::error::UnitError> {
+        if denom == 0 {
+            return Err(crate::error::UnitError::DimensionOverflow);
+        }
+        let mut r = Rational16 { numer, denom };
+        r.normalize();
+        Ok(r)
     }
 
     /// Normalize the rational (reduce to lowest terms, ensure positive denominator).
@@ -147,16 +161,63 @@ fn gcd(mut a: u16, mut b: u16) -> u16 {
     a.max(1)
 }
 
+/// GCD for i32 values (used in overflow-safe arithmetic).
+fn gcd_i32(mut a: i32, mut b: i32) -> i32 {
+    a = a.abs();
+    b = b.abs();
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    a.max(1)
+}
+
+/// Create a Rational16 from i32 numerator and denominator, reducing first
+/// and panicking if the reduced result doesn't fit in i16.
+fn rational16_from_i32(numer: i32, denom: i32) -> Rational16 {
+    if denom == 0 {
+        panic!("denominator cannot be zero in dimensional arithmetic");
+    }
+
+    // Normalize sign: ensure positive denominator
+    let (numer, denom) = if denom < 0 {
+        (-numer, -denom)
+    } else {
+        (numer, denom)
+    };
+
+    // Reduce before casting to i16
+    let g = gcd_i32(numer, denom);
+    let numer = numer / g;
+    let denom = denom / g;
+
+    let numer_i16 = i16::try_from(numer).unwrap_or_else(|_| {
+        panic!(
+            "dimension exponent overflow: {}/{} does not fit in i16",
+            numer, denom
+        )
+    });
+    let denom_i16 = i16::try_from(denom).unwrap_or_else(|_| {
+        panic!(
+            "dimension exponent overflow: {}/{} does not fit in i16",
+            numer, denom
+        )
+    });
+
+    Rational16 { numer: numer_i16, denom: denom_i16 }
+}
+
 impl Add for Rational16 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
         // a/b + c/d = (ad + bc) / bd
-        // Use i32 for intermediate calculations to avoid overflow
+        // Use i32 for intermediate calculations, reduce before casting back
         let numer = self.numer as i32 * rhs.denom as i32
             + rhs.numer as i32 * self.denom as i32;
         let denom = self.denom as i32 * rhs.denom as i32;
-        Rational16::new(numer as i16, denom as i16)
+        rational16_from_i32(numer, denom)
     }
 }
 
@@ -180,10 +241,10 @@ impl Mul for Rational16 {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
-        // Use i32 for intermediate calculations to avoid overflow
+        // Use i32 for intermediate calculations, reduce before casting back
         let numer = self.numer as i32 * rhs.numer as i32;
         let denom = self.denom as i32 * rhs.denom as i32;
-        Rational16::new(numer as i16, denom as i16)
+        rational16_from_i32(numer, denom)
     }
 }
 
@@ -229,7 +290,10 @@ impl From<i16> for Rational16 {
 
 impl From<i32> for Rational16 {
     fn from(n: i32) -> Self {
-        Rational16::new(n as i16, 1)
+        let numer = i16::try_from(n).unwrap_or_else(|_| {
+            panic!("value {} does not fit in Rational16 (i16 range)", n)
+        });
+        Rational16::new(numer, 1)
     }
 }
 
@@ -534,5 +598,67 @@ mod tests {
         let high_power = Dimension::LENGTH.pow(Rational16::new(100, 1));
         assert_eq!(high_power.length.numer, 100);
         assert_eq!(high_power.length.denom, 1);
+    }
+
+    // Boundary tests for Rational16 overflow safety (#7)
+
+    #[test]
+    fn test_rational_add_reduces_before_cast() {
+        // 1/200 + 1/200: intermediate denom = 200*200 = 40000 > i16::MAX
+        // but after reduction: 2/40000 = 1/20000, which fits
+        let a = Rational16::new(1, 200);
+        let b = Rational16::new(1, 200);
+        let c = a + b;
+        assert_eq!(c.numer, 1);
+        assert_eq!(c.denom, 100);
+    }
+
+    #[test]
+    #[should_panic(expected = "dimension exponent overflow")]
+    fn test_rational_add_overflow_panics() {
+        // Two values whose sum genuinely can't fit after reduction
+        let a = Rational16::new(i16::MAX, 1);
+        let b = Rational16::new(i16::MAX, 1);
+        let _ = a + b;
+    }
+
+    #[test]
+    #[should_panic(expected = "dimension exponent overflow")]
+    fn test_rational_mul_overflow_panics() {
+        // i16::MAX * 2 = 65534, doesn't fit in i16
+        let a = Rational16::new(i16::MAX, 1);
+        let b = Rational16::new(2, 1);
+        let _ = a * b;
+    }
+
+    #[test]
+    fn test_rational_mul_reduces_before_cast() {
+        // 200/1 * 1/200 = 200/200 = 1/1 (reduces before cast)
+        let a = Rational16::new(200, 1);
+        let b = Rational16::new(1, 200);
+        let c = a * b;
+        assert_eq!(c.numer, 1);
+        assert_eq!(c.denom, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "does not fit")]
+    fn test_rational_from_i32_overflow_panics() {
+        let _ = Rational16::from(50000i32);
+    }
+
+    #[test]
+    fn test_checked_new_zero_denom() {
+        let result = Rational16::checked_new(1, 0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_checked_new_valid() {
+        let result = Rational16::checked_new(3, 6);
+        assert!(result.is_ok());
+        let r = result.unwrap();
+        assert_eq!(r.numer, 1);
+        assert_eq!(r.denom, 2);
     }
 }
