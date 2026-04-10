@@ -396,7 +396,15 @@ impl Add for Quantity {
     type Output = Quantity;
 
     fn add(self, rhs: Quantity) -> Quantity {
-        self.checked_add(&rhs).unwrap_or_else(|e| panic!("{}", e))
+        if self.unit.dimension() != rhs.unit.dimension() {
+            panic!("{}", UnitError::IncompatibleDimensions {
+                lhs: self.unit.to_string(),
+                rhs: rhs.unit.to_string(),
+            });
+        }
+        let factor = rhs.unit.conversion_factor(&self.unit)
+            .unwrap_or_else(|e| panic!("{}", e));
+        Quantity::new(self.value + rhs.value * factor, self.unit)
     }
 }
 
@@ -415,7 +423,15 @@ impl Sub for Quantity {
     type Output = Quantity;
 
     fn sub(self, rhs: Quantity) -> Quantity {
-        self.checked_sub(&rhs).unwrap_or_else(|e| panic!("{}", e))
+        if self.unit.dimension() != rhs.unit.dimension() {
+            panic!("{}", UnitError::IncompatibleDimensions {
+                lhs: self.unit.to_string(),
+                rhs: rhs.unit.to_string(),
+            });
+        }
+        let factor = rhs.unit.conversion_factor(&self.unit)
+            .unwrap_or_else(|e| panic!("{}", e));
+        Quantity::new(self.value - rhs.value * factor, self.unit)
     }
 }
 
@@ -737,6 +753,14 @@ mod tests {
         let a = 1.0 * meter();
         let b = 1.0 * second();
         let result = a.checked_add(&b);
+        assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
+    }
+
+    #[test]
+    fn test_checked_sub_incompatible() {
+        let a = 1.0 * meter();
+        let b = 1.0 * second();
+        let result = a.checked_sub(&b);
         assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
     }
 
