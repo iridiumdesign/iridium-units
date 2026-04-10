@@ -122,6 +122,10 @@ impl Unit {
                 to: to.to_string(),
             });
         }
+        // Identity conversion is always valid, even for offset units
+        if self == to {
+            return Ok(1.0);
+        }
         if self.has_offset() || to.has_offset() {
             return Err(UnitError::OffsetConversion {
                 from: self.to_string(),
@@ -145,6 +149,9 @@ impl Unit {
         let exp = exp.into();
         if exp.is_zero() {
             return Unit::dimensionless();
+        }
+        if exp == Rational16::ONE {
+            return self.clone();
         }
         Unit::Composite(self.to_composite().pow(exp))
     }
@@ -323,5 +330,25 @@ mod tests {
         ));
         let result = celsius.conversion_factor(&kelvin);
         assert!(matches!(result, Err(UnitError::OffsetConversion { .. })));
+    }
+
+    #[test]
+    fn test_offset_unit_identity_conversion_ok() {
+        let celsius = Unit::Base(BaseUnit::with_offset(
+            "celsius", "°C", &[], Dimension::TEMPERATURE, 1.0, 273.15,
+        ));
+        let result = celsius.conversion_factor(&celsius);
+        assert!(result.is_ok());
+        assert!((result.unwrap() - 1.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn test_pow_one_preserves_unit() {
+        let celsius = Unit::Base(BaseUnit::with_offset(
+            "celsius", "°C", &[], Dimension::TEMPERATURE, 1.0, 273.15,
+        ));
+        let powered = celsius.pow(1);
+        assert!(powered.has_offset());
+        assert_eq!(celsius, powered);
     }
 }
