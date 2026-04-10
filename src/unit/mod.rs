@@ -65,12 +65,56 @@ impl Unit {
         self.dimension().is_dimensionless()
     }
 
+    /// Get the additive offset relative to the SI base unit.
+    ///
+    /// Most units have offset 0.0. Offset units like Celsius (273.15)
+    /// and Fahrenheit (459.67) use this for affine conversions.
+    /// The formula is: `SI_value = (value + offset) * scale`.
+    pub fn offset(&self) -> f64 {
+        match self {
+            Unit::Base(b) => b.offset,
+            _ => 0.0,
+        }
+    }
+
+    /// Check if this unit has an additive offset (e.g., Celsius, Fahrenheit).
+    pub fn has_offset(&self) -> bool {
+        self.offset() != 0.0
+    }
+
+    /// Convert a value in this unit to SI base units.
+    ///
+    /// For simple units: `value * scale`
+    /// For offset units: `(value + offset) * scale`
+    pub fn to_si(&self, value: f64) -> f64 {
+        (value + self.offset()) * self.scale()
+    }
+
+    /// Convert a value from SI base units to this unit.
+    ///
+    /// For simple units: `si_value / scale`
+    /// For offset units: `si_value / scale - offset`
+    pub fn from_si(&self, si_value: f64) -> f64 {
+        si_value / self.scale() - self.offset()
+    }
+
     /// Get the conversion factor to convert from this unit to another.
     ///
-    /// Returns `Err` if the units have incompatible dimensions.
+    /// This returns a single multiplicative factor, which only works for
+    /// units without additive offsets. For offset units like Celsius or
+    /// Fahrenheit, use [`Quantity::to()`] instead.
+    ///
+    /// Returns `Err` if the units have incompatible dimensions or if
+    /// either unit has an additive offset.
     pub fn conversion_factor(&self, to: &Unit) -> UnitResult<f64> {
         if self.dimension() != to.dimension() {
             return Err(UnitError::DimensionMismatch {
+                from: self.to_string(),
+                to: to.to_string(),
+            });
+        }
+        if self.has_offset() || to.has_offset() {
+            return Err(UnitError::OffsetConversion {
                 from: self.to_string(),
                 to: to.to_string(),
             });

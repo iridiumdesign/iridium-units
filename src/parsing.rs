@@ -714,6 +714,8 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, *KG, "kg", "kilogram", "kilograms");
     register!(map, *A, "a", "amp", "ampere", "amperes");
     register!(map, *K, "k", "kelvin");
+    register!(map, *DEG_C, "°c", "degc", "celsius");
+    register!(map, *DEG_F, "°f", "degf", "fahrenheit");
     register!(map, *MOL, "mol", "mole", "moles");
     register!(map, *CD, "cd", "candela");
     register!(map, *RAD, "rad", "radian", "radians");

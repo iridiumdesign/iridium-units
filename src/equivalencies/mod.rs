@@ -137,8 +137,8 @@ impl Quantity {
         // Try each equivalency
         for equiv in equivs {
             if let Some(converter) = equiv.get_converter(self.unit(), target) {
-                // Convert to SI value first
-                let si_value = self.value() * self.unit().scale();
+                // Convert to SI value first (handles offset units like °C)
+                let si_value = self.unit().to_si(self.value());
                 // Apply the equivalency conversion (may fail for invalid inputs)
                 let converted_si = converter.convert(si_value).map_err(|msg| {
                     UnitError::NoEquivalency {
@@ -146,8 +146,8 @@ impl Quantity {
                         to: target.to_string(),
                     }
                 })?;
-                // Convert to target unit
-                let target_value = converted_si / target.scale();
+                // Convert from SI to target unit (handles offset units like °C)
+                let target_value = target.from_si(converted_si);
                 return Ok(Quantity::new(target_value, target.clone()));
             }
         }

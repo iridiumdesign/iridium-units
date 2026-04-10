@@ -55,6 +55,28 @@ lazy_static! {
     pub static ref SR: Unit = Unit::Base(STERADIAN.clone());
 
     // =============================================================================
+    // Temperature units (offset scales — conversions handled by temperature equivalency)
+    // =============================================================================
+
+    /// Degree Celsius (offset from Kelvin by +273.15)
+    /// K = (°C + 273.15) × 1.0
+    pub static ref DEG_C: Unit = Unit::Base(BaseUnit::with_offset(
+        "celsius", "°C", &["degC", "Celsius"],
+        Dimension::TEMPERATURE,
+        1.0,     // 1°C interval = 1K interval
+        273.15   // K = °C + 273.15
+    ));
+
+    /// Degree Fahrenheit (offset from Rankine by +459.67)
+    /// K = (°F + 459.67) × 5/9
+    pub static ref DEG_F: Unit = Unit::Base(BaseUnit::with_offset(
+        "fahrenheit", "°F", &["degF", "Fahrenheit"],
+        Dimension::TEMPERATURE,
+        5.0 / 9.0,  // 1°F interval = 5/9 K interval
+        459.67       // K = (°F + 459.67) × 5/9
+    ));
+
+    // =============================================================================
     // Length units with SI prefixes
     // =============================================================================
 

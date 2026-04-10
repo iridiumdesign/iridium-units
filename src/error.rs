@@ -47,6 +47,11 @@ pub enum UnitError {
     #[error("zero denominator in rational exponent")]
     ZeroDenominator,
 
+    /// Attempted to use a simple scale factor for offset unit conversion.
+    /// Use `Quantity::to()` instead of `Unit::conversion_factor()` for offset units.
+    #[error("cannot use simple scaling for offset units: {from} -> {to}, use Quantity::to() instead")]
+    OffsetConversion { from: String, to: String },
+
     /// Invalid input for batch operation.
     #[error("batch operation error: {0}")]
     BatchError(String),
