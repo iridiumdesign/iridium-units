@@ -15,7 +15,7 @@
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::spectral;
 //!
-//! let wavelength = 500.0 * &*NM;
+//! let wavelength = 500.0 * NM;
 //! let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
 //! # }
 //! # #[cfg(not(feature = "astrophysics"))]
@@ -131,20 +131,21 @@ impl Quantity {
     ///
     /// First tries a direct dimensional conversion. If that fails,
     /// tries each equivalency in order until one succeeds.
-    pub fn to_equiv(&self, target: &Unit, equiv: Equivalency) -> UnitResult<Quantity> {
+    pub fn to_equiv(&self, target: impl Into<Unit>, equiv: Equivalency) -> UnitResult<Quantity> {
         self.to_equiv_list(target, &[equiv])
     }
 
     /// Convert to another unit using a list of equivalencies.
-    pub fn to_equiv_list(&self, target: &Unit, equivs: &[Equivalency]) -> UnitResult<Quantity> {
+    pub fn to_equiv_list(&self, target: impl Into<Unit>, equivs: &[Equivalency]) -> UnitResult<Quantity> {
+        let target = target.into();
         // First, try direct conversion
-        if let Ok(q) = self.to(target) {
+        if let Ok(q) = self.to(&target) {
             return Ok(q);
         }
 
         // Try each equivalency
         for equiv in equivs {
-            if let Some(converter) = equiv.get_converter(self.unit(), target) {
+            if let Some(converter) = equiv.get_converter(self.unit(), &target) {
                 // Convert to SI value first (handles offset units like °C)
                 let si_value = self.unit().to_si(self.value());
                 // Apply the equivalency conversion (may fail for invalid inputs)
@@ -156,7 +157,7 @@ impl Quantity {
                 })?;
                 // Convert from SI to target unit (handles offset units like °C)
                 let target_value = target.from_si(converted_si);
-                return Ok(Quantity::new(target_value, target.clone()));
+                return Ok(Quantity::new(target_value, target));
             }
         }
 

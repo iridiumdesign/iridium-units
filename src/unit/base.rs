@@ -4,7 +4,7 @@ use crate::dimension::Dimension;
 use std::fmt;
 
 /// An irreducible base unit like meter, second, or kilogram.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct BaseUnit {
     /// Primary name (e.g., "meter")
     pub name: &'static str,
@@ -58,6 +58,18 @@ impl BaseUnit {
             scale,
             offset,
         }
+    }
+}
+
+impl BaseUnit {
+    /// Get the dimension of this unit.
+    pub const fn dimension(&self) -> Dimension {
+        self.dimension
+    }
+
+    /// Raise this unit to a power, returning a [`Unit`](crate::Unit).
+    pub fn pow(&self, exp: impl Into<crate::dimension::Rational16>) -> crate::Unit {
+        crate::Unit::from(*self).pow(exp)
     }
 }
 

@@ -1,466 +1,354 @@
 //! SI (International System of Units) units.
 //!
 //! This module provides the seven SI base units plus derived units and prefixed variants.
+//!
+//! All units are `const` values of type [`BaseUnit`], which is `Copy`. This means
+//! you can use them directly without dereferencing:
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! let distance = 100.0 * M;
+//! let speed = 10.0 * (M / S);
+//! ```
 
-use crate::dimension::Dimension;
+use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;
-use crate::unit::Unit;
-use lazy_static::lazy_static;
 
 // =============================================================================
-// SI Base Units
+// SI Base Units (long-form names)
 // =============================================================================
 
 /// Meter - SI base unit of length
-pub static METER: BaseUnit = BaseUnit::new("meter", "m", &["metre"], Dimension::LENGTH, 1.0);
+pub const METER: BaseUnit = BaseUnit::new("meter", "m", &["metre"], Dimension::LENGTH, 1.0);
 
 /// Second - SI base unit of time
-pub static SECOND: BaseUnit = BaseUnit::new("second", "s", &["sec"], Dimension::TIME, 1.0);
+pub const SECOND: BaseUnit = BaseUnit::new("second", "s", &["sec"], Dimension::TIME, 1.0);
 
 /// Kilogram - SI base unit of mass
-pub static KILOGRAM: BaseUnit = BaseUnit::new("kilogram", "kg", &[], Dimension::MASS, 1.0);
+pub const KILOGRAM: BaseUnit = BaseUnit::new("kilogram", "kg", &[], Dimension::MASS, 1.0);
 
 /// Ampere - SI base unit of electric current
-pub static AMPERE: BaseUnit = BaseUnit::new("ampere", "A", &["amp"], Dimension::CURRENT, 1.0);
+pub const AMPERE: BaseUnit = BaseUnit::new("ampere", "A", &["amp"], Dimension::CURRENT, 1.0);
 
 /// Kelvin - SI base unit of temperature
-pub static KELVIN: BaseUnit = BaseUnit::new("kelvin", "K", &[], Dimension::TEMPERATURE, 1.0);
+pub const KELVIN: BaseUnit = BaseUnit::new("kelvin", "K", &[], Dimension::TEMPERATURE, 1.0);
 
 /// Mole - SI base unit of amount of substance
-pub static MOLE: BaseUnit = BaseUnit::new("mole", "mol", &[], Dimension::AMOUNT, 1.0);
+pub const MOLE: BaseUnit = BaseUnit::new("mole", "mol", &[], Dimension::AMOUNT, 1.0);
 
 /// Candela - SI base unit of luminous intensity
-pub static CANDELA: BaseUnit = BaseUnit::new("candela", "cd", &[], Dimension::LUMINOUS_INTENSITY, 1.0);
+pub const CANDELA: BaseUnit = BaseUnit::new("candela", "cd", &[], Dimension::LUMINOUS_INTENSITY, 1.0);
 
 /// Radian - SI unit of angle (dimensionless in SI, but we track it)
-pub static RADIAN: BaseUnit = BaseUnit::new("radian", "rad", &[], Dimension::ANGLE, 1.0);
+pub const RADIAN: BaseUnit = BaseUnit::new("radian", "rad", &[], Dimension::ANGLE, 1.0);
 
 /// Steradian - SI unit of solid angle
-pub static STERADIAN: BaseUnit = BaseUnit::new("steradian", "sr", &[], Dimension::SOLID_ANGLE, 1.0);
+pub const STERADIAN: BaseUnit = BaseUnit::new("steradian", "sr", &[], Dimension::SOLID_ANGLE, 1.0);
 
 // =============================================================================
-// Convenient Unit Constants (uppercase for easy access)
+// Short-form base unit aliases
 // =============================================================================
 
-lazy_static! {
-    // Base units
-    pub static ref M: Unit = Unit::Base(METER.clone());
-    pub static ref S: Unit = Unit::Base(SECOND.clone());
-    pub static ref KG: Unit = Unit::Base(KILOGRAM.clone());
-    pub static ref A: Unit = Unit::Base(AMPERE.clone());
-    pub static ref K: Unit = Unit::Base(KELVIN.clone());
-    pub static ref MOL: Unit = Unit::Base(MOLE.clone());
-    pub static ref CD: Unit = Unit::Base(CANDELA.clone());
-    pub static ref RAD: Unit = Unit::Base(RADIAN.clone());
-    pub static ref SR: Unit = Unit::Base(STERADIAN.clone());
+/// Meter (m)
+pub const M: BaseUnit = METER;
+/// Second (s)
+pub const S: BaseUnit = SECOND;
+/// Kilogram (kg)
+pub const KG: BaseUnit = KILOGRAM;
+/// Ampere (A)
+pub const A: BaseUnit = AMPERE;
+/// Kelvin (K)
+pub const K: BaseUnit = KELVIN;
+/// Mole (mol)
+pub const MOL: BaseUnit = MOLE;
+/// Candela (cd)
+pub const CD: BaseUnit = CANDELA;
+/// Radian (rad)
+pub const RAD: BaseUnit = RADIAN;
+/// Steradian (sr)
+pub const SR: BaseUnit = STERADIAN;
 
-    // =============================================================================
-    // Temperature units (offset scales — conversions handled natively via unit offset)
-    // =============================================================================
+// =============================================================================
+// Temperature units (offset scales — conversions handled natively via unit offset)
+// =============================================================================
 
-    /// Degree Celsius (offset from Kelvin by +273.15)
-    /// K = (°C + 273.15) × 1.0
-    pub static ref DEG_C: Unit = Unit::Base(BaseUnit::with_offset(
-        "celsius", "°C", &["degC", "Celsius"],
-        Dimension::TEMPERATURE,
-        1.0,     // 1°C interval = 1K interval
-        273.15   // K = °C + 273.15
-    ));
+/// Degree Celsius (offset from Kelvin by +273.15)
+/// K = (°C + 273.15) × 1.0
+pub const DEG_C: BaseUnit = BaseUnit::with_offset(
+    "celsius", "°C", &["degC", "Celsius"],
+    Dimension::TEMPERATURE,
+    1.0,     // 1°C interval = 1K interval
+    273.15,  // K = °C + 273.15
+);
 
-    /// Degree Fahrenheit (offset from Rankine by +459.67)
-    /// K = (°F + 459.67) × 5/9
-    pub static ref DEG_F: Unit = Unit::Base(BaseUnit::with_offset(
-        "fahrenheit", "°F", &["degF", "Fahrenheit"],
-        Dimension::TEMPERATURE,
-        5.0 / 9.0,  // 1°F interval = 5/9 K interval
-        459.67       // K = (°F + 459.67) × 5/9
-    ));
+/// Degree Fahrenheit (offset from Rankine by +459.67)
+/// K = (°F + 459.67) × 5/9
+pub const DEG_F: BaseUnit = BaseUnit::with_offset(
+    "fahrenheit", "°F", &["degF", "Fahrenheit"],
+    Dimension::TEMPERATURE,
+    5.0 / 9.0,  // 1°F interval = 5/9 K interval
+    459.67,      // K = (°F + 459.67) × 5/9
+);
 
-    // =============================================================================
-    // Length units with SI prefixes
-    // =============================================================================
+// =============================================================================
+// Length units with SI prefixes
+// =============================================================================
 
-    /// Kilometer (10^3 m)
-    pub static ref KM: Unit = Unit::Base(BaseUnit::new(
-        "kilometer", "km", &[], Dimension::LENGTH, 1e3
-    ));
+/// Kilometer (10^3 m)
+pub const KM: BaseUnit = BaseUnit::new("kilometer", "km", &[], Dimension::LENGTH, 1e3);
 
-    /// Centimeter (10^-2 m)
-    pub static ref CM: Unit = Unit::Base(BaseUnit::new(
-        "centimeter", "cm", &[], Dimension::LENGTH, 1e-2
-    ));
+/// Centimeter (10^-2 m)
+pub const CM: BaseUnit = BaseUnit::new("centimeter", "cm", &[], Dimension::LENGTH, 1e-2);
 
-    /// Millimeter (10^-3 m)
-    pub static ref MM: Unit = Unit::Base(BaseUnit::new(
-        "millimeter", "mm", &[], Dimension::LENGTH, 1e-3
-    ));
+/// Millimeter (10^-3 m)
+pub const MM: BaseUnit = BaseUnit::new("millimeter", "mm", &[], Dimension::LENGTH, 1e-3);
 
-    /// Micrometer (10^-6 m)
-    pub static ref UM: Unit = Unit::Base(BaseUnit::new(
-        "micrometer", "um", &["micron"], Dimension::LENGTH, 1e-6
-    ));
+/// Micrometer (10^-6 m)
+pub const UM: BaseUnit = BaseUnit::new("micrometer", "um", &["micron"], Dimension::LENGTH, 1e-6);
 
-    /// Nanometer (10^-9 m)
-    pub static ref NM: Unit = Unit::Base(BaseUnit::new(
-        "nanometer", "nm", &[], Dimension::LENGTH, 1e-9
-    ));
+/// Nanometer (10^-9 m)
+pub const NM: BaseUnit = BaseUnit::new("nanometer", "nm", &[], Dimension::LENGTH, 1e-9);
 
-    /// Picometer (10^-12 m)
-    pub static ref PM: Unit = Unit::Base(BaseUnit::new(
-        "picometer", "pm", &[], Dimension::LENGTH, 1e-12
-    ));
+/// Picometer (10^-12 m)
+pub const PM: BaseUnit = BaseUnit::new("picometer", "pm", &[], Dimension::LENGTH, 1e-12);
 
-    /// Femtometer (10^-15 m)
-    pub static ref FM: Unit = Unit::Base(BaseUnit::new(
-        "femtometer", "fm", &[], Dimension::LENGTH, 1e-15
-    ));
+/// Femtometer (10^-15 m)
+pub const FM: BaseUnit = BaseUnit::new("femtometer", "fm", &[], Dimension::LENGTH, 1e-15);
 
-    // =============================================================================
-    // Time units
-    // =============================================================================
+// =============================================================================
+// Time units
+// =============================================================================
 
-    /// Millisecond (10^-3 s)
-    pub static ref MS: Unit = Unit::Base(BaseUnit::new(
-        "millisecond", "ms", &[], Dimension::TIME, 1e-3
-    ));
+/// Millisecond (10^-3 s)
+pub const MS: BaseUnit = BaseUnit::new("millisecond", "ms", &[], Dimension::TIME, 1e-3);
 
-    /// Microsecond (10^-6 s)
-    pub static ref US: Unit = Unit::Base(BaseUnit::new(
-        "microsecond", "us", &[], Dimension::TIME, 1e-6
-    ));
+/// Microsecond (10^-6 s)
+pub const US: BaseUnit = BaseUnit::new("microsecond", "us", &[], Dimension::TIME, 1e-6);
 
-    /// Nanosecond (10^-9 s)
-    pub static ref NS: Unit = Unit::Base(BaseUnit::new(
-        "nanosecond", "ns", &[], Dimension::TIME, 1e-9
-    ));
+/// Nanosecond (10^-9 s)
+pub const NS: BaseUnit = BaseUnit::new("nanosecond", "ns", &[], Dimension::TIME, 1e-9);
 
-    /// Picosecond (10^-12 s)
-    pub static ref PS: Unit = Unit::Base(BaseUnit::new(
-        "picosecond", "ps", &[], Dimension::TIME, 1e-12
-    ));
+/// Picosecond (10^-12 s)
+pub const PS: BaseUnit = BaseUnit::new("picosecond", "ps", &[], Dimension::TIME, 1e-12);
 
-    /// Minute (60 s)
-    pub static ref MIN: Unit = Unit::Base(BaseUnit::new(
-        "minute", "min", &[], Dimension::TIME, 60.0
-    ));
+/// Minute (60 s)
+pub const MIN: BaseUnit = BaseUnit::new("minute", "min", &[], Dimension::TIME, 60.0);
 
-    /// Hour (3600 s)
-    pub static ref H: Unit = Unit::Base(BaseUnit::new(
-        "hour", "h", &["hr"], Dimension::TIME, 3600.0
-    ));
+/// Hour (3600 s)
+pub const H: BaseUnit = BaseUnit::new("hour", "h", &["hr"], Dimension::TIME, 3600.0);
 
-    /// Day (86400 s)
-    pub static ref DAY: Unit = Unit::Base(BaseUnit::new(
-        "day", "d", &["day"], Dimension::TIME, 86400.0
-    ));
+/// Day (86400 s)
+pub const DAY: BaseUnit = BaseUnit::new("day", "d", &["day"], Dimension::TIME, 86400.0);
 
-    /// Julian year (365.25 days)
-    pub static ref YR: Unit = Unit::Base(BaseUnit::new(
-        "year", "yr", &["a", "year"], Dimension::TIME, 365.25 * 86400.0
-    ));
+/// Julian year (365.25 days)
+pub const YR: BaseUnit = BaseUnit::new("year", "yr", &["a", "year"], Dimension::TIME, 365.25 * 86400.0);
 
-    // =============================================================================
-    // Mass units
-    // =============================================================================
+// =============================================================================
+// Mass units
+// =============================================================================
 
-    /// Gram (10^-3 kg)
-    pub static ref G: Unit = Unit::Base(BaseUnit::new(
-        "gram", "g", &[], Dimension::MASS, 1e-3
-    ));
+/// Gram (10^-3 kg)
+pub const G: BaseUnit = BaseUnit::new("gram", "g", &[], Dimension::MASS, 1e-3);
 
-    /// Milligram (10^-6 kg)
-    pub static ref MG: Unit = Unit::Base(BaseUnit::new(
-        "milligram", "mg", &[], Dimension::MASS, 1e-6
-    ));
+/// Milligram (10^-6 kg)
+pub const MG: BaseUnit = BaseUnit::new("milligram", "mg", &[], Dimension::MASS, 1e-6);
 
-    /// Microgram (10^-9 kg)
-    pub static ref UG: Unit = Unit::Base(BaseUnit::new(
-        "microgram", "ug", &[], Dimension::MASS, 1e-9
-    ));
+/// Microgram (10^-9 kg)
+pub const UG: BaseUnit = BaseUnit::new("microgram", "ug", &[], Dimension::MASS, 1e-9);
 
-    /// Tonne / metric ton (10^3 kg)
-    pub static ref TONNE: Unit = Unit::Base(BaseUnit::new(
-        "tonne", "t", &["metric_ton"], Dimension::MASS, 1e3
-    ));
+/// Tonne / metric ton (10^3 kg)
+pub const TONNE: BaseUnit = BaseUnit::new("tonne", "t", &["metric_ton"], Dimension::MASS, 1e3);
 
-    // =============================================================================
-    // Derived SI Units
-    // =============================================================================
+// =============================================================================
+// Derived SI Units
+// =============================================================================
 
-    /// Hertz - frequency (1/s)
-    pub static ref HZ: Unit = Unit::Base(BaseUnit::new(
-        "hertz", "Hz", &[], Dimension::TIME.inv(), 1.0
-    ));
+/// Dimension: frequency (T^-1)
+const DIM_FREQUENCY: Dimension = Dimension::TIME.inv();
 
-    /// Kilohertz (10^3 Hz)
-    pub static ref KHZ: Unit = Unit::Base(BaseUnit::new(
-        "kilohertz", "kHz", &[], Dimension::TIME.inv(), 1e3
-    ));
+/// Dimension: force (M L T^-2)
+const DIM_FORCE: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH)
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
-    /// Megahertz (10^6 Hz)
-    pub static ref MHZ: Unit = Unit::Base(BaseUnit::new(
-        "megahertz", "MHz", &[], Dimension::TIME.inv(), 1e6
-    ));
+/// Dimension: energy (M L^2 T^-2)
+const DIM_ENERGY: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
-    /// Gigahertz (10^9 Hz)
-    pub static ref GHZ: Unit = Unit::Base(BaseUnit::new(
-        "gigahertz", "GHz", &[], Dimension::TIME.inv(), 1e9
-    ));
+/// Dimension: power (M L^2 T^-3)
+const DIM_POWER: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+    .mul(&Dimension::TIME.pow(Rational16::new(-3, 1)));
 
-    /// Terahertz (10^12 Hz)
-    pub static ref THZ: Unit = Unit::Base(BaseUnit::new(
-        "terahertz", "THz", &[], Dimension::TIME.inv(), 1e12
-    ));
+/// Dimension: pressure (M L^-1 T^-2)
+const DIM_PRESSURE: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
-    /// Newton - force (kg m / s^2)
-    pub static ref N: Unit = Unit::Base(BaseUnit::new(
-        "newton", "N", &[],
-        Dimension::MASS.mul(&Dimension::LENGTH).mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Dimension: voltage (M L^2 T^-3 I^-1)
+const DIM_VOLTAGE: Dimension = DIM_POWER
+    .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 
-    /// Joule - energy (kg m^2 / s^2)
-    pub static ref J: Unit = Unit::Base(BaseUnit::new(
-        "joule", "J", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Dimension: capacitance (I^2 T^4 M^-1 L^-2)
+const DIM_CAPACITANCE: Dimension = Dimension::CURRENT.pow(Rational16::new(2, 1))
+    .mul(&Dimension::TIME.pow(Rational16::new(4, 1)))
+    .mul(&Dimension::MASS.pow(Rational16::new(-1, 1)))
+    .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
 
-    /// Electronvolt (1.602176634e-19 J)
-    pub static ref EV: Unit = Unit::Base(BaseUnit::new(
-        "electronvolt", "eV", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.602176634e-19
-    ));
+/// Dimension: resistance (M L^2 T^-3 I^-2)
+const DIM_RESISTANCE: Dimension = DIM_POWER
+    .mul(&Dimension::CURRENT.pow(Rational16::new(-2, 1)));
 
-    /// Kiloelectronvolt (10^3 eV)
-    pub static ref KEV: Unit = Unit::Base(BaseUnit::new(
-        "kiloelectronvolt", "keV", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.602176634e-16
-    ));
+/// Dimension: conductance (I^2 T^3 M^-1 L^-2)
+const DIM_CONDUCTANCE: Dimension = Dimension::CURRENT.pow(Rational16::new(2, 1))
+    .mul(&Dimension::TIME.pow(Rational16::new(3, 1)))
+    .mul(&Dimension::MASS.pow(Rational16::new(-1, 1)))
+    .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
 
-    /// Megaelectronvolt (10^6 eV)
-    pub static ref MEV: Unit = Unit::Base(BaseUnit::new(
-        "megaelectronvolt", "MeV", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.602176634e-13
-    ));
+/// Dimension: magnetic flux (M L^2 T^-2 I^-1)
+const DIM_MAGNETIC_FLUX: Dimension = DIM_ENERGY
+    .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 
-    /// Gigaelectronvolt (10^9 eV)
-    pub static ref GEV: Unit = Unit::Base(BaseUnit::new(
-        "gigaelectronvolt", "GeV", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.602176634e-10
-    ));
+/// Dimension: magnetic field (M T^-2 I^-1)
+const DIM_MAGNETIC_FIELD: Dimension = Dimension::MASS
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
+    .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 
-    /// Watt - power (kg m^2 / s^3)
-    pub static ref W: Unit = Unit::Base(BaseUnit::new(
-        "watt", "W", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1))),
-        1.0
-    ));
+/// Dimension: inductance (M L^2 T^-2 I^-2)
+const DIM_INDUCTANCE: Dimension = DIM_ENERGY
+    .mul(&Dimension::CURRENT.pow(Rational16::new(-2, 1)));
 
-    /// Kilowatt (10^3 W)
-    pub static ref KW: Unit = Unit::Base(BaseUnit::new(
-        "kilowatt", "kW", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1))),
-        1e3
-    ));
+/// Dimension: luminous flux (J Ω)
+const DIM_LUMINOUS_FLUX: Dimension = Dimension::LUMINOUS_INTENSITY
+    .mul(&Dimension::SOLID_ANGLE);
 
-    /// Megawatt (10^6 W)
-    pub static ref MW: Unit = Unit::Base(BaseUnit::new(
-        "megawatt", "MW", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1))),
-        1e6
-    ));
+/// Dimension: illuminance (J Ω L^-2)
+const DIM_ILLUMINANCE: Dimension = DIM_LUMINOUS_FLUX
+    .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
 
-    /// Pascal - pressure (kg / m / s^2)
-    pub static ref PA: Unit = Unit::Base(BaseUnit::new(
-        "pascal", "Pa", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-1, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Dimension: absorbed dose (L^2 T^-2)
+const DIM_DOSE: Dimension = Dimension::LENGTH.pow(Rational16::new(2, 1))
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
-    /// Coulomb - electric charge (A s)
-    pub static ref C: Unit = Unit::Base(BaseUnit::new(
-        "coulomb", "C", &[],
-        Dimension::CURRENT.mul(&Dimension::TIME),
-        1.0
-    ));
+/// Dimension: charge (I T)
+const DIM_CHARGE: Dimension = Dimension::CURRENT.mul(&Dimension::TIME);
 
-    /// Volt - electric potential (kg m^2 / A / s^3)
-    pub static ref V: Unit = Unit::Base(BaseUnit::new(
-        "volt", "V", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-1, 1))),
-        1.0
-    ));
+/// Hertz - frequency (1/s)
+pub const HZ: BaseUnit = BaseUnit::new("hertz", "Hz", &[], DIM_FREQUENCY, 1.0);
+/// Kilohertz (10^3 Hz)
+pub const KHZ: BaseUnit = BaseUnit::new("kilohertz", "kHz", &[], DIM_FREQUENCY, 1e3);
+/// Megahertz (10^6 Hz)
+pub const MHZ: BaseUnit = BaseUnit::new("megahertz", "MHz", &[], DIM_FREQUENCY, 1e6);
+/// Gigahertz (10^9 Hz)
+pub const GHZ: BaseUnit = BaseUnit::new("gigahertz", "GHz", &[], DIM_FREQUENCY, 1e9);
+/// Terahertz (10^12 Hz)
+pub const THZ: BaseUnit = BaseUnit::new("terahertz", "THz", &[], DIM_FREQUENCY, 1e12);
 
-    /// Farad - capacitance (A^2 s^4 / kg / m^2)
-    pub static ref F: Unit = Unit::Base(BaseUnit::new(
-        "farad", "F", &[],
-        Dimension::CURRENT.pow(crate::dimension::Rational16::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(4, 1)))
-            .mul(&Dimension::MASS.pow(crate::dimension::Rational16::new(-1, 1)))
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Newton - force (kg m / s^2)
+pub const N: BaseUnit = BaseUnit::new("newton", "N", &[], DIM_FORCE, 1.0);
 
-    /// Ohm - electrical resistance (kg m^2 / A^2 / s^3)
-    pub static ref OHM: Unit = Unit::Base(BaseUnit::new(
-        "ohm", "Ohm", &["ohm"],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-3, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Joule - energy (kg m^2 / s^2)
+pub const J: BaseUnit = BaseUnit::new("joule", "J", &[], DIM_ENERGY, 1.0);
 
-    /// Siemens - electrical conductance (A^2 s^3 / kg / m^2)
-    pub static ref SIEMENS: Unit = Unit::Base(BaseUnit::new(
-        "siemens", "S", &[],
-        Dimension::CURRENT.pow(crate::dimension::Rational16::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(3, 1)))
-            .mul(&Dimension::MASS.pow(crate::dimension::Rational16::new(-1, 1)))
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Electronvolt (1.602176634e-19 J)
+pub const EV: BaseUnit = BaseUnit::new("electronvolt", "eV", &[], DIM_ENERGY, 1.602_176_634e-19);
+/// Kiloelectronvolt (10^3 eV)
+pub const KEV: BaseUnit = BaseUnit::new("kiloelectronvolt", "keV", &[], DIM_ENERGY, 1.602_176_634e-16);
+/// Megaelectronvolt (10^6 eV)
+pub const MEV: BaseUnit = BaseUnit::new("megaelectronvolt", "MeV", &[], DIM_ENERGY, 1.602_176_634e-13);
+/// Gigaelectronvolt (10^9 eV)
+pub const GEV: BaseUnit = BaseUnit::new("gigaelectronvolt", "GeV", &[], DIM_ENERGY, 1.602_176_634e-10);
 
-    /// Weber - magnetic flux (kg m^2 / A / s^2)
-    pub static ref WB: Unit = Unit::Base(BaseUnit::new(
-        "weber", "Wb", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-1, 1))),
-        1.0
-    ));
+/// Watt - power (kg m^2 / s^3)
+pub const W: BaseUnit = BaseUnit::new("watt", "W", &[], DIM_POWER, 1.0);
+/// Kilowatt (10^3 W)
+pub const KW: BaseUnit = BaseUnit::new("kilowatt", "kW", &[], DIM_POWER, 1e3);
+/// Megawatt (10^6 W)
+pub const MW: BaseUnit = BaseUnit::new("megawatt", "MW", &[], DIM_POWER, 1e6);
 
-    /// Tesla - magnetic field (kg / A / s^2)
-    pub static ref T: Unit = Unit::Base(BaseUnit::new(
-        "tesla", "T", &[],
-        Dimension::MASS
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-1, 1))),
-        1.0
-    ));
+/// Pascal - pressure (kg / m / s^2)
+pub const PA: BaseUnit = BaseUnit::new("pascal", "Pa", &[], DIM_PRESSURE, 1.0);
 
-    /// Henry - inductance (kg m^2 / A^2 / s^2)
-    pub static ref HENRY: Unit = Unit::Base(BaseUnit::new(
-        "henry", "H", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1)))
-            .mul(&Dimension::CURRENT.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Coulomb - electric charge (A s)
+pub const C: BaseUnit = BaseUnit::new("coulomb", "C", &[], DIM_CHARGE, 1.0);
 
-    /// Lumen - luminous flux (cd sr)
-    pub static ref LM: Unit = Unit::Base(BaseUnit::new(
-        "lumen", "lm", &[],
-        Dimension::LUMINOUS_INTENSITY.mul(&Dimension::SOLID_ANGLE),
-        1.0
-    ));
+/// Volt - electric potential (kg m^2 / A / s^3)
+pub const V: BaseUnit = BaseUnit::new("volt", "V", &[], DIM_VOLTAGE, 1.0);
 
-    /// Lux - illuminance (cd sr / m^2)
-    pub static ref LX: Unit = Unit::Base(BaseUnit::new(
-        "lux", "lx", &[],
-        Dimension::LUMINOUS_INTENSITY
-            .mul(&Dimension::SOLID_ANGLE)
-            .mul(&Dimension::LENGTH.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Farad - capacitance (A^2 s^4 / kg / m^2)
+pub const F: BaseUnit = BaseUnit::new("farad", "F", &[], DIM_CAPACITANCE, 1.0);
 
-    /// Becquerel - radioactivity (1/s)
-    pub static ref BQ: Unit = Unit::Base(BaseUnit::new(
-        "becquerel", "Bq", &[],
-        Dimension::TIME.inv(),
-        1.0
-    ));
+/// Ohm - electrical resistance (kg m^2 / A^2 / s^3)
+pub const OHM: BaseUnit = BaseUnit::new("ohm", "Ohm", &["ohm"], DIM_RESISTANCE, 1.0);
 
-    /// Gray - absorbed dose (m^2 / s^2)
-    pub static ref GY: Unit = Unit::Base(BaseUnit::new(
-        "gray", "Gy", &[],
-        Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Siemens - electrical conductance (A^2 s^3 / kg / m^2)
+pub const SIEMENS: BaseUnit = BaseUnit::new("siemens", "S", &[], DIM_CONDUCTANCE, 1.0);
 
-    /// Sievert - equivalent dose (m^2 / s^2)
-    pub static ref SV: Unit = Unit::Base(BaseUnit::new(
-        "sievert", "Sv", &[],
-        Dimension::LENGTH.pow(crate::dimension::Rational16::new(2, 1))
-            .mul(&Dimension::TIME.pow(crate::dimension::Rational16::new(-2, 1))),
-        1.0
-    ));
+/// Weber - magnetic flux (kg m^2 / A / s^2)
+pub const WB: BaseUnit = BaseUnit::new("weber", "Wb", &[], DIM_MAGNETIC_FLUX, 1.0);
 
-    // =============================================================================
-    // Angle units
-    // =============================================================================
+/// Tesla - magnetic field (kg / A / s^2)
+pub const T: BaseUnit = BaseUnit::new("tesla", "T", &[], DIM_MAGNETIC_FIELD, 1.0);
 
-    /// Degree (pi/180 rad)
-    pub static ref DEG: Unit = Unit::Base(BaseUnit::new(
-        "degree", "deg", &["degree"],
-        Dimension::ANGLE,
-        std::f64::consts::PI / 180.0
-    ));
+/// Henry - inductance (kg m^2 / A^2 / s^2)
+pub const HENRY: BaseUnit = BaseUnit::new("henry", "H", &[], DIM_INDUCTANCE, 1.0);
 
-    /// Arcminute (1/60 degree)
-    pub static ref ARCMIN: Unit = Unit::Base(BaseUnit::new(
-        "arcminute", "arcmin", &["arcminute"],
-        Dimension::ANGLE,
-        std::f64::consts::PI / 180.0 / 60.0
-    ));
+/// Lumen - luminous flux (cd sr)
+pub const LM: BaseUnit = BaseUnit::new("lumen", "lm", &[], DIM_LUMINOUS_FLUX, 1.0);
 
-    /// Arcsecond (1/3600 degree)
-    pub static ref ARCSEC: Unit = Unit::Base(BaseUnit::new(
-        "arcsecond", "arcsec", &["arcsecond"],
-        Dimension::ANGLE,
-        std::f64::consts::PI / 180.0 / 3600.0
-    ));
+/// Lux - illuminance (cd sr / m^2)
+pub const LX: BaseUnit = BaseUnit::new("lux", "lx", &[], DIM_ILLUMINANCE, 1.0);
 
-    /// Milliarcsecond (10^-3 arcsec)
-    pub static ref MAS: Unit = Unit::Base(BaseUnit::new(
-        "milliarcsecond", "mas", &[],
-        Dimension::ANGLE,
-        std::f64::consts::PI / 180.0 / 3600.0 / 1000.0
-    ));
+/// Becquerel - radioactivity (1/s)
+pub const BQ: BaseUnit = BaseUnit::new("becquerel", "Bq", &[], DIM_FREQUENCY, 1.0);
 
-    /// Microarcsecond (10^-6 arcsec)
-    pub static ref UAS: Unit = Unit::Base(BaseUnit::new(
-        "microarcsecond", "uas", &[],
-        Dimension::ANGLE,
-        std::f64::consts::PI / 180.0 / 3600.0 / 1e6
-    ));
+/// Gray - absorbed dose (m^2 / s^2)
+pub const GY: BaseUnit = BaseUnit::new("gray", "Gy", &[], DIM_DOSE, 1.0);
 
-    /// Hour angle
-    pub static ref HOURANGLE: Unit = Unit::Base(BaseUnit::new(
-        "hourangle", "hourangle", &[],
-        Dimension::ANGLE,
-        std::f64::consts::PI / 12.0
-    ));
-}
+/// Sievert - equivalent dose (m^2 / s^2)
+pub const SV: BaseUnit = BaseUnit::new("sievert", "Sv", &[], DIM_DOSE, 1.0);
+
+// =============================================================================
+// Angle units
+// =============================================================================
+
+/// Degree (pi/180 rad)
+pub const DEG: BaseUnit = BaseUnit::new(
+    "degree", "deg", &["degree"], Dimension::ANGLE,
+    std::f64::consts::PI / 180.0,
+);
+
+/// Arcminute (1/60 degree)
+pub const ARCMIN: BaseUnit = BaseUnit::new(
+    "arcminute", "arcmin", &["arcminute"], Dimension::ANGLE,
+    std::f64::consts::PI / 180.0 / 60.0,
+);
+
+/// Arcsecond (1/3600 degree)
+pub const ARCSEC: BaseUnit = BaseUnit::new(
+    "arcsecond", "arcsec", &["arcsecond"], Dimension::ANGLE,
+    std::f64::consts::PI / 180.0 / 3600.0,
+);
+
+/// Milliarcsecond (10^-3 arcsec)
+pub const MAS: BaseUnit = BaseUnit::new(
+    "milliarcsecond", "mas", &[], Dimension::ANGLE,
+    std::f64::consts::PI / 180.0 / 3600.0 / 1000.0,
+);
+
+/// Microarcsecond (10^-6 arcsec)
+pub const UAS: BaseUnit = BaseUnit::new(
+    "microarcsecond", "uas", &[], Dimension::ANGLE,
+    std::f64::consts::PI / 180.0 / 3600.0 / 1e6,
+);
+
+/// Hour angle
+pub const HOURANGLE: BaseUnit = BaseUnit::new(
+    "hourangle", "hourangle", &[], Dimension::ANGLE,
+    std::f64::consts::PI / 12.0,
+);
 
 #[cfg(test)]
 mod tests {
@@ -468,32 +356,32 @@ mod tests {
 
     #[test]
     fn test_km_to_m() {
-        let q = 1.0 * KM.clone();
-        let q_m = q.to(&M).unwrap();
+        let q = 1.0 * KM;
+        let q_m = q.to(M).unwrap();
         assert!((q_m.value() - 1000.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_hour_to_second() {
-        let q = 1.0 * H.clone();
-        let q_s = q.to(&S).unwrap();
+        let q = 1.0 * H;
+        let q_s = q.to(S).unwrap();
         assert!((q_s.value() - 3600.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_degree_to_radian() {
-        let q = 180.0 * DEG.clone();
-        let q_rad = q.to(&RAD).unwrap();
+        let q = 180.0 * DEG;
+        let q_rad = q.to(RAD).unwrap();
         assert!((q_rad.value() - std::f64::consts::PI).abs() < 1e-10);
     }
 
     #[test]
     fn test_energy_unit() {
         // 1 J = 1 kg m^2 / s^2
-        let energy = 1.0 * J.clone();
+        let energy = 1.0 * J;
         let dim = energy.unit().dimension();
-        assert_eq!(dim.mass, crate::dimension::Rational16::ONE);
-        assert_eq!(dim.length, crate::dimension::Rational16::new(2, 1));
-        assert_eq!(dim.time, crate::dimension::Rational16::new(-2, 1));
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 }

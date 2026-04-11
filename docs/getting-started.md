@@ -21,9 +21,9 @@ Quantities are created by multiplying a number by a unit reference:
 use iridium_units::prelude::*;
 
 // Basic quantities
-let distance = 100.0 * &*M;        // 100 meters
-let time = 9.58 * &*S;             // 9.58 seconds
-let mass = 70.0 * &*KG;            // 70 kilograms
+let distance = 100.0 * M;        // 100 meters
+let time = 9.58 * S;             // 9.58 seconds
+let mass = 70.0 * KG;            // 70 kilograms
 
 // Derived quantities through arithmetic
 let speed = &distance / &time;     // ~10.4 m/s
@@ -37,9 +37,9 @@ Convert between compatible units using `.to()`:
 ```rust
 use iridium_units::prelude::*;
 
-let distance = 5.0 * &*KM;
-let in_meters = distance.to(&M)?;      // 5000 m
-let in_miles = distance.to(&MILE)?;    // ~3.1 miles
+let distance = 5.0 * KM;
+let in_meters = distance.to(M)?;      // 5000 m
+let in_miles = distance.to(MILE)?;    // ~3.1 miles
 
 // Get just the numeric value
 let meters_value = distance.to_value(&M)?;  // 5000.0
@@ -52,8 +52,8 @@ The library automatically tracks dimensions and prevents incompatible operations
 ```rust
 use iridium_units::prelude::*;
 
-let distance = 100.0 * &*M;
-let time = 10.0 * &*S;
+let distance = 100.0 * M;
+let time = 10.0 * S;
 
 // This works - creates velocity
 let velocity = &distance / &time;
@@ -106,23 +106,23 @@ iridium-units provides several unit systems:
 use iridium_units::systems::si::*;
 
 // Base units
-let length = 1.0 * &*M;      // meter
-let time = 1.0 * &*S;        // second
-let mass = 1.0 * &*KG;       // kilogram
-let current = 1.0 * &*A;     // ampere
-let temp = 1.0 * &*K;        // kelvin
+let length = 1.0 * M;      // meter
+let time = 1.0 * S;        // second
+let mass = 1.0 * KG;       // kilogram
+let current = 1.0 * A;     // ampere
+let temp = 1.0 * K;        // kelvin
 
 // Derived units
-let force = 1.0 * &*N;       // newton
-let energy = 1.0 * &*J;      // joule
-let power = 1.0 * &*W;       // watt
-let frequency = 1.0 * &*HZ;  // hertz
-let pressure = 1.0 * &*PA;   // pascal
+let force = 1.0 * N;       // newton
+let energy = 1.0 * J;      // joule
+let power = 1.0 * W;       // watt
+let frequency = 1.0 * HZ;  // hertz
+let pressure = 1.0 * PA;   // pascal
 
 // Prefixed units
-let km = 1.0 * &*KM;         // kilometer
-let nm = 1.0 * &*NM;         // nanometer
-let GHz = 1.0 * &*GHZ;       // gigahertz
+let km = 1.0 * KM;         // kilometer
+let nm = 1.0 * NM;         // nanometer
+let GHz = 1.0 * GHZ;       // gigahertz
 ```
 
 ### Astrophysical Units (`systems::astrophysical`)
@@ -131,18 +131,18 @@ let GHz = 1.0 * &*GHZ;       // gigahertz
 use iridium_units::systems::astrophysical::*;
 
 // Distance
-let d1 = 1.0 * &*PARSEC;       // parsec
-let d2 = 1.0 * &*AU;           // astronomical unit
-let d3 = 1.0 * &*LIGHT_YEAR;   // light year
+let d1 = 1.0 * PARSEC;       // parsec
+let d2 = 1.0 * AU;           // astronomical unit
+let d3 = 1.0 * LIGHT_YEAR;   // light year
 
 // Solar/planetary
-let mass = 1.0 * &*SOLAR_MASS;
-let radius = 1.0 * &*SOLAR_RADIUS;
-let lum = 1.0 * &*SOLAR_LUMINOSITY;
+let mass = 1.0 * SOLAR_MASS;
+let radius = 1.0 * SOLAR_RADIUS;
+let lum = 1.0 * SOLAR_LUMINOSITY;
 
 // Spectroscopy
-let flux = 1.0 * &*JANSKY;     // Jansky (flux density)
-let wave = 1.0 * &*ANGSTROM;   // Angstrom
+let flux = 1.0 * JANSKY;     // Jansky (flux density)
+let wave = 1.0 * ANGSTROM;   // Angstrom
 ```
 
 ### CGS Units (`systems::cgs`)
@@ -150,9 +150,9 @@ let wave = 1.0 * &*ANGSTROM;   // Angstrom
 ```rust
 use iridium_units::systems::cgs::*;
 
-let energy = 1.0 * &*ERG;      // erg
-let force = 1.0 * &*DYNE;      // dyne
-let field = 1.0 * &*GAUSS;     // gauss
+let energy = 1.0 * ERG;      // erg
+let force = 1.0 * DYNE;      // dyne
+let field = 1.0 * GAUSS;     // gauss
 ```
 
 ### Logarithmic Units (`systems::logarithmic`)
@@ -160,9 +160,9 @@ let field = 1.0 * &*GAUSS;     // gauss
 ```rust
 use iridium_units::systems::logarithmic::*;
 
-let star_mag = 5.0 * &*MAG;           // magnitude
-let signal = 10.0 * &*DB;             // decibel
-let order = 2.0 * &*DEX;              // dex (order of magnitude)
+let star_mag = 5.0 * MAG;           // magnitude
+let signal = 10.0 * DB;             // decibel
+let order = 2.0 * DEX;              // dex (order of magnitude)
 ```
 
 ## Equivalencies
@@ -174,7 +174,7 @@ use iridium_units::prelude::*;
 use iridium_units::equivalencies::spectral;
 
 // Convert wavelength to frequency
-let wavelength = 500.0 * &*NM;
+let wavelength = 500.0 * NM;
 let frequency = wavelength.to_equiv(&HZ, spectral())?;
 ```
 
@@ -199,7 +199,7 @@ All fallible operations return `UnitResult<T>`:
 use iridium_units::prelude::*;
 use iridium_units::error::UnitError;
 
-let result = (1.0 * &*M) + (1.0 * &*S);
+let result = (1.0 * M) + (1.0 * S);
 match result {
     Ok(sum) => println!("Sum: {}", sum),
     Err(UnitError::IncompatibleDimensions { lhs, rhs }) => {

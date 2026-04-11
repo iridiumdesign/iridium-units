@@ -34,13 +34,13 @@
 //! use iridium_units::systems::logarithmic::MAG;
 //!
 //! // Convert Fν to Fλ at 500 nm
-//! let wavelength = 500.0 * &*NM;
-//! let f_nu = 1.0 * &*JANSKY;
-//! let flambda_unit = &*W / (&*M * &*M * &*M);
+//! let wavelength = 500.0 * NM;
+//! let f_nu = 1.0 * JANSKY;
+//! let flambda_unit = W / (M * M * M);
 //! let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
 //!
 //! // Convert flux density to AB magnitude
-//! let flux = 3631.0 * &*JANSKY;  // Zero point
+//! let flux = 3631.0 * JANSKY;  // Zero point
 //! let mag = flux.to_equiv(&MAG, ab_magnitude())?;  // Should be 0
 //! # Ok(())
 //! # }
@@ -113,11 +113,11 @@ fn is_magnitude(unit: &Unit) -> bool {
 ///
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     // At 500 nm wavelength
-///     let wavelength = 500.0 * &*NM;
+///     let wavelength = 500.0 * NM;
 ///
 ///     // Convert 1 Jy to W/m²/m (Fλ)
-///     let f_nu = 1.0 * &*JANSKY;
-///     let flambda_unit = &*W / (&*M * &*M * &*M);
+///     let f_nu = 1.0 * JANSKY;
+///     let flambda_unit = W / (M * M * M);
 ///     let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
 ///     Ok(())
 /// }
@@ -209,12 +209,12 @@ pub fn spectral_density(spectral_coord: Quantity) -> Equivalency {
 /// use iridium_units::systems::logarithmic::MAG;
 ///
 /// // The AB zero point (3631 Jy) corresponds to magnitude 0
-/// let flux = 3631.0 * &*JANSKY;
+/// let flux = 3631.0 * JANSKY;
 /// let mag = flux.to_equiv(&MAG, ab_magnitude())?;
 /// assert!((mag.value() - 0.0).abs() < 1e-10);
 ///
 /// // 1 Jy is about 8.9 AB mag
-/// let flux = 1.0 * &*JANSKY;
+/// let flux = 1.0 * JANSKY;
 /// let mag = flux.to_equiv(&MAG, ab_magnitude())?;
 /// assert!((mag.value() - 8.9).abs() < 0.1);
 /// # Ok(())
@@ -285,8 +285,8 @@ pub fn ab_magnitude() -> Equivalency {
 /// use iridium_units::equivalencies::spectral_density::ab_magnitude_lambda;
 /// use iridium_units::systems::logarithmic::MAG;
 ///
-/// let wavelength = 500.0 * &*NM;
-/// let flambda_unit = &*W / (&*M * &*M * &*M);
+/// let wavelength = 500.0 * NM;
+/// let flambda_unit = W / (M * M * M);
 /// let f_lambda = 1e-10 * flambda_unit;
 /// let mag = f_lambda.to_equiv(&MAG, ab_magnitude_lambda(wavelength))?;
 /// # Ok(())
@@ -453,19 +453,19 @@ mod tests {
 
     // Create Fλ unit: W/m³ (W/m²/m)
     fn f_lambda_unit() -> Unit {
-        &*W / (&*M * &*M * &*M)
+        W / (M * M * M)
     }
 
     // Create Fν unit (same dimension as Jansky): W/m²/Hz
     fn f_nu_unit() -> Unit {
-        &*W / (&*M * &*M * &*HZ)
+        W / (M * M * HZ)
     }
 
     #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_zero_point() {
         // 3631 Jy should be 0 AB mag
-        let flux = 3631.0 * &*JANSKY;
+        let flux = 3631.0 * JANSKY;
         let mag = flux.to_equiv(&MAG, ab_magnitude()).unwrap();
         assert!((mag.value() - 0.0).abs() < 1e-10);
     }
@@ -474,7 +474,7 @@ mod tests {
     #[test]
     fn test_ab_mag_1jy() {
         // 1 Jy should be about 8.9 AB mag
-        let flux = 1.0 * &*JANSKY;
+        let flux = 1.0 * JANSKY;
         let mag = flux.to_equiv(&MAG, ab_magnitude()).unwrap();
         let expected = -2.5 * (1.0 / 3631.0_f64).log10();
         assert!((mag.value() - expected).abs() < 1e-10);
@@ -485,7 +485,7 @@ mod tests {
     #[test]
     fn test_ab_mag_to_flux() {
         // 0 AB mag should be 3631 Jy
-        let mag = 0.0 * &*MAG;
+        let mag = 0.0 * MAG;
         let flux = mag.to_equiv(&JANSKY, ab_magnitude()).unwrap();
         assert!((flux.value() - 3631.0).abs() < 1e-6);
     }
@@ -494,7 +494,7 @@ mod tests {
     #[test]
     fn test_ab_mag_20() {
         // 20 AB mag should be 3631 * 10^-8 Jy = 3.631e-5 Jy
-        let mag = 20.0 * &*MAG;
+        let mag = 20.0 * MAG;
         let flux = mag.to_equiv(&JANSKY, ab_magnitude()).unwrap();
         let expected = 3631.0 * 10.0_f64.powf(-0.4 * 20.0);
         assert!((flux.value() - expected).abs() / expected < 1e-10);
@@ -503,7 +503,7 @@ mod tests {
     #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_mag_roundtrip() {
-        let original_flux = 100.0 * &*JANSKY;
+        let original_flux = 100.0 * JANSKY;
         let mag = original_flux.to_equiv(&MAG, ab_magnitude()).unwrap();
         let recovered = mag.to_equiv(&JANSKY, ab_magnitude()).unwrap();
         assert!((recovered.value() - 100.0).abs() < 1e-10);
@@ -512,8 +512,8 @@ mod tests {
     #[test]
     fn test_f_nu_to_f_lambda_conversion() {
         // Convert 1 Jy at 500 nm to Fλ
-        let wavelength = 500.0 * &*NM;
-        let f_nu = 1.0 * &*JANSKY;
+        let wavelength = 500.0 * NM;
+        let f_nu = 1.0 * JANSKY;
 
         let f_lambda = f_nu.to_equiv(&f_lambda_unit(), spectral_density(wavelength)).unwrap();
 
@@ -528,7 +528,7 @@ mod tests {
     #[test]
     fn test_f_lambda_to_f_nu_conversion() {
         // Create Fλ and convert to Fν
-        let wavelength = 500.0 * &*NM;
+        let wavelength = 500.0 * NM;
 
         // Start with some Fλ value
         let f_lambda_val = 1e-10; // W/m³
@@ -546,8 +546,8 @@ mod tests {
 
     #[test]
     fn test_spectral_density_roundtrip() {
-        let wavelength = 600.0 * &*NM;
-        let original = 1.0 * &*JANSKY;
+        let wavelength = 600.0 * NM;
+        let original = 1.0 * JANSKY;
 
         // Fν → Fλ → Fν
         let f_lambda = original.to_equiv(&f_lambda_unit(), spectral_density(wavelength.clone())).unwrap();
@@ -559,8 +559,8 @@ mod tests {
     #[test]
     fn test_spectral_density_with_frequency() {
         // Can also use frequency as the spectral coordinate
-        let frequency = 6e14 * &*HZ; // ~500 nm
-        let f_nu = 1.0 * &*JANSKY;
+        let frequency = 6e14 * HZ; // ~500 nm
+        let f_nu = 1.0 * JANSKY;
 
         let f_lambda = f_nu.to_equiv(&f_lambda_unit(), spectral_density(frequency)).unwrap();
 
@@ -574,8 +574,8 @@ mod tests {
 
     #[test]
     fn test_negative_flux_fails() {
-        let wavelength = 500.0 * &*NM;
-        let f_nu = -1.0 * &*JANSKY;
+        let wavelength = 500.0 * NM;
+        let f_nu = -1.0 * JANSKY;
 
         let result = f_nu.to_equiv(&f_lambda_unit(), spectral_density(wavelength));
         assert!(result.is_err());
@@ -585,7 +585,7 @@ mod tests {
     #[test]
     fn test_ab_negative_flux_fails() {
         // Create a negative flux quantity
-        let flux = -1.0 * &*JANSKY;
+        let flux = -1.0 * JANSKY;
         let result = flux.to_equiv(&MAG, ab_magnitude());
         assert!(result.is_err());
     }
@@ -622,7 +622,7 @@ mod tests {
     #[test]
     fn test_ab_magnitude_lambda() {
         // Test direct Fλ ↔ AB mag conversion
-        let wavelength = 500.0 * &*NM;
+        let wavelength = 500.0 * NM;
 
         // First get reference: what Fλ corresponds to 0 AB mag at 500 nm?
         // At 0 AB mag, Fν = 3631 Jy

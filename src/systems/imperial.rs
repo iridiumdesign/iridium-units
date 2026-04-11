@@ -4,8 +4,6 @@
 
 use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;
-use crate::unit::Unit;
-use lazy_static::lazy_static;
 
 // Conversion factors
 const INCH_M: f64 = 0.0254; // m (exact)
@@ -26,262 +24,205 @@ const FLUID_OUNCE_US_M3: f64 = 2.9573529562e-5; // m^3
 const PINT_US_M3: f64 = 4.73176473e-4; // m^3
 const QUART_US_M3: f64 = 9.46352946e-4; // m^3
 
-lazy_static! {
-    // =============================================================================
-    // Length Units
-    // =============================================================================
+// Shared dimension constants
+const DIM_VOLUME: Dimension = Dimension::LENGTH.pow(Rational16::new(3, 1));
+const DIM_FORCE: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH)
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
+const DIM_PRESSURE: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
+const DIM_ENERGY: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
+const DIM_POWER: Dimension = Dimension::MASS
+    .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
+    .mul(&Dimension::TIME.pow(Rational16::new(-3, 1)));
+const DIM_SPEED: Dimension = Dimension::LENGTH
+    .mul(&Dimension::TIME.pow(Rational16::new(-1, 1)));
 
-    /// Inch (2.54 cm exactly)
-    pub static ref INCH: Unit = Unit::Base(BaseUnit::new(
-        "inch", "in", &["inch", "inches"],
-        Dimension::LENGTH,
-        INCH_M
-    ));
+// =============================================================================
+// Length Units
+// =============================================================================
 
-    /// Foot (12 inches)
-    pub static ref FOOT: Unit = Unit::Base(BaseUnit::new(
-        "foot", "ft", &["foot", "feet"],
-        Dimension::LENGTH,
-        FOOT_M
-    ));
+/// Inch (2.54 cm exactly)
+pub const INCH: BaseUnit = BaseUnit::new(
+    "inch", "in", &["inch", "inches"], Dimension::LENGTH, INCH_M,
+);
 
-    /// Yard (3 feet)
-    pub static ref YARD: Unit = Unit::Base(BaseUnit::new(
-        "yard", "yd", &["yard", "yards"],
-        Dimension::LENGTH,
-        YARD_M
-    ));
+/// Foot (12 inches)
+pub const FOOT: BaseUnit = BaseUnit::new(
+    "foot", "ft", &["foot", "feet"], Dimension::LENGTH, FOOT_M,
+);
 
-    /// Mile (5280 feet)
-    pub static ref MILE: Unit = Unit::Base(BaseUnit::new(
-        "mile", "mi", &["mile", "miles"],
-        Dimension::LENGTH,
-        MILE_M
-    ));
+/// Yard (3 feet)
+pub const YARD: BaseUnit = BaseUnit::new(
+    "yard", "yd", &["yard", "yards"], Dimension::LENGTH, YARD_M,
+);
 
-    /// Nautical mile (1852 m exactly)
-    pub static ref NAUTICAL_MILE: Unit = Unit::Base(BaseUnit::new(
-        "nautical_mile", "nmi", &["NM"],
-        Dimension::LENGTH,
-        NAUTICAL_MILE_M
-    ));
+/// Mile (5280 feet)
+pub const MILE: BaseUnit = BaseUnit::new(
+    "mile", "mi", &["mile", "miles"], Dimension::LENGTH, MILE_M,
+);
 
-    /// Fathom (6 feet)
-    pub static ref FATHOM: Unit = Unit::Base(BaseUnit::new(
-        "fathom", "fathom", &["fathoms"],
-        Dimension::LENGTH,
-        6.0 * FOOT_M
-    ));
+/// Nautical mile (1852 m exactly)
+pub const NAUTICAL_MILE: BaseUnit = BaseUnit::new(
+    "nautical_mile", "nmi", &["NM"], Dimension::LENGTH, NAUTICAL_MILE_M,
+);
 
-    /// Furlong (660 feet)
-    pub static ref FURLONG: Unit = Unit::Base(BaseUnit::new(
-        "furlong", "fur", &["furlong", "furlongs"],
-        Dimension::LENGTH,
-        660.0 * FOOT_M
-    ));
+/// Fathom (6 feet)
+pub const FATHOM: BaseUnit = BaseUnit::new(
+    "fathom", "fathom", &["fathoms"], Dimension::LENGTH, 6.0 * FOOT_M,
+);
 
-    /// Thou / mil (0.001 inch)
-    pub static ref THOU: Unit = Unit::Base(BaseUnit::new(
-        "thou", "thou", &["mil"],
-        Dimension::LENGTH,
-        INCH_M / 1000.0
-    ));
+/// Furlong (660 feet)
+pub const FURLONG: BaseUnit = BaseUnit::new(
+    "furlong", "fur", &["furlong", "furlongs"], Dimension::LENGTH, 660.0 * FOOT_M,
+);
 
-    // =============================================================================
-    // Mass Units
-    // =============================================================================
+/// Thou / mil (0.001 inch)
+pub const THOU: BaseUnit = BaseUnit::new(
+    "thou", "thou", &["mil"], Dimension::LENGTH, INCH_M / 1000.0,
+);
 
-    /// Pound (avoirdupois)
-    pub static ref POUND: Unit = Unit::Base(BaseUnit::new(
-        "pound", "lb", &["lbm", "pound", "pounds"],
-        Dimension::MASS,
-        POUND_KG
-    ));
+// =============================================================================
+// Mass Units
+// =============================================================================
 
-    /// Ounce (avoirdupois)
-    pub static ref OUNCE: Unit = Unit::Base(BaseUnit::new(
-        "ounce", "oz", &["ounce", "ounces"],
-        Dimension::MASS,
-        OUNCE_KG
-    ));
+/// Pound (avoirdupois)
+pub const POUND: BaseUnit = BaseUnit::new(
+    "pound", "lb", &["lbm", "pound", "pounds"], Dimension::MASS, POUND_KG,
+);
 
-    /// Short ton (2000 lb)
-    pub static ref TON: Unit = Unit::Base(BaseUnit::new(
-        "ton", "ton", &["short_ton"],
-        Dimension::MASS,
-        TON_KG
-    ));
+/// Ounce (avoirdupois)
+pub const OUNCE: BaseUnit = BaseUnit::new(
+    "ounce", "oz", &["ounce", "ounces"], Dimension::MASS, OUNCE_KG,
+);
 
-    /// Long ton (2240 lb)
-    pub static ref LONG_TON: Unit = Unit::Base(BaseUnit::new(
-        "long_ton", "long_ton", &["imperial_ton"],
-        Dimension::MASS,
-        LONG_TON_KG
-    ));
+/// Short ton (2000 lb)
+pub const TON: BaseUnit = BaseUnit::new(
+    "ton", "ton", &["short_ton"], Dimension::MASS, TON_KG,
+);
 
-    /// Grain (1/7000 lb)
-    pub static ref GRAIN: Unit = Unit::Base(BaseUnit::new(
-        "grain", "gr", &["grain", "grains"],
-        Dimension::MASS,
-        POUND_KG / 7000.0
-    ));
+/// Long ton (2240 lb)
+pub const LONG_TON: BaseUnit = BaseUnit::new(
+    "long_ton", "long_ton", &["imperial_ton"], Dimension::MASS, LONG_TON_KG,
+);
 
-    /// Stone (14 lb)
-    pub static ref STONE: Unit = Unit::Base(BaseUnit::new(
-        "stone", "st", &["stone"],
-        Dimension::MASS,
-        14.0 * POUND_KG
-    ));
+/// Grain (1/7000 lb)
+pub const GRAIN: BaseUnit = BaseUnit::new(
+    "grain", "gr", &["grain", "grains"], Dimension::MASS, POUND_KG / 7000.0,
+);
 
-    // =============================================================================
-    // Volume Units (US)
-    // =============================================================================
+/// Stone (14 lb)
+pub const STONE: BaseUnit = BaseUnit::new(
+    "stone", "st", &["stone"], Dimension::MASS, 14.0 * POUND_KG,
+);
 
-    /// US gallon
-    pub static ref GALLON: Unit = Unit::Base(BaseUnit::new(
-        "gallon", "gal", &["gallon", "gallons"],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        GALLON_US_M3
-    ));
+// =============================================================================
+// Volume Units (US)
+// =============================================================================
 
-    /// Imperial gallon
-    pub static ref IMPERIAL_GALLON: Unit = Unit::Base(BaseUnit::new(
-        "imperial_gallon", "imp_gal", &[],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        GALLON_IMP_M3
-    ));
+/// US gallon
+pub const GALLON: BaseUnit = BaseUnit::new(
+    "gallon", "gal", &["gallon", "gallons"], DIM_VOLUME, GALLON_US_M3,
+);
 
-    /// US fluid ounce
-    pub static ref FLUID_OUNCE: Unit = Unit::Base(BaseUnit::new(
-        "fluid_ounce", "fl_oz", &["floz"],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        FLUID_OUNCE_US_M3
-    ));
+/// Imperial gallon
+pub const IMPERIAL_GALLON: BaseUnit = BaseUnit::new(
+    "imperial_gallon", "imp_gal", &[], DIM_VOLUME, GALLON_IMP_M3,
+);
 
-    /// US pint
-    pub static ref PINT: Unit = Unit::Base(BaseUnit::new(
-        "pint", "pt", &["pint", "pints"],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        PINT_US_M3
-    ));
+/// US fluid ounce
+pub const FLUID_OUNCE: BaseUnit = BaseUnit::new(
+    "fluid_ounce", "fl_oz", &["floz"], DIM_VOLUME, FLUID_OUNCE_US_M3,
+);
 
-    /// US quart
-    pub static ref QUART: Unit = Unit::Base(BaseUnit::new(
-        "quart", "qt", &["quart", "quarts"],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        QUART_US_M3
-    ));
+/// US pint
+pub const PINT: BaseUnit = BaseUnit::new(
+    "pint", "pt", &["pint", "pints"], DIM_VOLUME, PINT_US_M3,
+);
 
-    /// Cubic inch
-    pub static ref CUBIC_INCH: Unit = Unit::Base(BaseUnit::new(
-        "cubic_inch", "in^3", &["cu_in"],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        INCH_M * INCH_M * INCH_M
-    ));
+/// US quart
+pub const QUART: BaseUnit = BaseUnit::new(
+    "quart", "qt", &["quart", "quarts"], DIM_VOLUME, QUART_US_M3,
+);
 
-    /// Cubic foot
-    pub static ref CUBIC_FOOT: Unit = Unit::Base(BaseUnit::new(
-        "cubic_foot", "ft^3", &["cu_ft"],
-        Dimension::LENGTH.pow(Rational16::new(3, 1)),
-        FOOT_M * FOOT_M * FOOT_M
-    ));
+/// Cubic inch
+pub const CUBIC_INCH: BaseUnit = BaseUnit::new(
+    "cubic_inch", "in^3", &["cu_in"], DIM_VOLUME, INCH_M * INCH_M * INCH_M,
+);
 
-    // =============================================================================
-    // Force and Pressure
-    // =============================================================================
+/// Cubic foot
+pub const CUBIC_FOOT: BaseUnit = BaseUnit::new(
+    "cubic_foot", "ft^3", &["cu_ft"], DIM_VOLUME, FOOT_M * FOOT_M * FOOT_M,
+);
 
-    /// Pound-force
-    pub static ref POUND_FORCE: Unit = Unit::Base(BaseUnit::new(
-        "pound_force", "lbf", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH)
-            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
-        POUND_KG * 9.80665  // Using standard gravity
-    ));
+// =============================================================================
+// Force and Pressure
+// =============================================================================
 
-    /// Pounds per square inch
-    pub static ref PSI: Unit = Unit::Base(BaseUnit::new(
-        "psi", "psi", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
-            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
-        POUND_KG * 9.80665 / (INCH_M * INCH_M)
-    ));
+/// Pound-force
+pub const POUND_FORCE: BaseUnit = BaseUnit::new(
+    "pound_force", "lbf", &[], DIM_FORCE, POUND_KG * 9.80665,
+);
 
-    // =============================================================================
-    // Temperature (offsets handled in equivalencies)
-    // =============================================================================
+/// Pounds per square inch
+pub const PSI: BaseUnit = BaseUnit::new(
+    "psi", "psi", &[], DIM_PRESSURE, POUND_KG * 9.80665 / (INCH_M * INCH_M),
+);
 
-    /// Rankine (absolute temperature in Fahrenheit scale)
-    /// ΔR = ΔK * 9/5
-    pub static ref RANKINE: Unit = Unit::Base(BaseUnit::new(
-        "rankine", "R", &["degR"],
-        Dimension::TEMPERATURE,
-        5.0 / 9.0  // 1 R = 5/9 K
-    ));
+// =============================================================================
+// Temperature (offsets handled in equivalencies)
+// =============================================================================
 
-    // =============================================================================
-    // Energy
-    // =============================================================================
+/// Rankine (absolute temperature in Fahrenheit scale)
+/// ΔR = ΔK * 9/5
+pub const RANKINE: BaseUnit = BaseUnit::new(
+    "rankine", "R", &["degR"], Dimension::TEMPERATURE, 5.0 / 9.0,
+);
 
-    /// British thermal unit (IT)
-    pub static ref BTU: Unit = Unit::Base(BaseUnit::new(
-        "btu", "BTU", &["Btu"],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
-        1055.05585  // J
-    ));
+// =============================================================================
+// Energy
+// =============================================================================
 
-    /// Therm (100,000 BTU)
-    pub static ref THERM: Unit = Unit::Base(BaseUnit::new(
-        "therm", "therm", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
-        1.055e8  // J
-    ));
+/// British thermal unit (IT)
+pub const BTU: BaseUnit = BaseUnit::new(
+    "btu", "BTU", &["Btu"], DIM_ENERGY, 1055.05585,
+);
 
-    /// Foot-pound
-    pub static ref FOOT_POUND: Unit = Unit::Base(BaseUnit::new(
-        "foot_pound", "ft_lbf", &["ft_lb"],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
-        1.355818  // J
-    ));
+/// Therm (100,000 BTU)
+pub const THERM: BaseUnit = BaseUnit::new(
+    "therm", "therm", &[], DIM_ENERGY, 1.055e8,
+);
 
-    // =============================================================================
-    // Power
-    // =============================================================================
+/// Foot-pound
+pub const FOOT_POUND: BaseUnit = BaseUnit::new(
+    "foot_pound", "ft_lbf", &["ft_lb"], DIM_ENERGY, 1.355818,
+);
 
-    /// Horsepower (mechanical)
-    pub static ref HORSEPOWER: Unit = Unit::Base(BaseUnit::new(
-        "horsepower", "hp", &[],
-        Dimension::MASS
-            .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
-            .mul(&Dimension::TIME.pow(Rational16::new(-3, 1))),
-        745.69987  // W
-    ));
+// =============================================================================
+// Power
+// =============================================================================
 
-    // =============================================================================
-    // Speed
-    // =============================================================================
+/// Horsepower (mechanical)
+pub const HORSEPOWER: BaseUnit = BaseUnit::new(
+    "horsepower", "hp", &[], DIM_POWER, 745.69987,
+);
 
-    /// Miles per hour
-    pub static ref MPH: Unit = Unit::Base(BaseUnit::new(
-        "mph", "mph", &["mi/h"],
-        Dimension::LENGTH.mul(&Dimension::TIME.pow(Rational16::new(-1, 1))),
-        MILE_M / 3600.0
-    ));
+// =============================================================================
+// Speed
+// =============================================================================
 
-    /// Knot (nautical mile per hour)
-    pub static ref KNOT: Unit = Unit::Base(BaseUnit::new(
-        "knot", "kn", &["kt", "knot", "knots"],
-        Dimension::LENGTH.mul(&Dimension::TIME.pow(Rational16::new(-1, 1))),
-        NAUTICAL_MILE_M / 3600.0
-    ));
-}
+/// Miles per hour
+pub const MPH: BaseUnit = BaseUnit::new(
+    "mph", "mph", &["mi/h"], DIM_SPEED, MILE_M / 3600.0,
+);
+
+/// Knot (nautical mile per hour)
+pub const KNOT: BaseUnit = BaseUnit::new(
+    "knot", "kn", &["kt", "knot", "knots"], DIM_SPEED, NAUTICAL_MILE_M / 3600.0,
+);
 
 #[cfg(test)]
 mod tests {
@@ -290,29 +231,29 @@ mod tests {
 
     #[test]
     fn test_foot_to_meters() {
-        let q = 1.0 * FOOT.clone();
-        let q_m = q.to(&M).unwrap();
+        let q = 1.0 * FOOT;
+        let q_m = q.to(M).unwrap();
         assert!((q_m.value() - 0.3048).abs() < 1e-10);
     }
 
     #[test]
     fn test_inch_to_cm() {
-        let q = 1.0 * INCH.clone();
-        let q_cm = q.to(&CM).unwrap();
+        let q = 1.0 * INCH;
+        let q_cm = q.to(CM).unwrap();
         assert!((q_cm.value() - 2.54).abs() < 1e-10);
     }
 
     #[test]
     fn test_pound_to_kg() {
-        let q = 1.0 * POUND.clone();
-        let q_kg = q.to(&KG).unwrap();
+        let q = 1.0 * POUND;
+        let q_kg = q.to(KG).unwrap();
         assert!((q_kg.value() - 0.45359237).abs() < 1e-10);
     }
 
     #[test]
     fn test_mile_to_km() {
-        let q = 1.0 * MILE.clone();
-        let q_m = q.to(&M).unwrap();
+        let q = 1.0 * MILE;
+        let q_m = q.to(M).unwrap();
         assert!((q_m.value() - 1609.344).abs() < 1e-10);
     }
 }

@@ -27,7 +27,7 @@ cargo doc --open     # Build and view documentation
   - `Composite(CompositeUnit)` - Compound units like m/s, kg·m/s²
   - `Dimensionless { scale }` - Dimensionless with optional scale
 
-- **`Quantity`** (`src/quantity.rs`): A value (f64) paired with a Unit. Supports arithmetic with automatic dimensional analysis. Created via `value * &*UNIT`.
+- **`Quantity`** (`src/quantity.rs`): A value (f64) paired with a Unit. Supports arithmetic with automatic dimensional analysis. Created via `value * UNIT`.
 
 ### Unit Systems (`src/systems/`)
 
@@ -36,7 +36,7 @@ cargo doc --open     # Build and view documentation
 - **`astrophysical.rs`**: Astrophysical units (PARSEC, AU, LIGHT_YEAR, SOLAR_MASS, SOLAR_RADIUS, JANSKY, ANGSTROM, etc.)
 - **`imperial.rs`**: Imperial units (FOOT, INCH, MILE, POUND, etc.)
 
-Units are defined using `lazy_static!` and must be dereferenced: `100.0 * &*M` or `&*KM / &*H`.
+Units are defined as `const BaseUnit` values: `100.0 * M` or `KM / H`.
 
 ### Equivalencies (`src/equivalencies/`)
 
@@ -59,20 +59,20 @@ CODATA 2018 values: `SPEED_OF_LIGHT`, `PLANCK_CONSTANT`, `BOLTZMANN_CONSTANT`, `
 ### Creating Quantities
 ```rust
 use iridium_units::prelude::*;
-let distance = 100.0 * &*M;           // 100 meters
-let speed = &distance / &(9.58 * &*S); // velocity
+let distance = 100.0 * M;           // 100 meters
+let speed = &distance / &(9.58 * S); // velocity
 ```
 
 ### Unit Conversion
 ```rust
-let km_value = distance.to(&*KM)?;    // Convert to km
+let km_value = distance.to(KM)?;    // Convert to km
 let si_value = distance.decompose();   // Convert to SI base units
 ```
 
 ### Equivalency Conversion
 ```rust
 use iridium_units::equivalencies::spectral;
-let freq = wavelength.to_equiv(&*HZ, spectral())?;
+let freq = wavelength.to_equiv(HZ, spectral())?;
 ```
 
 ### Dimensional Analysis

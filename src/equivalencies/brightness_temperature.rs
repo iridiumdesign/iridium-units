@@ -40,10 +40,10 @@
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Observe 1 Jy at 1.4 GHz with a 1 arcmin² beam
-//!     let freq = 1.4e9 * &*HZ;
-//!     let beam = (1.0 / 3600.0_f64.powi(2)) * (std::f64::consts::PI / 180.0).powi(2) * &*SR;
+//!     let freq = 1.4e9 * HZ;
+//!     let beam = (1.0 / 3600.0_f64.powi(2)) * (std::f64::consts::PI / 180.0).powi(2) * SR;
 //!
-//!     let flux = 1.0 * &*JANSKY;
+//!     let flux = 1.0 * JANSKY;
 //!     let temp = flux.to_equiv(&K, brightness_temperature(freq, beam))?;
 //!     Ok(())
 //! }
@@ -110,11 +110,11 @@ fn is_spectral_radiance(unit: &Unit) -> bool {
 ///
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     // 21 cm hydrogen line at 1.420 GHz
-///     let freq = 1.420405751768e9 * &*HZ;
+///     let freq = 1.420405751768e9 * HZ;
 ///     // Small beam solid angle
-///     let beam = 1e-6 * &*SR;
+///     let beam = 1e-6 * SR;
 ///
-///     let flux = 1.0 * &*JANSKY;
+///     let flux = 1.0 * JANSKY;
 ///     let temp = flux.to_equiv(&K, brightness_temperature(freq, beam))?;
 ///     Ok(())
 /// }
@@ -210,9 +210,9 @@ pub fn brightness_temperature(frequency: Quantity, beam_solid_angle: Quantity) -
 /// use iridium_units::equivalencies::brightness_temperature_intensity;
 ///
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let freq = 1.0e9 * &*HZ;
+///     let freq = 1.0e9 * HZ;
 ///     // Spectral radiance in W/(m² Hz sr)
-///     let intensity = 1e-20 * (&*W / (M.pow(2) * &*HZ * &*SR));
+///     let intensity = 1e-20 * (W / (M.pow(2) * HZ * SR));
 ///     let temp = intensity.to_equiv(&K, brightness_temperature_intensity(freq))?;
 ///     Ok(())
 /// }
@@ -309,10 +309,10 @@ pub fn brightness_temperature_intensity(frequency: Quantity) -> Equivalency {
 ///
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     // Submillimeter observation at 345 GHz
-///     let freq = 345.0e9 * &*HZ;
-///     let beam = 1e-8 * &*SR;  // Small beam
+///     let freq = 345.0e9 * HZ;
+///     let beam = 1e-8 * SR;  // Small beam
 ///
-///     let flux = 100.0 * &*JANSKY;
+///     let flux = 100.0 * JANSKY;
 ///     let temp = flux.to_equiv(&K, brightness_temperature_planck(freq, beam))?;
 ///     Ok(())
 /// }
@@ -453,7 +453,7 @@ mod tests {
 
     fn spectral_radiance_unit() -> Unit {
         // W/(m² Hz sr)
-        &*W / (&M.pow(2) * &*HZ * &*SR)
+        W / (&M.pow(2) * HZ * SR)
     }
 
     #[test]

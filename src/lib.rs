@@ -1,4 +1,3 @@
-#![recursion_limit = "256"]
 //! # iridium-units
 //!
 //! A high-performance runtime dimensional analysis library for Rust.
@@ -14,18 +13,18 @@
 //! use iridium_units::prelude::*;
 //!
 //! // Create quantities by multiplying values with units
-//! // Note: lazy_static units need to be dereferenced with &*
-//! let distance = 100.0 * &*M;
-//! let time = 9.58 * &*S;
+//! // Units are const values — use them directly
+//! let distance = 100.0 * M;
+//! let time = 9.58 * S;
 //! let speed = &distance / &time;
 //!
 //! // Convert between units
-//! let speed_kmh = speed.to(&(&*KM / &*H)).unwrap();
+//! let speed_kmh = speed.to(&(KM / H)).unwrap();
 //! println!("{}", speed_kmh); // ~37.58 km / h
 //!
 //! // Dimensional analysis is automatic
-//! let energy = 10.0 * &*KG * M.pow(2) / S.pow(2);
-//! let in_joules = energy.to(&*J).unwrap();
+//! let energy = 10.0 * KG * M.pow(2) / S.pow(2);
+//! let in_joules = energy.to(J).unwrap();
 //! ```
 //!
 //! ## Unit Systems
@@ -79,7 +78,7 @@
 //! use iridium_units::prelude::*;
 //!
 //! let registry = UnitRegistry::with_builtins()
-//!     .with_unit(&["my_unit", "mu"], M.clone());
+//!     .with_unit(&["my_unit", "mu"], Unit::from(M));
 //!
 //! let unit = registry.parse_unit("my_unit").unwrap();
 //! ```
@@ -95,8 +94,8 @@
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::spectral;
 //!
-//! let wavelength = 500.0 * &*NM;
-//! let frequency = wavelength.to_equiv(&*HZ, spectral()).unwrap();
+//! let wavelength = 500.0 * NM;
+//! let frequency = wavelength.to_equiv(HZ, spectral()).unwrap();
 //! # }
 //! # #[cfg(not(feature = "astrophysics"))]
 //! # fn main() {}

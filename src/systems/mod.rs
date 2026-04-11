@@ -22,7 +22,7 @@ pub mod si;
 /// ```
 /// use iridium_units::systems::u;
 ///
-/// let speed = 10.0 * &*u::M / &*u::S;
+/// let speed = 10.0 * (u::M / u::S);
 /// ```
 pub mod u {
     pub use super::si::*;

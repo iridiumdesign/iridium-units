@@ -43,11 +43,11 @@ fn is_frequency(unit: &Unit) -> bool {
 /// use iridium_units::equivalencies::doppler_radio;
 ///
 /// // CO(1-0) rest frequency
-/// let rest_freq = 115.27120 * &*GHZ;
+/// let rest_freq = 115.27120 * GHZ;
 ///
 /// // Convert observed frequency to velocity
-/// let observed = 115.0 * &*GHZ;
-/// let km_per_s = &*KM / &*S;
+/// let observed = 115.0 * GHZ;
+/// let km_per_s = KM / S;
 /// let velocity = observed.to_equiv(&km_per_s, doppler_radio(rest_freq)).unwrap();
 /// ```
 pub fn doppler_radio(rest_freq: Quantity) -> Equivalency {
@@ -251,7 +251,7 @@ mod tests {
     use crate::systems::si::{GHZ, HZ, M, S, KM};
 
     fn km_per_s() -> Unit {
-        &*KM / &*S
+        KM / S
     }
 
     #[test]
@@ -311,7 +311,7 @@ mod tests {
     }
 
     fn m_per_s() -> Unit {
-        &*M / &*S
+        M / S
     }
 
     #[test]

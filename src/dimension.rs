@@ -102,13 +102,25 @@ impl Rational16 {
     /// # Panics
     ///
     /// Panics if `denom` is zero.
-    pub fn new(numer: i16, denom: i16) -> Self {
+    pub const fn new(numer: i16, denom: i16) -> Self {
         if denom == 0 {
             panic!("denominator cannot be zero");
         }
-        let mut r = Rational16 { numer, denom };
-        r.normalize();
-        r
+        if numer == 0 {
+            return Rational16 { numer: 0, denom: 1 };
+        }
+        // Ensure positive denominator
+        let (n, d) = if denom < 0 {
+            (if numer == i16::MIN { i16::MAX } else { -numer },
+             if denom == i16::MIN { i16::MAX } else { -denom })
+        } else {
+            (numer, denom)
+        };
+        // Absolute values for GCD (cast via i32 to handle i16::MIN)
+        let abs_n = (-(n as i32 * ((n < 0) as i32 * 2 - 1))) as u16;
+        let abs_d = d as u16;
+        let g = gcd(abs_n, abs_d);
+        Rational16 { numer: n / (g as i16), denom: d / (g as i16) }
     }
 
     /// Create a new rational number, returning an error if the denominator is zero.
@@ -116,32 +128,11 @@ impl Rational16 {
         if denom == 0 {
             return Err(crate::error::UnitError::ZeroDenominator);
         }
-        let mut r = Rational16 { numer, denom };
-        r.normalize();
-        Ok(r)
-    }
-
-    /// Normalize the rational (reduce to lowest terms, ensure positive denominator).
-    fn normalize(&mut self) {
-        if self.numer == 0 {
-            self.denom = 1;
-            return;
-        }
-
-        // Ensure positive denominator
-        if self.denom < 0 {
-            self.numer = self.numer.saturating_neg();
-            self.denom = self.denom.saturating_neg();
-        }
-
-        // Reduce to lowest terms
-        let g = gcd(self.numer.unsigned_abs(), self.denom.unsigned_abs());
-        self.numer /= g as i16;
-        self.denom /= g as i16;
+        Ok(Self::new(numer, denom))
     }
 
     /// Check if this rational is zero.
-    pub fn is_zero(&self) -> bool {
+    pub const fn is_zero(&self) -> bool {
         self.numer == 0
     }
 
@@ -149,33 +140,58 @@ impl Rational16 {
     pub fn to_f64(self) -> f64 {
         self.numer as f64 / self.denom as f64
     }
+
+    /// Const-compatible addition.
+    pub const fn const_add(self, rhs: Self) -> Self {
+        let numer = self.numer as i32 * rhs.denom as i32
+            + rhs.numer as i32 * self.denom as i32;
+        let denom = self.denom as i32 * rhs.denom as i32;
+        rational16_from_i32(numer, denom)
+    }
+
+    /// Const-compatible negation.
+    pub const fn const_neg(self) -> Self {
+        Rational16::new(if self.numer == i16::MIN { i16::MAX } else { -self.numer }, self.denom)
+    }
+
+    /// Const-compatible subtraction.
+    pub const fn const_sub(self, rhs: Self) -> Self {
+        self.const_add(rhs.const_neg())
+    }
+
+    /// Const-compatible multiplication.
+    pub const fn const_mul(self, rhs: Self) -> Self {
+        let numer = self.numer as i32 * rhs.numer as i32;
+        let denom = self.denom as i32 * rhs.denom as i32;
+        rational16_from_i32(numer, denom)
+    }
 }
 
 /// Greatest common divisor using Euclidean algorithm.
-fn gcd(mut a: u16, mut b: u16) -> u16 {
+const fn gcd(mut a: u16, mut b: u16) -> u16 {
     while b != 0 {
         let t = b;
         b = a % b;
         a = t;
     }
-    a.max(1)
+    if a == 0 { 1 } else { a }
 }
 
 /// GCD for i32 values (used in overflow-safe arithmetic).
-fn gcd_i32(mut a: i32, mut b: i32) -> i32 {
-    a = a.abs();
-    b = b.abs();
+const fn gcd_i32(mut a: i32, mut b: i32) -> i32 {
+    if a < 0 { a = -a; }
+    if b < 0 { b = -b; }
     while b != 0 {
         let t = b;
         b = a % b;
         a = t;
     }
-    a.max(1)
+    if a == 0 { 1 } else { a }
 }
 
 /// Create a Rational16 from i32 numerator and denominator, reducing first
 /// and panicking if the reduced result doesn't fit in i16.
-fn rational16_from_i32(numer: i32, denom: i32) -> Rational16 {
+const fn rational16_from_i32(numer: i32, denom: i32) -> Rational16 {
     if denom == 0 {
         panic!("denominator cannot be zero in dimensional arithmetic");
     }
@@ -192,20 +208,14 @@ fn rational16_from_i32(numer: i32, denom: i32) -> Rational16 {
     let numer = numer / g;
     let denom = denom / g;
 
-    let numer_i16 = i16::try_from(numer).unwrap_or_else(|_| {
-        panic!(
-            "dimension exponent overflow: {}/{} does not fit in i16",
-            numer, denom
-        )
-    });
-    let denom_i16 = i16::try_from(denom).unwrap_or_else(|_| {
-        panic!(
-            "dimension exponent overflow: {}/{} does not fit in i16",
-            numer, denom
-        )
-    });
+    if numer < i16::MIN as i32 || numer > i16::MAX as i32 {
+        panic!("dimension exponent overflow: numerator does not fit in i16");
+    }
+    if denom < i16::MIN as i32 || denom > i16::MAX as i32 {
+        panic!("dimension exponent overflow: denominator does not fit in i16");
+    }
 
-    Rational16 { numer: numer_i16, denom: denom_i16 }
+    Rational16 { numer: numer as i16, denom: denom as i16 }
 }
 
 impl Add for Rational16 {
@@ -405,63 +415,73 @@ impl Dimension {
     };
 
     /// Check if this dimension is dimensionless (all exponents zero).
-    pub fn is_dimensionless(&self) -> bool {
-        *self == Self::DIMENSIONLESS
+    pub const fn is_dimensionless(&self) -> bool {
+        self.length.numer == 0
+            && self.time.numer == 0
+            && self.mass.numer == 0
+            && self.current.numer == 0
+            && self.temperature.numer == 0
+            && self.angle.numer == 0
+            && self.solid_angle.numer == 0
+            && self.luminous_intensity.numer == 0
+            && self.magnitude.numer == 0
+            && self.amount.numer == 0
+            && self.photon.numer == 0
     }
 
     /// Multiply dimensions (add exponents).
-    pub fn mul(&self, other: &Dimension) -> Dimension {
+    pub const fn mul(&self, other: &Dimension) -> Dimension {
         Dimension {
-            length: self.length + other.length,
-            time: self.time + other.time,
-            mass: self.mass + other.mass,
-            current: self.current + other.current,
-            temperature: self.temperature + other.temperature,
-            angle: self.angle + other.angle,
-            solid_angle: self.solid_angle + other.solid_angle,
-            luminous_intensity: self.luminous_intensity + other.luminous_intensity,
-            magnitude: self.magnitude + other.magnitude,
-            amount: self.amount + other.amount,
-            photon: self.photon + other.photon,
+            length: self.length.const_add(other.length),
+            time: self.time.const_add(other.time),
+            mass: self.mass.const_add(other.mass),
+            current: self.current.const_add(other.current),
+            temperature: self.temperature.const_add(other.temperature),
+            angle: self.angle.const_add(other.angle),
+            solid_angle: self.solid_angle.const_add(other.solid_angle),
+            luminous_intensity: self.luminous_intensity.const_add(other.luminous_intensity),
+            magnitude: self.magnitude.const_add(other.magnitude),
+            amount: self.amount.const_add(other.amount),
+            photon: self.photon.const_add(other.photon),
         }
     }
 
     /// Divide dimensions (subtract exponents).
-    pub fn div(&self, other: &Dimension) -> Dimension {
+    pub const fn div(&self, other: &Dimension) -> Dimension {
         Dimension {
-            length: self.length - other.length,
-            time: self.time - other.time,
-            mass: self.mass - other.mass,
-            current: self.current - other.current,
-            temperature: self.temperature - other.temperature,
-            angle: self.angle - other.angle,
-            solid_angle: self.solid_angle - other.solid_angle,
-            luminous_intensity: self.luminous_intensity - other.luminous_intensity,
-            magnitude: self.magnitude - other.magnitude,
-            amount: self.amount - other.amount,
-            photon: self.photon - other.photon,
+            length: self.length.const_sub(other.length),
+            time: self.time.const_sub(other.time),
+            mass: self.mass.const_sub(other.mass),
+            current: self.current.const_sub(other.current),
+            temperature: self.temperature.const_sub(other.temperature),
+            angle: self.angle.const_sub(other.angle),
+            solid_angle: self.solid_angle.const_sub(other.solid_angle),
+            luminous_intensity: self.luminous_intensity.const_sub(other.luminous_intensity),
+            magnitude: self.magnitude.const_sub(other.magnitude),
+            amount: self.amount.const_sub(other.amount),
+            photon: self.photon.const_sub(other.photon),
         }
     }
 
     /// Raise dimension to a power (multiply all exponents).
-    pub fn pow(&self, power: Rational16) -> Dimension {
+    pub const fn pow(&self, power: Rational16) -> Dimension {
         Dimension {
-            length: self.length * power,
-            time: self.time * power,
-            mass: self.mass * power,
-            current: self.current * power,
-            temperature: self.temperature * power,
-            angle: self.angle * power,
-            solid_angle: self.solid_angle * power,
-            luminous_intensity: self.luminous_intensity * power,
-            magnitude: self.magnitude * power,
-            amount: self.amount * power,
-            photon: self.photon * power,
+            length: self.length.const_mul(power),
+            time: self.time.const_mul(power),
+            mass: self.mass.const_mul(power),
+            current: self.current.const_mul(power),
+            temperature: self.temperature.const_mul(power),
+            angle: self.angle.const_mul(power),
+            solid_angle: self.solid_angle.const_mul(power),
+            luminous_intensity: self.luminous_intensity.const_mul(power),
+            magnitude: self.magnitude.const_mul(power),
+            amount: self.amount.const_mul(power),
+            photon: self.photon.const_mul(power),
         }
     }
 
     /// Invert dimension (negate all exponents).
-    pub fn inv(&self) -> Dimension {
+    pub const fn inv(&self) -> Dimension {
         self.pow(Rational16::new(-1, 1))
     }
 }
