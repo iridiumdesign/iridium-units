@@ -482,11 +482,11 @@ mod tests {
 
     #[test]
     fn test_unit_dimension() {
-        assert_eq!(MAG.dimension, Dimension::MAGNITUDE);
-        assert_eq!(DB.dimension, Dimension::MAGNITUDE);
-        assert_eq!(DEX.dimension, Dimension::MAGNITUDE);
-        assert_eq!(APPARENT_MAG.dimension, Dimension::MAGNITUDE);
-        assert_eq!(ABSOLUTE_MAG.dimension, Dimension::MAGNITUDE);
+        assert_eq!(MAG.dimension(), Dimension::MAGNITUDE);
+        assert_eq!(DB.dimension(), Dimension::MAGNITUDE);
+        assert_eq!(DEX.dimension(), Dimension::MAGNITUDE);
+        assert_eq!(APPARENT_MAG.dimension(), Dimension::MAGNITUDE);
+        assert_eq!(ABSOLUTE_MAG.dimension(), Dimension::MAGNITUDE);
     }
 
     #[test]

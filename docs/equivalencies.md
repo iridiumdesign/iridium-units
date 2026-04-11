@@ -176,10 +176,10 @@ Converts between Kelvin and other temperature scales (Celsius, Fahrenheit, Ranki
 
 ```rust
 use iridium_units::equivalencies::temperature;
-use iridium_units::systems::si::{K, CELSIUS};
+use iridium_units::systems::si::{K, DEG_C};
 
 let t_k = 300.0 * K;
-let t_c = t_k.to_equiv(&CELSIUS, temperature())?;  // 26.85 °C
+let t_c = t_k.to_equiv(DEG_C, temperature())?;  // 26.85 °C
 ```
 
 #### Thermal Energy

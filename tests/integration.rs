@@ -25,7 +25,7 @@ fn stellar_luminosity_from_flux_and_distance() {
 
     // 10 pc, 1e-10 W/m² → should be a reasonable stellar luminosity
     assert!(in_solar.value() > 0.0);
-    assert!(in_solar.unit().dimension() == SOLAR_LUMINOSITY.dimension);
+    assert!(in_solar.unit().dimension() == SOLAR_LUMINOSITY.dimension());
 }
 
 #[test]
@@ -346,7 +346,7 @@ fn square_root_of_area() {
     let side = area.pow(Rational16::new(1, 2));
 
     assert!((side.value() - 10.0).abs() < 1e-10);
-    assert_eq!(side.unit().dimension(), M.dimension);
+    assert_eq!(side.unit().dimension(), M.dimension());
 }
 
 #[test]
@@ -355,5 +355,5 @@ fn cube_root_of_volume() {
     let side = volume.pow(Rational16::new(1, 3));
 
     assert!((side.value() - 3.0).abs() < 1e-10);
-    assert_eq!(side.unit().dimension(), M.dimension);
+    assert_eq!(side.unit().dimension(), M.dimension());
 }
