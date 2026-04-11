@@ -21,12 +21,12 @@ A high-performance runtime unit-of-measure library for Rust.
 use iridium_units::prelude::*;
 
 // Create quantities
-let distance = 100.0 * &*KM;
-let time = 2.0 * &*H;
+let distance = 100.0 * KM;
+let time = 2.0 * H;
 let speed = &distance / &time;
 
 // Convert units
-let speed_ms = speed.to(&(&*M / &*S)).unwrap();
+let speed_ms = speed.to(&(M / S)).unwrap();
 println!("{}", speed_ms);  // 13.888... m/s
 
 // Parse from strings

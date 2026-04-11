@@ -172,7 +172,7 @@
 //!
 //! // Create a custom registry with additional units
 //! let custom_registry = UnitRegistry::with_builtins()
-//!     .with_unit(&["custom_length", "cl"], M.clone());
+//!     .with_unit(&["custom_length", "cl"], Unit::from(M));
 //!
 //! let custom = custom_registry.parse_unit("custom_length").unwrap();
 //! ```
@@ -221,7 +221,7 @@ use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::quantity::Quantity;
 use crate::unit::Unit;
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::RwLock;
@@ -677,19 +677,16 @@ impl UnitRegistry {
 /// A registry entry for a unit.
 #[derive(Clone)]
 struct UnitEntry {
-    /// Function to get the unit (since lazy_static units need dereferencing)
     unit: Unit,
 }
 
-lazy_static! {
-    /// Global unit registry mapping strings to units.
-    static ref UNIT_REGISTRY: RwLock<HashMap<String, UnitEntry>> = {
-        let mut map = HashMap::new();
-        register_builtin_units(&mut map);
-        register_extended_aliases(&mut map);
-        RwLock::new(map)
-    };
-}
+/// Global unit registry mapping strings to units.
+static UNIT_REGISTRY: LazyLock<RwLock<HashMap<String, UnitEntry>>> = LazyLock::new(|| {
+    let mut map = HashMap::new();
+    register_builtin_units(&mut map);
+    register_extended_aliases(&mut map);
+    RwLock::new(map)
+});
 
 /// Register all built-in units with the registry.
 fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
@@ -699,7 +696,7 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     // Helper to register a unit with multiple names
     macro_rules! register {
         ($map:expr, $unit:expr, $($name:expr),+) => {
-            let entry = UnitEntry { unit: $unit.clone() };
+            let entry = UnitEntry { unit: Unit::from($unit) };
             $(
                 $map.insert($name.to_lowercase(), entry.clone());
             )+
@@ -707,100 +704,100 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     }
 
     // SI Base Units
-    register!(map, *M, "m", "meter", "meters", "metre", "metres");
-    register!(map, *S, "s", "sec", "second", "seconds");
-    register!(map, *KG, "kg", "kilogram", "kilograms");
-    register!(map, *A, "a", "amp", "ampere", "amperes");
-    register!(map, *K, "k", "kelvin");
-    register!(map, *DEG_C, "°c", "degc", "celsius");
-    register!(map, *DEG_F, "°f", "degf", "fahrenheit");
-    register!(map, *MOL, "mol", "mole", "moles");
-    register!(map, *CD, "cd", "candela");
-    register!(map, *RAD, "rad", "radian", "radians");
-    register!(map, *SR, "sr", "steradian", "steradians");
+    register!(map, M, "m", "meter", "meters", "metre", "metres");
+    register!(map, S, "s", "sec", "second", "seconds");
+    register!(map, KG, "kg", "kilogram", "kilograms");
+    register!(map, A, "a", "amp", "ampere", "amperes");
+    register!(map, K, "k", "kelvin");
+    register!(map, DEG_C, "°c", "degc", "celsius");
+    register!(map, DEG_F, "°f", "degf", "fahrenheit");
+    register!(map, MOL, "mol", "mole", "moles");
+    register!(map, CD, "cd", "candela");
+    register!(map, RAD, "rad", "radian", "radians");
+    register!(map, SR, "sr", "steradian", "steradians");
 
     // SI Length
-    register!(map, *KM, "km", "kilometer", "kilometers", "kilometre", "kilometres");
-    register!(map, *CM, "cm", "centimeter", "centimeters", "centimetre", "centimetres");
-    register!(map, *MM, "mm", "millimeter", "millimeters", "millimetre", "millimetres");
-    register!(map, *UM, "um", "micrometer", "micrometers", "micron", "microns");
-    register!(map, *NM, "nm", "nanometer", "nanometers");
-    register!(map, *PM, "pm", "picometer", "picometers");
-    register!(map, *FM, "fm", "femtometer", "femtometers");
+    register!(map, KM, "km", "kilometer", "kilometers", "kilometre", "kilometres");
+    register!(map, CM, "cm", "centimeter", "centimeters", "centimetre", "centimetres");
+    register!(map, MM, "mm", "millimeter", "millimeters", "millimetre", "millimetres");
+    register!(map, UM, "um", "micrometer", "micrometers", "micron", "microns");
+    register!(map, NM, "nm", "nanometer", "nanometers");
+    register!(map, PM, "pm", "picometer", "picometers");
+    register!(map, FM, "fm", "femtometer", "femtometers");
 
     // SI Time
-    register!(map, *MS, "ms", "millisecond", "milliseconds");
-    register!(map, *US, "us", "microsecond", "microseconds");
-    register!(map, *NS, "ns", "nanosecond", "nanoseconds");
-    register!(map, *PS, "ps", "picosecond", "picoseconds");
-    register!(map, *MIN, "min", "minute", "minutes");
-    register!(map, *H, "h", "hr", "hour", "hours");
-    register!(map, *DAY, "d", "day", "days");
-    register!(map, *YR, "yr", "year", "years", "julian_year");
+    register!(map, MS, "ms", "millisecond", "milliseconds");
+    register!(map, US, "us", "microsecond", "microseconds");
+    register!(map, NS, "ns", "nanosecond", "nanoseconds");
+    register!(map, PS, "ps", "picosecond", "picoseconds");
+    register!(map, MIN, "min", "minute", "minutes");
+    register!(map, H, "h", "hr", "hour", "hours");
+    register!(map, DAY, "d", "day", "days");
+    register!(map, YR, "yr", "year", "years", "julian_year");
 
     // SI Mass
-    register!(map, *G, "g", "gram", "grams");
-    register!(map, *MG, "mg", "milligram", "milligrams");
-    register!(map, *UG, "ug", "microgram", "micrograms");
-    register!(map, *TONNE, "t", "tonne", "tonnes", "metric_ton");
+    register!(map, G, "g", "gram", "grams");
+    register!(map, MG, "mg", "milligram", "milligrams");
+    register!(map, UG, "ug", "microgram", "micrograms");
+    register!(map, TONNE, "t", "tonne", "tonnes", "metric_ton");
 
     // SI Derived - Frequency
-    register!(map, *HZ, "hz", "hertz");
-    register!(map, *KHZ, "khz", "kilohertz");
-    register!(map, *MHZ, "mhz", "megahertz");
-    register!(map, *GHZ, "ghz", "gigahertz");
-    register!(map, *THZ, "thz", "terahertz");
+    register!(map, HZ, "hz", "hertz");
+    register!(map, KHZ, "khz", "kilohertz");
+    register!(map, MHZ, "mhz", "megahertz");
+    register!(map, GHZ, "ghz", "gigahertz");
+    register!(map, THZ, "thz", "terahertz");
 
     // SI Derived - Mechanics
-    register!(map, *N, "n", "newton", "newtons");
-    register!(map, *J, "j", "joule", "joules");
-    register!(map, *W, "w", "watt", "watts");
-    register!(map, *KW, "kw", "kilowatt", "kilowatts");
-    register!(map, *MW, "mw", "megawatt", "megawatts");
-    register!(map, *PA, "pa", "pascal", "pascals");
+    register!(map, N, "n", "newton", "newtons");
+    register!(map, J, "j", "joule", "joules");
+    register!(map, W, "w", "watt", "watts");
+    register!(map, KW, "kw", "kilowatt", "kilowatts");
+    register!(map, MW, "mw", "megawatt", "megawatts");
+    register!(map, PA, "pa", "pascal", "pascals");
 
     // SI Derived - Electrical
-    register!(map, *C, "c", "coulomb", "coulombs");
-    register!(map, *V, "v", "volt", "volts");
-    register!(map, *F, "f", "farad", "farads");
-    register!(map, *OHM, "ohm", "ohms");
+    register!(map, C, "c", "coulomb", "coulombs");
+    register!(map, V, "v", "volt", "volts");
+    register!(map, F, "f", "farad", "farads");
+    register!(map, OHM, "ohm", "ohms");
 
     // SI Derived - Energy
-    register!(map, *EV, "ev", "electronvolt", "electronvolts");
-    register!(map, *KEV, "kev", "kiloelectronvolt");
-    register!(map, *MEV, "mev", "megaelectronvolt");
-    register!(map, *GEV, "gev", "gigaelectronvolt");
+    register!(map, EV, "ev", "electronvolt", "electronvolts");
+    register!(map, KEV, "kev", "kiloelectronvolt");
+    register!(map, MEV, "mev", "megaelectronvolt");
+    register!(map, GEV, "gev", "gigaelectronvolt");
 
     // SI Angles
-    register!(map, *DEG, "deg", "degree", "degrees");
-    register!(map, *ARCMIN, "arcmin", "arcminute", "arcminutes");
-    register!(map, *ARCSEC, "arcsec", "arcsecond", "arcseconds");
-    register!(map, *MAS, "mas", "milliarcsecond", "milliarcseconds");
-    register!(map, *UAS, "uas", "microarcsecond", "microarcseconds");
+    register!(map, DEG, "deg", "degree", "degrees");
+    register!(map, ARCMIN, "arcmin", "arcminute", "arcminutes");
+    register!(map, ARCSEC, "arcsec", "arcsecond", "arcseconds");
+    register!(map, MAS, "mas", "milliarcsecond", "milliarcseconds");
+    register!(map, UAS, "uas", "microarcsecond", "microarcseconds");
 
     // Imperial - Length
-    register!(map, *INCH, "in", "inch", "inches");
-    register!(map, *FOOT, "ft", "foot", "feet");
-    register!(map, *YARD, "yd", "yard", "yards");
-    register!(map, *MILE, "mi", "mile", "miles");
-    register!(map, *NAUTICAL_MILE, "nmi", "nautical_mile");
+    register!(map, INCH, "in", "inch", "inches");
+    register!(map, FOOT, "ft", "foot", "feet");
+    register!(map, YARD, "yd", "yard", "yards");
+    register!(map, MILE, "mi", "mile", "miles");
+    register!(map, NAUTICAL_MILE, "nmi", "nautical_mile");
 
     // Imperial - Mass
-    register!(map, *POUND, "lb", "lbm", "pound", "pounds");
-    register!(map, *OUNCE, "oz", "ounce", "ounces");
-    register!(map, *TON, "ton", "tons", "short_ton");
+    register!(map, POUND, "lb", "lbm", "pound", "pounds");
+    register!(map, OUNCE, "oz", "ounce", "ounces");
+    register!(map, TON, "ton", "tons", "short_ton");
 
     // Imperial - Volume
-    register!(map, *GALLON, "gal", "gallon", "gallons");
-    register!(map, *PINT, "pt", "pint", "pints");
-    register!(map, *QUART, "qt", "quart", "quarts");
+    register!(map, GALLON, "gal", "gallon", "gallons");
+    register!(map, PINT, "pt", "pint", "pints");
+    register!(map, QUART, "qt", "quart", "quarts");
 
     // Imperial - Other
-    register!(map, *PSI, "psi");
-    register!(map, *MPH, "mph");
-    register!(map, *KNOT, "kn", "kt", "knot", "knots");
-    register!(map, *HORSEPOWER, "hp", "horsepower");
-    register!(map, *BTU, "btu");
+    register!(map, PSI, "psi");
+    register!(map, MPH, "mph");
+    register!(map, KNOT, "kn", "kt", "knot", "knots");
+    register!(map, HORSEPOWER, "hp", "horsepower");
+    register!(map, BTU, "btu");
 
     #[cfg(feature = "astrophysics")]
     register_astrophysical_units(map);
@@ -821,7 +818,7 @@ fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
 
     macro_rules! register {
         ($map:expr, $unit:expr, $($name:expr),+) => {
-            let entry = UnitEntry { unit: $unit.clone() };
+            let entry = UnitEntry { unit: Unit::from($unit) };
             $(
                 $map.insert($name.to_lowercase(), entry.clone());
             )+
@@ -829,35 +826,35 @@ fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
     }
 
     // Distance
-    register!(map, *AU, "au", "astronomical_unit");
-    register!(map, *PARSEC, "pc", "parsec", "parsecs");
-    register!(map, *KPC, "kpc", "kiloparsec", "kiloparsecs");
-    register!(map, *MPC, "mpc", "megaparsec", "megaparsecs");
-    register!(map, *GPC, "gpc", "gigaparsec", "gigaparsecs");
-    register!(map, *LIGHT_YEAR, "ly", "lyr", "lightyear", "lightyears", "light_year", "light_years");
+    register!(map, AU, "au", "astronomical_unit");
+    register!(map, PARSEC, "pc", "parsec", "parsecs");
+    register!(map, KPC, "kpc", "kiloparsec", "kiloparsecs");
+    register!(map, MPC, "mpc", "megaparsec", "megaparsecs");
+    register!(map, GPC, "gpc", "gigaparsec", "gigaparsecs");
+    register!(map, LIGHT_YEAR, "ly", "lyr", "lightyear", "lightyears", "light_year", "light_years");
 
     // Solar
-    register!(map, *SOLAR_MASS, "m_sun", "msun", "solmass", "solar_mass");
-    register!(map, *SOLAR_RADIUS, "r_sun", "rsun", "solrad", "solar_radius");
-    register!(map, *SOLAR_LUMINOSITY, "l_sun", "lsun", "sollum", "solar_luminosity");
+    register!(map, SOLAR_MASS, "m_sun", "msun", "solmass", "solar_mass");
+    register!(map, SOLAR_RADIUS, "r_sun", "rsun", "solrad", "solar_radius");
+    register!(map, SOLAR_LUMINOSITY, "l_sun", "lsun", "sollum", "solar_luminosity");
 
     // Planetary
-    register!(map, *JUPITER_MASS, "m_jup", "mjup", "jupiter_mass");
-    register!(map, *JUPITER_RADIUS, "r_jup", "rjup", "jupiter_radius");
-    register!(map, *EARTH_MASS, "m_earth", "mearth", "earth_mass");
-    register!(map, *EARTH_RADIUS, "r_earth", "rearth", "earth_radius");
+    register!(map, JUPITER_MASS, "m_jup", "mjup", "jupiter_mass");
+    register!(map, JUPITER_RADIUS, "r_jup", "rjup", "jupiter_radius");
+    register!(map, EARTH_MASS, "m_earth", "mearth", "earth_mass");
+    register!(map, EARTH_RADIUS, "r_earth", "rearth", "earth_radius");
 
     // Spectroscopic
-    register!(map, *ANGSTROM, "angstrom", "aa");
-    register!(map, *JANSKY, "jy", "jansky");
-    register!(map, *MJY, "mjy", "millijansky");
-    register!(map, *UJY, "ujy", "microjansky");
-    register!(map, *BARN, "barn", "barns");
+    register!(map, ANGSTROM, "angstrom", "aa");
+    register!(map, JANSKY, "jy", "jansky");
+    register!(map, MJY, "mjy", "millijansky");
+    register!(map, UJY, "ujy", "microjansky");
+    register!(map, BARN, "barn", "barns");
 
     // CGS commonly used in astrophysics
-    register!(map, *ERG, "erg", "ergs");
-    register!(map, *DYN, "dyn", "dyne", "dynes");
-    register!(map, *GAUSS, "gauss");
+    register!(map, ERG, "erg", "ergs");
+    register!(map, DYN, "dyn", "dyne", "dynes");
+    register!(map, GAUSS, "gauss");
 }
 
 #[cfg(feature = "cgs")]
@@ -866,15 +863,15 @@ fn register_cgs_units(map: &mut HashMap<String, UnitEntry>) {
 
     macro_rules! register {
         ($map:expr, $unit:expr, $($name:expr),+) => {
-            let entry = UnitEntry { unit: $unit.clone() };
+            let entry = UnitEntry { unit: Unit::from($unit) };
             $(
                 $map.insert($name.to_lowercase(), entry.clone());
             )+
         };
     }
 
-    register!(map, *CENTIMETER, "centimeter_cgs");
-    register!(map, *GRAM, "gram_cgs");
+    register!(map, CENTIMETER, "centimeter_cgs");
+    register!(map, GRAM, "gram_cgs");
 }
 
 /// Register extended Unicode and academic aliases.
@@ -883,7 +880,7 @@ fn register_extended_aliases(map: &mut HashMap<String, UnitEntry>) {
 
     macro_rules! register {
         ($map:expr, $unit:expr, $($name:expr),+) => {
-            let entry = UnitEntry { unit: $unit.clone() };
+            let entry = UnitEntry { unit: Unit::from($unit) };
             $(
                 $map.insert($name.to_lowercase(), entry.clone());
             )+
@@ -891,19 +888,19 @@ fn register_extended_aliases(map: &mut HashMap<String, UnitEntry>) {
     }
 
     // Unicode micro symbol aliases
-    register!(map, *UM, "µm");
-    register!(map, *US, "µs");
-    register!(map, *UG, "µg");
+    register!(map, UM, "µm");
+    register!(map, US, "µs");
+    register!(map, UG, "µg");
 
     // Ohm with Unicode
-    register!(map, *OHM, "ω");
+    register!(map, OHM, "ω");
 
     // Degree symbol
-    register!(map, *DEG, "°");
+    register!(map, DEG, "°");
 
     // Arc minute/second with Unicode
-    register!(map, *ARCMIN, "′");
-    register!(map, *ARCSEC, "″");
+    register!(map, ARCMIN, "′");
+    register!(map, ARCSEC, "″");
 
     #[cfg(feature = "astrophysics")]
     register_astrophysical_aliases(map);
@@ -919,7 +916,7 @@ fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
 
     macro_rules! register {
         ($map:expr, $unit:expr, $($name:expr),+) => {
-            let entry = UnitEntry { unit: $unit.clone() };
+            let entry = UnitEntry { unit: Unit::from($unit) };
             $(
                 $map.insert($name.to_lowercase(), entry.clone());
             )+
@@ -927,16 +924,16 @@ fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
     }
 
     // Angstrom with Unicode
-    register!(map, *ANGSTROM, "å");
+    register!(map, ANGSTROM, "å");
 
     // Extended astrophysical aliases
-    register!(map, *SOLAR_MASS, "m⊙", "solmass", "sol_mass");
-    register!(map, *SOLAR_RADIUS, "r⊙", "solrad", "sol_rad", "solarradius");
-    register!(map, *SOLAR_LUMINOSITY, "l⊙", "sollum", "sol_lum", "solarluminosity");
-    register!(map, *JUPITER_MASS, "m_jupiter", "jupitermass");
-    register!(map, *JUPITER_RADIUS, "r_jupiter", "jupiterradius");
-    register!(map, *EARTH_MASS, "m⊕", "earthmass");
-    register!(map, *EARTH_RADIUS, "r⊕", "earthradius");
+    register!(map, SOLAR_MASS, "m⊙", "solmass", "sol_mass");
+    register!(map, SOLAR_RADIUS, "r⊙", "solrad", "sol_rad", "solarradius");
+    register!(map, SOLAR_LUMINOSITY, "l⊙", "sollum", "sol_lum", "solarluminosity");
+    register!(map, JUPITER_MASS, "m_jupiter", "jupitermass");
+    register!(map, JUPITER_RADIUS, "r_jupiter", "jupiterradius");
+    register!(map, EARTH_MASS, "m⊕", "earthmass");
+    register!(map, EARTH_RADIUS, "r⊕", "earthradius");
 }
 
 /// Look up a simple unit by name.
@@ -1392,7 +1389,7 @@ mod tests {
         assert_eq!(m.dimension(), M.dimension());
 
         let velocity: Unit = "km/h".parse().unwrap();
-        let expected_dim = (&*KM / &*H).dimension();
+        let expected_dim = (KM / H).dimension();
         assert_eq!(velocity.dimension(), expected_dim);
     }
 
@@ -1554,7 +1551,7 @@ mod tests {
         assert_eq!(dim.time, Rational16::new(-1, 1));
 
         let velocity2 = parse_unit("m per s").unwrap();
-        assert_eq!(velocity2.dimension(), (&*M / &*S).dimension());
+        assert_eq!(velocity2.dimension(), (M / S).dimension());
     }
 
     #[test]
@@ -1661,7 +1658,7 @@ mod tests {
     #[test]
     fn test_registry_register() {
         let mut registry = UnitRegistry::new();
-        registry.register(&["custom", "cust"], M.clone());
+        registry.register(&["custom", "cust"], Unit::from(M));
 
         let custom = registry.lookup("custom").unwrap();
         assert_eq!(custom.dimension(), M.dimension());
@@ -1673,8 +1670,8 @@ mod tests {
     #[test]
     fn test_registry_builder_pattern() {
         let registry = UnitRegistry::new()
-            .with_unit(&["custom1"], M.clone())
-            .with_unit(&["custom2", "c2"], KG.clone());
+            .with_unit(&["custom1"], Unit::from(M))
+            .with_unit(&["custom2", "c2"], Unit::from(KG));
 
         assert!(registry.lookup("custom1").is_some());
         assert!(registry.lookup("custom2").is_some());
@@ -1686,7 +1683,7 @@ mod tests {
         let registry = UnitRegistry::with_builtins();
 
         let velocity = registry.parse_unit("m/s").unwrap();
-        assert_eq!(velocity.dimension(), (&*M / &*S).dimension());
+        assert_eq!(velocity.dimension(), (M / S).dimension());
 
         let energy = registry.parse_unit("kg m^2 / s^2").unwrap();
         let dim = energy.dimension();
@@ -1707,10 +1704,10 @@ mod tests {
     #[test]
     fn test_registry_merge() {
         let mut registry1 = UnitRegistry::new();
-        registry1.register(&["unit1"], M.clone());
+        registry1.register(&["unit1"], Unit::from(M));
 
         let mut registry2 = UnitRegistry::new();
-        registry2.register(&["unit2"], KG.clone());
+        registry2.register(&["unit2"], Unit::from(KG));
 
         registry1.merge(&registry2);
 
@@ -1721,7 +1718,7 @@ mod tests {
     #[test]
     fn test_registry_names() {
         let mut registry = UnitRegistry::new();
-        registry.register(&["a", "b", "c"], M.clone());
+        registry.register(&["a", "b", "c"], Unit::from(M));
 
         let names = registry.names();
         assert_eq!(names.len(), 3);

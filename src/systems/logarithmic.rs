@@ -37,8 +37,8 @@
 //! use iridium_units::systems::logarithmic::*;
 //!
 //! // Two stars with apparent magnitudes
-//! let star1 = 5.0 * &*MAG;   // magnitude 5
-//! let star2 = 3.0 * &*MAG;   // magnitude 3 (brighter)
+//! let star1 = 5.0 * MAG;   // magnitude 5
+//! let star2 = 3.0 * MAG;   // magnitude 3 (brighter)
 //!
 //! // To find combined brightness, convert to linear flux ratio
 //! let flux1 = star1.mag_to_flux_ratio().unwrap();  // 10^(-0.4 * 5) = 0.01
@@ -53,8 +53,6 @@
 
 use crate::dimension::Dimension;
 use crate::unit::base::BaseUnit;
-use crate::unit::Unit;
-use lazy_static::lazy_static;
 
 // =============================================================================
 // Constants
@@ -70,113 +68,56 @@ pub const LOG10_POGSON: f64 = 0.4;
 /// Magnitude zero-point factor: -2.5 (used in m = -2.5 * log10(F/F0))
 pub const MAG_FACTOR: f64 = -2.5;
 
-lazy_static! {
-    // =============================================================================
-    // Magnitude Units
-    // =============================================================================
+// =============================================================================
+// Magnitude Units
+// =============================================================================
 
-    /// Generic magnitude unit.
-    ///
-    /// Magnitudes are logarithmic measures of brightness. Lower values indicate
-    /// brighter objects:
-    /// - Sun: -26.74 mag (apparent)
-    /// - Full Moon: -12.7 mag (apparent)
-    /// - Sirius: -1.46 mag (apparent)
-    /// - Faintest naked-eye stars: +6 mag (apparent)
-    /// - Hubble deep field objects: +30 mag
-    pub static ref MAG: Unit = Unit::Base(BaseUnit::new(
-        "magnitude", "mag", &["magnitudes"],
-        Dimension::MAGNITUDE,
-        1.0
-    ));
+/// Generic magnitude unit.
+pub const MAG: BaseUnit = BaseUnit::new(
+    "magnitude", "mag", &["magnitudes"], Dimension::MAGNITUDE, 1.0,
+);
 
-    /// Apparent magnitude - observed brightness from Earth.
-    ///
-    /// Apparent magnitude depends on:
-    /// - Intrinsic luminosity of the object
-    /// - Distance from observer
-    /// - Interstellar extinction
-    pub static ref APPARENT_MAG: Unit = Unit::Base(BaseUnit::new(
-        "apparent_magnitude", "m_app", &["app_mag", "apparent_mag"],
-        Dimension::MAGNITUDE,
-        1.0
-    ));
+/// Apparent magnitude - observed brightness from Earth.
+pub const APPARENT_MAG: BaseUnit = BaseUnit::new(
+    "apparent_magnitude", "m_app", &["app_mag", "apparent_mag"], Dimension::MAGNITUDE, 1.0,
+);
 
-    /// Absolute magnitude - brightness at 10 parsecs distance.
-    ///
-    /// Absolute magnitude removes the distance dependence:
-    /// - M = m - 5 * log10(d/10pc)
-    /// - Sun: +4.83 (absolute visual)
-    /// - Rigel: -7.84 (very luminous)
-    /// - Proxima Centauri: +15.6 (dim red dwarf)
-    pub static ref ABSOLUTE_MAG: Unit = Unit::Base(BaseUnit::new(
-        "absolute_magnitude", "M_abs", &["abs_mag", "absolute_mag"],
-        Dimension::MAGNITUDE,
-        1.0
-    ));
+/// Absolute magnitude - brightness at 10 parsecs distance.
+pub const ABSOLUTE_MAG: BaseUnit = BaseUnit::new(
+    "absolute_magnitude", "M_abs", &["abs_mag", "absolute_mag"], Dimension::MAGNITUDE, 1.0,
+);
 
-    // =============================================================================
-    // Decibel Units
-    // =============================================================================
+// =============================================================================
+// Decibel Units
+// =============================================================================
 
-    /// Decibel - logarithmic unit for power ratios.
-    ///
-    /// ```text
-    /// dB = 10 * log10(P/P₀)
-    /// ```
-    ///
-    /// Common reference levels:
-    /// - 0 dB SPL = 20 µPa (threshold of hearing)
-    /// - 0 dBm = 1 mW (RF power)
-    /// - 0 dBW = 1 W (power)
-    pub static ref DB: Unit = Unit::Base(BaseUnit::new(
-        "decibel", "dB", &["decibels"],
-        Dimension::MAGNITUDE,
-        1.0
-    ));
+/// Decibel - logarithmic unit for power ratios.
+pub const DB: BaseUnit = BaseUnit::new(
+    "decibel", "dB", &["decibels"], Dimension::MAGNITUDE, 1.0,
+);
 
-    /// Bel - base unit of decibels (1 B = 10 dB).
-    ///
-    /// Rarely used directly; decibels are more common.
-    pub static ref BEL: Unit = Unit::Base(BaseUnit::new(
-        "bel", "B", &["bels"],
-        Dimension::MAGNITUDE,
-        10.0  // 1 bel = 10 decibels in magnitude space
-    ));
+/// Bel - base unit of decibels (1 B = 10 dB).
+pub const BEL: BaseUnit = BaseUnit::new(
+    "bel", "B", &["bels"], Dimension::MAGNITUDE, 10.0,
+);
 
-    // =============================================================================
-    // Dex Unit
-    // =============================================================================
+// =============================================================================
+// Dex Unit
+// =============================================================================
 
-    /// Dex - order of magnitude unit.
-    ///
-    /// ```text
-    /// dex = log10(x/x₀)
-    /// ```
-    ///
-    /// Used in astronomy for expressing ratios:
-    /// - 1 dex = factor of 10
-    /// - 0.3 dex ≈ factor of 2
-    /// - 2 dex = factor of 100
-    pub static ref DEX: Unit = Unit::Base(BaseUnit::new(
-        "dex", "dex", &[],
-        Dimension::MAGNITUDE,
-        1.0
-    ));
+/// Dex - order of magnitude unit.
+pub const DEX: BaseUnit = BaseUnit::new(
+    "dex", "dex", &[], Dimension::MAGNITUDE, 1.0,
+);
 
-    // =============================================================================
-    // Millimagnitude
-    // =============================================================================
+// =============================================================================
+// Millimagnitude
+// =============================================================================
 
-    /// Millimagnitude (10^-3 magnitude).
-    ///
-    /// Used for high-precision photometry where changes of 0.001 mag matter.
-    pub static ref MILLIMAG: Unit = Unit::Base(BaseUnit::new(
-        "millimagnitude", "mmag", &["millimag"],
-        Dimension::MAGNITUDE,
-        0.001
-    ));
-}
+/// Millimagnitude (10^-3 magnitude).
+pub const MILLIMAG: BaseUnit = BaseUnit::new(
+    "millimagnitude", "mmag", &["millimag"], Dimension::MAGNITUDE, 0.001,
+);
 
 // =============================================================================
 // Logarithmic Conversion Functions
@@ -551,16 +492,16 @@ mod tests {
     #[test]
     fn test_millimag_scale() {
         // 1000 mmag = 1 mag
-        let q = 1000.0 * MILLIMAG.clone();
-        let q_mag = q.to(&MAG).unwrap();
+        let q = 1000.0 * MILLIMAG;
+        let q_mag = q.to(MAG).unwrap();
         assert!((q_mag.value() - 1.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_bel_to_db() {
         // 1 bel = 10 dB
-        let q = 1.0 * BEL.clone();
-        let q_db = q.to(&DB).unwrap();
+        let q = 1.0 * BEL;
+        let q_db = q.to(DB).unwrap();
         assert!((q_db.value() - 10.0).abs() < 1e-10);
     }
 }

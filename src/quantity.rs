@@ -3,6 +3,7 @@
 use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::unit::Unit;
+use crate::unit::base::BaseUnit;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
@@ -13,11 +14,11 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 /// ```
 /// use iridium_units::prelude::*;
 ///
-/// let distance = 100.0 * &*M;
-/// let time = 9.58 * &*S;
+/// let distance = 100.0 * M;
+/// let time = 9.58 * S;
 /// let speed = &distance / &time;
 ///
-/// let speed_kmh = speed.to(&(&*KM / &*H)).unwrap();
+/// let speed_kmh = speed.to(&(KM / H)).unwrap();
 /// ```
 #[derive(Clone, Debug)]
 pub struct Quantity {
@@ -59,7 +60,8 @@ impl Quantity {
     /// Convert to another unit.
     ///
     /// Returns `Err` if the units have incompatible dimensions.
-    pub fn to(&self, target: &Unit) -> UnitResult<Quantity> {
+    pub fn to(&self, target: impl Into<Unit>) -> UnitResult<Quantity> {
+        let target = target.into();
         if self.unit.dimension() != target.dimension() {
             return Err(UnitError::DimensionMismatch {
                 from: self.unit.to_string(),
@@ -67,13 +69,13 @@ impl Quantity {
             });
         }
         let si_value = self.unit.to_si(self.value);
-        Ok(Quantity::new(target.from_si(si_value), target.clone()))
+        Ok(Quantity::new(target.from_si(si_value), target))
     }
 
     /// Get the value in a target unit.
     ///
     /// Shorthand for `.to(target)?.value()`.
-    pub fn to_value(&self, target: &Unit) -> UnitResult<f64> {
+    pub fn to_value(&self, target: impl Into<Unit>) -> UnitResult<f64> {
         Ok(self.to(target)?.value())
     }
 
@@ -159,10 +161,10 @@ impl Quantity {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::MAG;
     ///
-    /// let mag = 5.0 * &*MAG;
+    /// let mag = 5.0 * MAG;
     /// assert!(mag.is_logarithmic());
     ///
-    /// let length = 10.0 * &*M;
+    /// let length = 10.0 * M;
     /// assert!(!length.is_logarithmic());
     /// # }
     /// # #[cfg(not(feature = "logarithmic"))]
@@ -186,7 +188,7 @@ impl Quantity {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::MAG;
     ///
-    /// let star = 5.0 * &*MAG;  // 5th magnitude
+    /// let star = 5.0 * MAG;  // 5th magnitude
     /// let flux = star.mag_to_flux_ratio().unwrap();
     /// assert!((flux - 0.01).abs() < 1e-10);  // 1/100 of reference flux
     /// # }
@@ -218,7 +220,7 @@ impl Quantity {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::DB;
     ///
-    /// let signal = 10.0 * &*DB;  // 10 dB
+    /// let signal = 10.0 * DB;  // 10 dB
     /// let power = signal.db_to_power_ratio().unwrap();
     /// assert!((power - 10.0).abs() < 1e-10);  // 10x power
     /// # }
@@ -249,7 +251,7 @@ impl Quantity {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::DEX;
     ///
-    /// let order = 2.0 * &*DEX;  // 2 orders of magnitude
+    /// let order = 2.0 * DEX;  // 2 orders of magnitude
     /// let ratio = order.dex_to_ratio().unwrap();
     /// assert!((ratio - 100.0).abs() < 1e-10);  // factor of 100
     /// # }
@@ -279,8 +281,8 @@ impl Quantity {
     /// ```
     /// use iridium_units::prelude::*;
     ///
-    /// let a = 1.0 * &*KM;
-    /// let b = 500.0 * &*M;
+    /// let a = 1.0 * KM;
+    /// let b = 500.0 * M;
     /// let c = a.checked_add(&b).unwrap();
     /// assert!((c.value() - 1.5).abs() < 1e-10);
     /// ```
@@ -302,8 +304,8 @@ impl Quantity {
     /// ```
     /// use iridium_units::prelude::*;
     ///
-    /// let a = 1.0 * &*KM;
-    /// let b = 500.0 * &*M;
+    /// let a = 1.0 * KM;
+    /// let b = 500.0 * M;
     /// let c = a.checked_sub(&b).unwrap();
     /// assert!((c.value() - 0.5).abs() < 1e-10);
     /// ```
@@ -329,6 +331,10 @@ impl Quantity {
 /// processing large datasets, as it computes the conversion factor once
 /// and applies it to all values.
 ///
+/// Accepts any `impl Into<Unit>`, including `BaseUnit`, `&BaseUnit`, `Unit`,
+/// and `&Unit`. When passing a borrowed unit, it is cloned once (amortized
+/// over the batch). Pass an owned value to avoid the clone.
+///
 /// Note: This uses a single multiplicative factor, so it does not support
 /// offset units like Celsius or Fahrenheit. Use [`Quantity::to()`] for those.
 ///
@@ -343,8 +349,10 @@ impl Quantity {
 /// assert!((distances_m[0] - 1000.0).abs() < 1e-10);
 /// assert!((distances_m[4] - 42195.0).abs() < 1e-10);
 /// ```
-pub fn batch_convert(values: &[f64], from: &Unit, to: &Unit) -> UnitResult<Vec<f64>> {
-    let factor = from.conversion_factor(to)?;
+pub fn batch_convert(values: &[f64], from: impl Into<Unit>, to: impl Into<Unit>) -> UnitResult<Vec<f64>> {
+    let from = from.into();
+    let to = to.into();
+    let factor = from.conversion_factor(&to)?;
     Ok(values.iter().map(|v| v * factor).collect())
 }
 
@@ -365,7 +373,7 @@ pub fn batch_convert(values: &[f64], from: &Unit, to: &Unit) -> UnitResult<Vec<f
 /// batch_convert_into(&distances_km, &KM, &M, &mut distances_m).unwrap();
 /// assert!((distances_m[0] - 1000.0).abs() < 1e-10);
 /// ```
-pub fn batch_convert_into(values: &[f64], from: &Unit, to: &Unit, out: &mut [f64]) -> UnitResult<()> {
+pub fn batch_convert_into(values: &[f64], from: impl Into<Unit>, to: impl Into<Unit>, out: &mut [f64]) -> UnitResult<()> {
     if values.len() != out.len() {
         return Err(UnitError::BatchError(format!(
             "input length {} doesn't match output length {}",
@@ -373,7 +381,9 @@ pub fn batch_convert_into(values: &[f64], from: &Unit, to: &Unit, out: &mut [f64
             out.len()
         )));
     }
-    let factor = from.conversion_factor(to)?;
+    let from = from.into();
+    let to = to.into();
+    let factor = from.conversion_factor(&to)?;
     for (i, v) in values.iter().enumerate() {
         out[i] = v * factor;
     }
@@ -401,8 +411,10 @@ pub fn batch_convert_into(values: &[f64], from: &Unit, to: &Unit, out: &mut [f64
 /// let value_km = 5.0;
 /// let value_m = value_km * factor;
 /// ```
-pub fn conversion_factor(from: &Unit, to: &Unit) -> UnitResult<f64> {
-    from.conversion_factor(to)
+pub fn conversion_factor(from: impl Into<Unit>, to: impl Into<Unit>) -> UnitResult<f64> {
+    let from = from.into();
+    let to = to.into();
+    from.conversion_factor(&to)
 }
 
 impl fmt::Display for Quantity {
@@ -646,6 +658,58 @@ impl Mul<&Unit> for f64 {
 
     fn mul(self, unit: &Unit) -> Quantity {
         Quantity::new(self, unit.clone())
+    }
+}
+
+// f64 * BaseUnit → Quantity
+impl Mul<BaseUnit> for f64 {
+    type Output = Quantity;
+
+    fn mul(self, unit: BaseUnit) -> Quantity {
+        Quantity::new(self, Unit::from(unit))
+    }
+}
+
+// BaseUnit * f64 → Quantity
+impl Mul<f64> for BaseUnit {
+    type Output = Quantity;
+
+    fn mul(self, value: f64) -> Quantity {
+        Quantity::new(value, Unit::from(self))
+    }
+}
+
+// Quantity * BaseUnit
+impl Mul<BaseUnit> for Quantity {
+    type Output = Quantity;
+
+    fn mul(self, unit: BaseUnit) -> Quantity {
+        self * Unit::from(unit)
+    }
+}
+
+impl Mul<BaseUnit> for &Quantity {
+    type Output = Quantity;
+
+    fn mul(self, unit: BaseUnit) -> Quantity {
+        Quantity::new(self.value, &self.unit * unit)
+    }
+}
+
+// Quantity / BaseUnit
+impl Div<BaseUnit> for Quantity {
+    type Output = Quantity;
+
+    fn div(self, unit: BaseUnit) -> Quantity {
+        self / Unit::from(unit)
+    }
+}
+
+impl Div<BaseUnit> for &Quantity {
+    type Output = Quantity;
+
+    fn div(self, unit: BaseUnit) -> Quantity {
+        Quantity::new(self.value, &self.unit / unit)
     }
 }
 

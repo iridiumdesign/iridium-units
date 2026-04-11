@@ -22,7 +22,7 @@ fn bench_batch_conversion(c: &mut Criterion) {
                     let converted: Vec<f64> = values
                         .iter()
                         .map(|v| {
-                            let q = *v * &*KM;
+                            let q = *v * KM;
                             q.to(&M).unwrap().value()
                         })
                         .collect();
@@ -64,8 +64,8 @@ fn bench_batch_conversion(c: &mut Criterion) {
 fn bench_arithmetic_operations(c: &mut Criterion) {
     let mut group = c.benchmark_group("arithmetic");
 
-    let q1 = 100.0 * &*M;
-    let q2 = 50.0 * &*KM;
+    let q1 = 100.0 * M;
+    let q2 = 50.0 * KM;
 
     // Addition with references (optimized - no clone)
     group.bench_function("ref_addition", |b| {
@@ -113,7 +113,7 @@ fn bench_unit_operations(c: &mut Criterion) {
     // Creating quantities
     group.bench_function("quantity_creation", |b| {
         b.iter(|| {
-            let q = 42.0 * &*M;
+            let q = 42.0 * M;
             black_box(q)
         })
     });
@@ -121,7 +121,7 @@ fn bench_unit_operations(c: &mut Criterion) {
     // Unit division
     group.bench_function("unit_division", |b| {
         b.iter(|| {
-            let u = &*M / &*S;
+            let u = M / S;
             black_box(u)
         })
     });
@@ -129,7 +129,7 @@ fn bench_unit_operations(c: &mut Criterion) {
     // Composite unit creation
     group.bench_function("composite_unit", |b| {
         b.iter(|| {
-            let u = &*KG * &*M / (&*S * &*S);
+            let u = KG * M / (S * S);
             black_box(u)
         })
     });
@@ -151,7 +151,7 @@ fn bench_equivalencies(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("equivalencies");
 
-    let wavelength = 500.0 * &*NM;
+    let wavelength = 500.0 * NM;
 
     // Spectral conversion
     group.bench_function("spectral_wavelength_to_freq", |b| {

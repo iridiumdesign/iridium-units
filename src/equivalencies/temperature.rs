@@ -63,7 +63,7 @@ fn identify_temp_scale(unit: &Unit) -> Option<TempScale> {
 /// ```
 /// use iridium_units::prelude::*;
 ///
-/// let temp = 100.0 * &*DEG_C;
+/// let temp = 100.0 * DEG_C;
 /// let kelvin = temp.to(&K).unwrap(); // 373.15 K — no equivalency needed
 /// ```
 pub fn temperature() -> Equivalency {
@@ -132,7 +132,7 @@ fn create_temp_converter(
 /// use iridium_units::equivalencies::temperature_energy;
 ///
 /// // Room temperature in eV
-/// let temp = 300.0 * &*K;
+/// let temp = 300.0 * K;
 /// let energy = temp.to_equiv(&EV, temperature_energy()).unwrap();
 /// // ~0.026 eV
 /// ```

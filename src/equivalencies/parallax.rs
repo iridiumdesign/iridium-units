@@ -38,7 +38,7 @@ fn is_length(unit: &Unit) -> bool {
 /// use iridium_units::equivalencies::parallax;
 ///
 /// // Proxima Centauri has a parallax of about 0.77 arcsec
-/// let plx = 0.77 * &*ARCSEC;
+/// let plx = 0.77 * ARCSEC;
 /// let distance = plx.to_equiv(&PARSEC, parallax()).unwrap();
 /// // ~1.3 pc
 /// ```

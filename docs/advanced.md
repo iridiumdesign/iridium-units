@@ -67,14 +67,14 @@ registry.register(&["furlong", "fur", "furlongs"], furlong.clone());
 registry.register(&["fortnight", "ftn", "fortnights"], fortnight.clone());
 
 // Now convert the speed of light to furlongs per fortnight
-let c = 299_792_458.0 * &*M / &*S;
+let c = 299_792_458.0 * M / S;
 let fur_per_ftn = &furlong / &fortnight;
 let c_obscure = c.to(&fur_per_ftn)?;
 println!("{}", c_obscure);  // ~1.803e12 fur/ftn
 
 // Or parse directly
 let speed = registry.parse_quantity("100 fur/ftn")?;
-let in_mph = speed.to(&(&*MILE / &*H))?;
+let in_mph = speed.to(&(MILE / H))?;
 println!("{}", in_mph);  // ~0.000372 mph (a very slow speed)
 ```
 
@@ -130,7 +130,7 @@ let half = Rational16::new(1, 2);
 let third = Rational16::new(1, 3);
 
 // Square root has exponent 1/2
-let length = 4.0 * &*M;
+let length = 4.0 * M;
 let sqrt_length = length.sqrt();  // 2 m^(1/2)
 
 // Cube root would have exponent 1/3
@@ -355,8 +355,8 @@ use iridium_units::prelude::*;
 
 let handles: Vec<_> = (0..4).map(|i| {
     thread::spawn(move || {
-        let distance = (i as f64) * &*KM;
-        distance.to(&M).unwrap()
+        let distance = (i as f64) * KM;
+        distance.to(M).unwrap()
     })
 }).collect();
 

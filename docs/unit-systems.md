@@ -295,15 +295,15 @@ use iridium_units::prelude::*;
 use iridium_units::systems::astrophysical::*;
 
 // Distance to Proxima Centauri
-let distance = 1.3 * &*PARSEC;
-let in_ly = distance.to(&LIGHT_YEAR)?;  // ~4.24 ly
+let distance = 1.3 * PARSEC;
+let in_ly = distance.to(LIGHT_YEAR)?;  // ~4.24 ly
 
 // Sun's properties
-let M = 1.0 * &*SOLAR_MASS;
-let R = 1.0 * &*SOLAR_RADIUS;
-let L = 1.0 * &*SOLAR_LUMINOSITY;
+let M = 1.0 * SOLAR_MASS;
+let R = 1.0 * SOLAR_RADIUS;
+let L = 1.0 * SOLAR_LUMINOSITY;
 
 // Flux calculation
-let flux = 1.0 * &*JANSKY;
-let in_cgs = flux.to(&FLAM_NU)?;  // erg/s/cm²/Hz
+let flux = 1.0 * JANSKY;
+let in_cgs = flux.to(FLAM_NU)?;  // erg/s/cm²/Hz
 ```

@@ -198,6 +198,24 @@ impl fmt::Display for Unit {
     }
 }
 
+impl From<BaseUnit> for Unit {
+    fn from(b: BaseUnit) -> Unit {
+        Unit::Base(b)
+    }
+}
+
+impl From<&BaseUnit> for Unit {
+    fn from(b: &BaseUnit) -> Unit {
+        Unit::Base(*b)
+    }
+}
+
+impl From<&Unit> for Unit {
+    fn from(u: &Unit) -> Unit {
+        u.clone()
+    }
+}
+
 // Unit * Unit
 impl Mul for Unit {
     type Output = Unit;
@@ -261,6 +279,77 @@ impl Div<Unit> for &Unit {
 
     fn div(self, rhs: Unit) -> Unit {
         Unit::Composite(self.to_composite().div(&rhs.to_composite()))
+    }
+}
+
+// BaseUnit * BaseUnit → Unit
+impl Mul for BaseUnit {
+    type Output = Unit;
+
+    fn mul(self, rhs: BaseUnit) -> Unit {
+        Unit::from(self) * Unit::from(rhs)
+    }
+}
+
+// BaseUnit / BaseUnit → Unit
+impl Div for BaseUnit {
+    type Output = Unit;
+
+    fn div(self, rhs: BaseUnit) -> Unit {
+        Unit::from(self) / Unit::from(rhs)
+    }
+}
+
+// BaseUnit * Unit → Unit
+impl Mul<Unit> for BaseUnit {
+    type Output = Unit;
+
+    fn mul(self, rhs: Unit) -> Unit {
+        Unit::from(self) * rhs
+    }
+}
+
+// Unit * BaseUnit → Unit
+impl Mul<BaseUnit> for Unit {
+    type Output = Unit;
+
+    fn mul(self, rhs: BaseUnit) -> Unit {
+        self * Unit::from(rhs)
+    }
+}
+
+// BaseUnit / Unit → Unit
+impl Div<Unit> for BaseUnit {
+    type Output = Unit;
+
+    fn div(self, rhs: Unit) -> Unit {
+        Unit::from(self) / rhs
+    }
+}
+
+// Unit / BaseUnit → Unit
+impl Div<BaseUnit> for Unit {
+    type Output = Unit;
+
+    fn div(self, rhs: BaseUnit) -> Unit {
+        self / Unit::from(rhs)
+    }
+}
+
+// &Unit * BaseUnit, &Unit / BaseUnit
+impl Mul<BaseUnit> for &Unit {
+    type Output = Unit;
+
+    fn mul(self, rhs: BaseUnit) -> Unit {
+        self * &Unit::from(rhs)
+    }
+}
+
+impl Div<BaseUnit> for &Unit {
+    type Output = Unit;
+
+    fn div(self, rhs: BaseUnit) -> Unit {
+        self / &Unit::from(rhs)
     }
 }
 

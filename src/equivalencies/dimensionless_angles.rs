@@ -27,8 +27,8 @@
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Rotational kinetic energy
-//!     let inertia = 2.0 * &*KG * &*M * &*M;      // Moment of inertia
-//!     let omega = 10.0 * &*RAD / &*S;             // Angular velocity
+//!     let inertia = 2.0 * KG * M * M;      // Moment of inertia
+//!     let omega = 10.0 * RAD / S;             // Angular velocity
 //!
 //!     let e_with_rad = 0.5 * &inertia * &omega * &omega;  // kg·m²·rad²/s²
 //!     let e = e_with_rad.to_equiv(&J, dimensionless_angles())?;  // J
@@ -65,13 +65,13 @@ use crate::unit::Unit;
 /// fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     // Angular frequency to regular frequency
 ///     // dimensionless_angles treats rad as 1, so 2π rad/s = 2π Hz
-///     let omega = 2.0 * std::f64::consts::PI * &*RAD / &*S;
+///     let omega = 2.0 * std::f64::consts::PI * RAD / S;
 ///     let f = omega.to_equiv(&HZ, dimensionless_angles())?;
 ///     assert!((f.value() - 2.0 * std::f64::consts::PI).abs() < 1e-10);
 ///
 ///     // Rotational energy
-///     let inertia = 1.0 * &*KG * &*M * &*M;
-///     let omega = 2.0 * &*RAD / &*S;
+///     let inertia = 1.0 * KG * M * M;
+///     let omega = 2.0 * RAD / S;
 ///     let e = (0.5 * &inertia * &omega * &omega)
 ///         .to_equiv(&J, dimensionless_angles())?;
 ///     assert!((e.value() - 2.0).abs() < 1e-10);  // ½ × 1 × 4 = 2 J
@@ -136,10 +136,10 @@ fn remove_angle_dimensions(dim: &Dimension) -> Dimension {
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::dimensionless_angles::has_angle_dimension;
 ///
-/// let omega = 1.0 * &*RAD / &*S;
+/// let omega = 1.0 * RAD / S;
 /// assert!(has_angle_dimension(omega.unit()));
 ///
-/// let f = 1.0 * &*HZ;
+/// let f = 1.0 * HZ;
 /// assert!(!has_angle_dimension(f.unit()));
 /// ```
 pub fn has_angle_dimension(unit: &Unit) -> bool {
@@ -158,7 +158,7 @@ pub fn has_angle_dimension(unit: &Unit) -> bool {
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::dimensionless_angles::angle_power;
 ///
-/// let omega_sq = (&*RAD / &*S).pow(2);  // rad²/s²
+/// let omega_sq = (RAD / S).pow(2);  // rad²/s²
 /// assert_eq!(angle_power(&omega_sq), 2);  // Two powers of rad
 /// ```
 pub fn angle_power(unit: &Unit) -> i32 {
@@ -179,7 +179,7 @@ mod tests {
     fn test_angular_frequency_to_frequency() {
         // The equivalency treats rad as dimensionless (= 1)
         // So 2π rad/s → 2π Hz (same numeric value, just drops the rad)
-        let omega = 2.0 * PI * &*RAD / &*S;
+        let omega = 2.0 * PI * RAD / S;
         let f = omega.to_equiv(&HZ, dimensionless_angles()).unwrap();
         assert!((f.value() - 2.0 * PI).abs() < 1e-10);
     }
@@ -187,8 +187,8 @@ mod tests {
     #[test]
     fn test_frequency_to_angular_frequency() {
         // 1 Hz = 1 rad/s (treating rad as 1)
-        let f = 1.0 * &*HZ;
-        let rad_per_s = &*RAD / &*S;
+        let f = 1.0 * HZ;
+        let rad_per_s = RAD / S;
         let omega = f.to_equiv(&rad_per_s, dimensionless_angles()).unwrap();
         assert!((omega.value() - 1.0).abs() < 1e-10);
     }
@@ -198,8 +198,8 @@ mod tests {
         // E = ½Iω²
         // I = 2 kg·m², ω = 3 rad/s
         // E = ½ × 2 × 9 = 9 J
-        let I = 2.0 * &*KG * &*M * &*M;
-        let omega = 3.0 * &*RAD / &*S;
+        let I = 2.0 * KG * M * M;
+        let omega = 3.0 * RAD / S;
         let omega_squared = &omega * &omega;
         let E_raw = 0.5 * &I * omega_squared;
 
@@ -216,8 +216,8 @@ mod tests {
         // Work = τ × θ
         // τ = 10 N·m, θ = 2 rad
         // W = 20 J
-        let tau = 10.0 * &*KG * &*M * &*M / (&*S * &*S);  // N·m
-        let theta = 2.0 * &*RAD;
+        let tau = 10.0 * KG * M * M / (S * S);  // N·m
+        let theta = 2.0 * RAD;
         let work_raw = &tau * &theta;
 
         // Raw dimension includes rad
@@ -233,8 +233,8 @@ mod tests {
         // Radiant intensity to power: I × Ω = P
         // I = 100 W/sr, Ω = 0.5 sr
         // P = 50 W
-        let intensity = 100.0 * &*W / &*SR;
-        let solid_angle = 0.5 * &*SR;
+        let intensity = 100.0 * W / SR;
+        let solid_angle = 0.5 * SR;
         let power_raw = &intensity * &solid_angle;
 
         // Should already be W (sr cancels), but let's verify
@@ -244,27 +244,27 @@ mod tests {
 
     #[test]
     fn test_has_angle_dimension() {
-        assert!(has_angle_dimension(&(&*RAD / &*S)));
-        assert!(has_angle_dimension(&*SR));
-        assert!(!has_angle_dimension(&*HZ));
-        assert!(!has_angle_dimension(&*J));
+        assert!(has_angle_dimension(&(RAD / S)));
+        assert!(has_angle_dimension(&Unit::from(SR)));
+        assert!(!has_angle_dimension(&Unit::from(HZ)));
+        assert!(!has_angle_dimension(&Unit::from(J)));
     }
 
     #[test]
     fn test_angle_power() {
-        let omega = &*RAD / &*S;
+        let omega = RAD / S;
         assert_eq!(angle_power(&omega), 1);
 
         let omega_sq = omega.pow(2);
         assert_eq!(angle_power(&omega_sq), 2);
 
-        assert_eq!(angle_power(&*HZ), 0);
+        assert_eq!(angle_power(&Unit::from(HZ)), 0);
     }
 
     #[test]
     fn test_incompatible_dimensions_fail() {
         // Can't convert kg to Hz even with dimensionless angles
-        let mass = 1.0 * &*KG;
+        let mass = 1.0 * KG;
         let result = mass.to_equiv(&HZ, dimensionless_angles());
         assert!(result.is_err());
     }
@@ -272,7 +272,7 @@ mod tests {
     #[test]
     fn test_pure_angle_to_dimensionless() {
         // 1 rad should convert to dimensionless 1
-        let angle = 1.0 * &*RAD;
+        let angle = 1.0 * RAD;
         let dimless = angle.to_equiv(&Unit::dimensionless(), dimensionless_angles()).unwrap();
         assert!((dimless.value() - 1.0).abs() < 1e-10);
     }
@@ -280,7 +280,7 @@ mod tests {
     #[test]
     fn test_pi_radians() {
         // π rad = π (dimensionless)
-        let angle = PI * &*RAD;
+        let angle = PI * RAD;
         let dimless = angle.to_equiv(&Unit::dimensionless(), dimensionless_angles()).unwrap();
         assert!((dimless.value() - PI).abs() < 1e-10);
     }
