@@ -192,7 +192,6 @@ pub fn temperature_energy() -> Equivalency {
 mod tests {
     use super::*;
     use crate::systems::si::{K, EV, J, DEG_C, DEG_F};
-    use crate::Quantity;
 
     #[test]
     fn test_temperature_energy_room_temp() {
