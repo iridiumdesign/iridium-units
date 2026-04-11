@@ -122,10 +122,12 @@ impl Quantity {
     /// Accepts any type convertible to `Rational16`, including `i32` and `Rational16`.
     pub fn pow(&self, exp: impl Into<Rational16>) -> Quantity {
         let exp = exp.into();
-        Quantity::new(
-            self.value.powf(exp.to_f64()),
-            self.unit.pow(exp),
-        )
+        let value = if exp.denom == 1 {
+            self.value.powi(exp.numer as i32)
+        } else {
+            self.value.powf(exp.to_f64())
+        };
+        Quantity::new(value, self.unit.pow(exp))
     }
 
     /// Take the square root of this quantity.

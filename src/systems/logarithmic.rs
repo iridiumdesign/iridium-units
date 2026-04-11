@@ -206,9 +206,9 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 ///
 /// Uses the Pogson formula: m = -2.5 * log10(F/F₀)
 ///
-/// # Panics
+/// # Errors
 ///
-/// Returns an error if flux_ratio is not positive.
+/// Returns an error if flux_ratio is not positive (including NaN).
 ///
 /// # Example
 ///
@@ -223,7 +223,7 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 /// ```
 #[inline]
 pub fn flux_ratio_to_mag(flux_ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if flux_ratio <= 0.0 {
+    if !(flux_ratio > 0.0) {
         return Err(crate::error::UnitError::LogarithmicError(
             "flux ratio must be positive".to_string(),
         ));
@@ -270,7 +270,7 @@ pub fn db_to_power_ratio(db: f64) -> f64 {
 /// ```
 #[inline]
 pub fn power_ratio_to_db(power_ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if power_ratio <= 0.0 {
+    if !(power_ratio > 0.0) {
         return Err(crate::error::UnitError::LogarithmicError(
             "power ratio must be positive".to_string(),
         ));
@@ -295,7 +295,7 @@ pub fn db_to_amplitude_ratio(db: f64) -> f64 {
 /// Returns an error if amplitude_ratio is not positive.
 #[inline]
 pub fn amplitude_ratio_to_db(amplitude_ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if amplitude_ratio <= 0.0 {
+    if !(amplitude_ratio > 0.0) {
         return Err(crate::error::UnitError::LogarithmicError(
             "amplitude ratio must be positive".to_string(),
         ));
@@ -327,9 +327,9 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 ///
 /// Uses the formula: dex = log10(x/x₀)
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics if ratio is not positive.
+/// Returns an error if ratio is not positive (including NaN).
 ///
 /// # Example
 ///
@@ -344,7 +344,7 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 /// ```
 #[inline]
 pub fn ratio_to_dex(ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if ratio <= 0.0 {
+    if !(ratio > 0.0) {
         return Err(crate::error::UnitError::LogarithmicError(
             "ratio must be positive".to_string(),
         ));
@@ -432,7 +432,7 @@ pub fn distance_from_modulus(distance_modulus: f64) -> f64 {
 /// Returns an error if distance_pc is not positive.
 #[inline]
 pub fn modulus_from_distance(distance_pc: f64) -> Result<f64, crate::error::UnitError> {
-    if distance_pc <= 0.0 {
+    if !(distance_pc > 0.0) {
         return Err(crate::error::UnitError::LogarithmicError(
             "distance must be positive".to_string(),
         ));
