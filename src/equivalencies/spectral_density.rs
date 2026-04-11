@@ -26,19 +26,23 @@
 //!
 //! # Example
 //!
-//! ```ignore
+//! ```
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::spectral_density::{spectral_density, ab_magnitude};
-//! use iridium_units::systems::astrophysical::JANSKY;
+//! use iridium_units::systems::logarithmic::MAG;
 //!
-//! // Convert Fν to Fλ at 500 nm
-//! let wavelength = 500.0 * &*NM;
-//! let f_nu = 1.0 * &*JANSKY;
-//! let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // Convert Fν to Fλ at 500 nm
+//!     let wavelength = 500.0 * &*NM;
+//!     let f_nu = 1.0 * &*JANSKY;
+//!     let flambda_unit = &*W / (&*M * &*M * &*M);
+//!     let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
 //!
-//! // Convert flux density to AB magnitude
-//! let flux = 3631.0 * &*JANSKY;  // Zero point
-//! let mag = flux.to_equiv(&ab_mag_unit, ab_magnitude())?;  // Should be 0
+//!     // Convert flux density to AB magnitude
+//!     let flux = 3631.0 * &*JANSKY;  // Zero point
+//!     let mag = flux.to_equiv(&MAG, ab_magnitude())?;  // Should be 0
+//!     Ok(())
+//! }
 //! ```
 
 use super::{Converter, Equivalency};
@@ -100,18 +104,20 @@ fn is_magnitude(unit: &Unit) -> bool {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::spectral_density::spectral_density;
-/// use iridium_units::systems::astrophysical::JANSKY;
 ///
-/// // At 500 nm wavelength
-/// let wavelength = 500.0 * &*NM;
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     // At 500 nm wavelength
+///     let wavelength = 500.0 * &*NM;
 ///
-/// // Convert 1 Jy to W/m²/m (Fλ)
-/// let f_nu = 1.0 * &*JANSKY;
-/// let flambda_unit = /* W/m³ unit */;
-/// let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
+///     // Convert 1 Jy to W/m²/m (Fλ)
+///     let f_nu = 1.0 * &*JANSKY;
+///     let flambda_unit = &*W / (&*M * &*M * &*M);
+///     let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
+///     Ok(())
+/// }
 /// ```
 pub fn spectral_density(spectral_coord: Quantity) -> Equivalency {
     // Determine if we have wavelength or frequency
@@ -192,21 +198,23 @@ pub fn spectral_density(spectral_coord: Quantity) -> Equivalency {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::spectral_density::ab_magnitude;
-/// use iridium_units::systems::astrophysical::JANSKY;
 /// use iridium_units::systems::logarithmic::MAG;
 ///
-/// // The AB zero point (3631 Jy) corresponds to magnitude 0
-/// let flux = 3631.0 * &*JANSKY;
-/// let mag = flux.to_equiv(&MAG, ab_magnitude())?;
-/// assert!((mag.value() - 0.0).abs() < 1e-10);
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     // The AB zero point (3631 Jy) corresponds to magnitude 0
+///     let flux = 3631.0 * &*JANSKY;
+///     let mag = flux.to_equiv(&MAG, ab_magnitude())?;
+///     assert!((mag.value() - 0.0).abs() < 1e-10);
 ///
-/// // 1 Jy is about 8.9 AB mag
-/// let flux = 1.0 * &*JANSKY;
-/// let mag = flux.to_equiv(&MAG, ab_magnitude())?;
-/// assert!((mag.value() - 8.9).abs() < 0.1);
+///     // 1 Jy is about 8.9 AB mag
+///     let flux = 1.0 * &*JANSKY;
+///     let mag = flux.to_equiv(&MAG, ab_magnitude())?;
+///     assert!((mag.value() - 8.9).abs() < 0.1);
+///     Ok(())
+/// }
 /// ```
 pub fn ab_magnitude() -> Equivalency {
     Equivalency::new("ab_magnitude", move |from, to| {
@@ -264,13 +272,18 @@ pub fn ab_magnitude() -> Equivalency {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::spectral_density::ab_magnitude_lambda;
+/// use iridium_units::systems::logarithmic::MAG;
 ///
-/// let wavelength = 500.0 * &*NM;
-/// let f_lambda = some_flux_lambda;
-/// let mag = f_lambda.to_equiv(&MAG, ab_magnitude_lambda(wavelength))?;
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let wavelength = 500.0 * &*NM;
+///     let flambda_unit = &*W / (&*M * &*M * &*M);
+///     let f_lambda = 1e-10 * flambda_unit;
+///     let mag = f_lambda.to_equiv(&MAG, ab_magnitude_lambda(wavelength))?;
+///     Ok(())
+/// }
 /// ```
 pub fn ab_magnitude_lambda(wavelength: Quantity) -> Equivalency {
     // Get wavelength in SI (meters)

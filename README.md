@@ -26,12 +26,12 @@ let time = 2.0 * &*H;
 let speed = &distance / &time;
 
 // Convert units
-let speed_ms = speed.to(&(&*M / &*S))?;
+let speed_ms = speed.to(&(&*M / &*S)).unwrap();
 println!("{}", speed_ms);  // 13.888... m/s
 
 // Parse from strings
-let distance = parse_quantity("100 km")?;
-let speed = parse_quantity("9.8 m/s^2")?;
+let distance = parse_quantity("100 km").unwrap();
+let speed = parse_quantity("9.8 m/s^2").unwrap();
 ```
 
 See the [documentation](docs/getting-started.md) for more examples.

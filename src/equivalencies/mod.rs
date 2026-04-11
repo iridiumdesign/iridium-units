@@ -9,12 +9,17 @@
 //!
 //! # Example
 //!
-//! ```ignore
+//! ```no_run
+//! # #[cfg(feature = "astrophysics")]
+//! # fn main() {
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::spectral;
 //!
-//! let wavelength = 500.0 * NM;
+//! let wavelength = 500.0 * &*NM;
 //! let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
+//! # }
+//! # #[cfg(not(feature = "astrophysics"))]
+//! # fn main() {}
 //! ```
 
 #[cfg(feature = "astrophysics")]

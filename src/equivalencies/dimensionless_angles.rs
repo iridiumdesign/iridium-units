@@ -21,16 +21,19 @@
 //!
 //! # Example
 //!
-//! ```ignore
+//! ```
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::dimensionless_angles;
 //!
-//! // Rotational kinetic energy
-//! let I = 2.0 * &*KG * &*M * &*M;      // Moment of inertia
-//! let omega = 10.0 * &*RAD / &*S;       // Angular velocity
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // Rotational kinetic energy
+//!     let inertia = 2.0 * &*KG * &*M * &*M;      // Moment of inertia
+//!     let omega = 10.0 * &*RAD / &*S;             // Angular velocity
 //!
-//! let E_with_rad = 0.5 * &I * &omega * &omega;  // kg·m²·rad²/s²
-//! let E = E_with_rad.to_equiv(&J, dimensionless_angles())?;  // J
+//!     let e_with_rad = 0.5 * &inertia * &omega * &omega;  // kg·m²·rad²/s²
+//!     let e = e_with_rad.to_equiv(&J, dimensionless_angles())?;  // J
+//!     Ok(())
+//! }
 //! ```
 
 use super::{Converter, Equivalency};
@@ -55,21 +58,25 @@ use crate::unit::Unit;
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::dimensionless_angles;
 ///
-/// // Angular frequency to regular frequency
-/// let omega = 2.0 * std::f64::consts::PI * &*RAD / &*S;
-/// let f = omega.to_equiv(&HZ, dimensionless_angles())?;
-/// assert!((f.value() - 1.0).abs() < 1e-10);  // 2π rad/s = 1 Hz
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     // Angular frequency to regular frequency
+///     // dimensionless_angles treats rad as 1, so 2π rad/s = 2π Hz
+///     let omega = 2.0 * std::f64::consts::PI * &*RAD / &*S;
+///     let f = omega.to_equiv(&HZ, dimensionless_angles())?;
+///     assert!((f.value() - 2.0 * std::f64::consts::PI).abs() < 1e-10);
 ///
-/// // Rotational energy
-/// let I = 1.0 * &*KG * &*M * &*M;
-/// let omega = 2.0 * &*RAD / &*S;
-/// let E = (0.5 * &I * &omega * &omega)
-///     .to_equiv(&J, dimensionless_angles())?;
-/// assert!((E.value() - 2.0).abs() < 1e-10);  // ½ × 1 × 4 = 2 J
+///     // Rotational energy
+///     let inertia = 1.0 * &*KG * &*M * &*M;
+///     let omega = 2.0 * &*RAD / &*S;
+///     let e = (0.5 * &inertia * &omega * &omega)
+///         .to_equiv(&J, dimensionless_angles())?;
+///     assert!((e.value() - 2.0).abs() < 1e-10);  // ½ × 1 × 4 = 2 J
+///     Ok(())
+/// }
 /// ```
 pub fn dimensionless_angles() -> Equivalency {
     Equivalency::new("dimensionless_angles", |from, to| {
@@ -125,7 +132,7 @@ fn remove_angle_dimensions(dim: &Dimension) -> Dimension {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::dimensionless_angles::has_angle_dimension;
 ///
@@ -147,7 +154,7 @@ pub fn has_angle_dimension(unit: &Unit) -> bool {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::dimensionless_angles::angle_power;
 ///

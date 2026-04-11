@@ -2,11 +2,11 @@
 //!
 //! This module provides predefined units from various unit systems:
 //!
-//! - [`si`]: SI (International System of Units)
-//! - [`cgs`]: CGS (Centimeter-Gram-Second)
-//! - [`astrophysical`]: Astrophysical units
-//! - [`imperial`]: Imperial/US customary units
-//! - [`logarithmic`]: Logarithmic units (magnitudes, decibels, dex)
+//! - [`si`] — SI (International System of Units)
+//! - [`cgs`] — CGS (Centimeter-Gram-Second)
+//! - [`astrophysical`] — Astrophysical units
+//! - [`imperial`] — Imperial/US customary units
+//! - [`logarithmic`] — Logarithmic units (magnitudes, decibels, dex)
 
 #[cfg(feature = "astrophysics")]
 pub mod astrophysical;

@@ -153,7 +153,9 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # #[cfg(feature = "logarithmic")]
+    /// # fn main() {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::MAG;
     ///
@@ -162,6 +164,9 @@ impl Quantity {
     ///
     /// let length = 10.0 * &*M;
     /// assert!(!length.is_logarithmic());
+    /// # }
+    /// # #[cfg(not(feature = "logarithmic"))]
+    /// # fn main() {}
     /// ```
     pub fn is_logarithmic(&self) -> bool {
         self.unit.dimension() == crate::dimension::Dimension::MAGNITUDE
@@ -175,13 +180,18 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # #[cfg(feature = "logarithmic")]
+    /// # fn main() {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::MAG;
     ///
     /// let star = 5.0 * &*MAG;  // 5th magnitude
     /// let flux = star.mag_to_flux_ratio().unwrap();
     /// assert!((flux - 0.01).abs() < 1e-10);  // 1/100 of reference flux
+    /// # }
+    /// # #[cfg(not(feature = "logarithmic"))]
+    /// # fn main() {}
     /// ```
     pub fn mag_to_flux_ratio(&self) -> UnitResult<f64> {
         if !self.is_logarithmic() {
@@ -202,13 +212,18 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # #[cfg(feature = "logarithmic")]
+    /// # fn main() {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::DB;
     ///
     /// let signal = 10.0 * &*DB;  // 10 dB
     /// let power = signal.db_to_power_ratio().unwrap();
     /// assert!((power - 10.0).abs() < 1e-10);  // 10x power
+    /// # }
+    /// # #[cfg(not(feature = "logarithmic"))]
+    /// # fn main() {}
     /// ```
     pub fn db_to_power_ratio(&self) -> UnitResult<f64> {
         if !self.is_logarithmic() {
@@ -228,13 +243,18 @@ impl Quantity {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```no_run
+    /// # #[cfg(feature = "logarithmic")]
+    /// # fn main() {
     /// use iridium_units::prelude::*;
     /// use iridium_units::systems::logarithmic::DEX;
     ///
     /// let order = 2.0 * &*DEX;  // 2 orders of magnitude
     /// let ratio = order.dex_to_ratio().unwrap();
     /// assert!((ratio - 100.0).abs() < 1e-10);  // factor of 100
+    /// # }
+    /// # #[cfg(not(feature = "logarithmic"))]
+    /// # fn main() {}
     /// ```
     pub fn dex_to_ratio(&self) -> UnitResult<f64> {
         if !self.is_logarithmic() {

@@ -111,7 +111,7 @@ impl Unit {
     ///
     /// This returns a single multiplicative factor, which only works for
     /// units without additive offsets. For offset units like Celsius or
-    /// Fahrenheit, use [`Quantity::to()`] instead.
+    /// Fahrenheit, use [`Quantity::to`](crate::Quantity::to) instead.
     ///
     /// Returns `Err` if the units have incompatible dimensions or if
     /// either unit has an additive offset.

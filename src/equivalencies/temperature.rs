@@ -55,16 +55,16 @@ fn identify_temp_scale(unit: &Unit) -> Option<TempScale> {
 /// Create a temperature equivalency for Celsius ↔ Fahrenheit ↔ Kelvin.
 ///
 /// Note: Temperature scale conversions (K ↔ °C ↔ °F) are handled natively
-/// by [`Quantity::to()`] via the unit's offset field. This equivalency is
+/// by [`Quantity::to`](crate::Quantity::to) via the unit's offset field. This equivalency is
 /// provided for explicit use but is not required for basic conversions.
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 ///
 /// let temp = 100.0 * &*DEG_C;
-/// let kelvin = temp.to(&*K).unwrap(); // 373.15 K — no equivalency needed
+/// let kelvin = temp.to(&K).unwrap(); // 373.15 K — no equivalency needed
 /// ```
 pub fn temperature() -> Equivalency {
     Equivalency::new("temperature", |from, to| {
@@ -126,12 +126,13 @@ fn create_temp_converter(
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
+/// use iridium_units::systems::si::EV;
 /// use iridium_units::equivalencies::temperature_energy;
 ///
 /// // Room temperature in eV
-/// let temp = 300.0 * K;
+/// let temp = 300.0 * &*K;
 /// let energy = temp.to_equiv(&EV, temperature_energy()).unwrap();
 /// // ~0.026 eV
 /// ```

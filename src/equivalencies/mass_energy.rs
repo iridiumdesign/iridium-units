@@ -25,12 +25,12 @@ fn is_energy(unit: &Unit) -> bool {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::mass_energy;
 ///
 /// // Rest mass energy of an electron
-/// let electron_mass = 9.109e-31 * KG;
+/// let electron_mass = 9.109e-31 * &*KG;
 /// let rest_energy = electron_mass.to_equiv(&J, mass_energy()).unwrap();
 /// // ~8.19e-14 J = 0.511 MeV
 /// ```

@@ -32,7 +32,7 @@
 //! Because logarithmic arithmetic differs from linear arithmetic, you should
 //! convert to linear space when combining fluxes:
 //!
-//! ```ignore
+//! ```
 //! use iridium_units::prelude::*;
 //! use iridium_units::systems::logarithmic::*;
 //!
@@ -41,14 +41,14 @@
 //! let star2 = 3.0 * &*MAG;   // magnitude 3 (brighter)
 //!
 //! // To find combined brightness, convert to linear flux ratio
-//! let flux1 = star1.mag_to_flux_ratio();  // 10^(-0.4 * 5) = 0.01
-//! let flux2 = star2.mag_to_flux_ratio();  // 10^(-0.4 * 3) = 0.0631
+//! let flux1 = star1.mag_to_flux_ratio().unwrap();  // 10^(-0.4 * 5) = 0.01
+//! let flux2 = star2.mag_to_flux_ratio().unwrap();  // 10^(-0.4 * 3) = 0.0631
 //!
 //! // Combine linearly
 //! let combined_flux = flux1 + flux2;
 //!
 //! // Convert back to magnitude
-//! let combined_mag = Quantity::flux_ratio_to_mag(combined_flux);
+//! let combined_mag = flux_ratio_to_mag(combined_flux).unwrap();
 //! ```
 
 use crate::dimension::Dimension;

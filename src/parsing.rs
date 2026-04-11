@@ -105,10 +105,15 @@
 //! | `M_earth`, `M_⊕` | Earth mass |
 //! | `R_earth`, `R_⊕` | Earth radius |
 //!
-//! ```ignore
+//! ```no_run
+//! # #[cfg(feature = "astrophysics")]
+//! # fn main() {
 //! # use iridium_units::prelude::*;
 //! let stellar_mass = parse_unit("M_sun").unwrap();
 //! let planet_radius = parse_unit("R_jup").unwrap();
+//! # }
+//! # #[cfg(not(feature = "astrophysics"))]
+//! # fn main() {}
 //! ```
 //!
 //! ## Parentheses
