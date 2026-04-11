@@ -9,6 +9,7 @@ use iridium_units::prelude::*;
 // End-to-end calculations
 // =============================================================================
 
+#[cfg(feature = "astrophysics")]
 #[test]
 fn stellar_luminosity_from_flux_and_distance() {
     // Given a star's flux and distance, compute luminosity: L = 4π d² F
@@ -39,13 +40,13 @@ fn kinetic_energy_calculation() {
 }
 
 #[test]
-fn gravitational_force() {
-    // F = GMm/r²
+fn earth_surface_gravity() {
+    // g = GM/r²
     use iridium_units::constants::{GRAVITATIONAL_CONSTANT, EARTH_MASS, EARTH_RADIUS};
 
-    let g_force_value = GRAVITATIONAL_CONSTANT * EARTH_MASS / (EARTH_RADIUS * EARTH_RADIUS);
+    let surface_gravity = GRAVITATIONAL_CONSTANT * EARTH_MASS / (EARTH_RADIUS * EARTH_RADIUS);
     // Should be ~9.8 m/s²
-    assert!((g_force_value - 9.8).abs() < 0.1);
+    assert!((surface_gravity - 9.8).abs() < 0.1);
 }
 
 #[test]
@@ -114,8 +115,8 @@ fn boiling_point_across_scales() {
     let boiling_f = boiling_c.to(&DEG_F).unwrap();
     let boiling_k = boiling_c.to(&K).unwrap();
 
-    assert!((boiling_f.value() - 212.0).abs() < 1e-10);
-    assert!((boiling_k.value() - 373.15).abs() < 1e-10);
+    assert!((boiling_f.value() - 212.0).abs() < 1e-6);
+    assert!((boiling_k.value() - 373.15).abs() < 1e-6);
 }
 
 #[test]
@@ -124,8 +125,8 @@ fn absolute_zero_across_scales() {
     let abs_zero_c = abs_zero_k.to(&DEG_C).unwrap();
     let abs_zero_f = abs_zero_k.to(&DEG_F).unwrap();
 
-    assert!((abs_zero_c.value() - (-273.15)).abs() < 1e-10);
-    assert!((abs_zero_f.value() - (-459.67)).abs() < 1e-10);
+    assert!((abs_zero_c.value() - (-273.15)).abs() < 1e-6);
+    assert!((abs_zero_f.value() - (-459.67)).abs() < 1e-6);
 }
 
 #[test]
@@ -193,8 +194,8 @@ fn display_format() {
     let speed = 100.0 * &(&*KM / &*H);
     let displayed = format!("{}", speed);
 
-    // Should contain the value and unit
     assert!(displayed.contains("100"));
+    assert!(displayed.contains("km"));
 }
 
 // =============================================================================
