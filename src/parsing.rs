@@ -167,7 +167,7 @@
 //!
 //! // Create a custom registry with additional units
 //! let custom_registry = UnitRegistry::with_builtins()
-//!     .with_alias(&["custom_length", "cl"], M.clone());
+//!     .with_unit(&["custom_length", "cl"], M.clone());
 //!
 //! let custom = custom_registry.parse_unit("custom_length").unwrap();
 //! ```
@@ -180,7 +180,6 @@
 //! | `with_builtins()` | Create with all standard units |
 //! | `register(&mut self, names, unit)` | Add a unit with aliases |
 //! | `with_unit(self, names, unit)` | Builder: add unit |
-//! | `with_alias(self, names, unit)` | Builder: add alias |
 //! | `lookup(name)` | Look up unit by name |
 //! | `parse_unit(s)` | Parse unit string |
 //! | `parse_quantity(s)` | Parse quantity string |
@@ -618,12 +617,6 @@ impl UnitRegistry {
 
     /// Builder method to register a unit.
     pub fn with_unit(mut self, names: &[&str], unit: Unit) -> Self {
-        self.register(names, unit);
-        self
-    }
-
-    /// Builder method to register an alias (same as with_unit).
-    pub fn with_alias(mut self, names: &[&str], unit: Unit) -> Self {
         self.register(names, unit);
         self
     }
@@ -1676,7 +1669,7 @@ mod tests {
     fn test_registry_builder_pattern() {
         let registry = UnitRegistry::new()
             .with_unit(&["custom1"], M.clone())
-            .with_alias(&["custom2", "c2"], KG.clone());
+            .with_unit(&["custom2", "c2"], KG.clone());
 
         assert!(registry.lookup("custom1").is_some());
         assert!(registry.lookup("custom2").is_some());

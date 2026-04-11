@@ -1,5 +1,6 @@
 //! Physical quantities with values and units.
 
+use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::unit::Unit;
 use std::fmt;
@@ -117,9 +118,12 @@ impl Quantity {
     }
 
     /// Raise this quantity to a power.
-    pub fn pow(&self, exp: i32) -> Quantity {
+    ///
+    /// Accepts any type convertible to `Rational16`, including `i32` and `Rational16`.
+    pub fn pow(&self, exp: impl Into<Rational16>) -> Quantity {
+        let exp = exp.into();
         Quantity::new(
-            self.value.powi(exp),
+            self.value.powf(exp.to_f64()),
             self.unit.pow(exp),
         )
     }
