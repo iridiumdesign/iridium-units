@@ -26,23 +26,26 @@
 //!
 //! # Example
 //!
-//! ```
+//! ```no_run
+//! # #[cfg(feature = "logarithmic")]
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::spectral_density::{spectral_density, ab_magnitude};
 //! use iridium_units::systems::logarithmic::MAG;
 //!
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Convert Fν to Fλ at 500 nm
-//!     let wavelength = 500.0 * &*NM;
-//!     let f_nu = 1.0 * &*JANSKY;
-//!     let flambda_unit = &*W / (&*M * &*M * &*M);
-//!     let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
+//! // Convert Fν to Fλ at 500 nm
+//! let wavelength = 500.0 * &*NM;
+//! let f_nu = 1.0 * &*JANSKY;
+//! let flambda_unit = &*W / (&*M * &*M * &*M);
+//! let f_lambda = f_nu.to_equiv(&flambda_unit, spectral_density(wavelength))?;
 //!
-//!     // Convert flux density to AB magnitude
-//!     let flux = 3631.0 * &*JANSKY;  // Zero point
-//!     let mag = flux.to_equiv(&MAG, ab_magnitude())?;  // Should be 0
-//!     Ok(())
-//! }
+//! // Convert flux density to AB magnitude
+//! let flux = 3631.0 * &*JANSKY;  // Zero point
+//! let mag = flux.to_equiv(&MAG, ab_magnitude())?;  // Should be 0
+//! # Ok(())
+//! # }
+//! # #[cfg(not(feature = "logarithmic"))]
+//! # fn main() {}
 //! ```
 
 use super::{Converter, Equivalency};
@@ -198,23 +201,26 @@ pub fn spectral_density(spectral_coord: Quantity) -> Equivalency {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
+/// # #[cfg(feature = "logarithmic")]
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::spectral_density::ab_magnitude;
 /// use iridium_units::systems::logarithmic::MAG;
 ///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     // The AB zero point (3631 Jy) corresponds to magnitude 0
-///     let flux = 3631.0 * &*JANSKY;
-///     let mag = flux.to_equiv(&MAG, ab_magnitude())?;
-///     assert!((mag.value() - 0.0).abs() < 1e-10);
+/// // The AB zero point (3631 Jy) corresponds to magnitude 0
+/// let flux = 3631.0 * &*JANSKY;
+/// let mag = flux.to_equiv(&MAG, ab_magnitude())?;
+/// assert!((mag.value() - 0.0).abs() < 1e-10);
 ///
-///     // 1 Jy is about 8.9 AB mag
-///     let flux = 1.0 * &*JANSKY;
-///     let mag = flux.to_equiv(&MAG, ab_magnitude())?;
-///     assert!((mag.value() - 8.9).abs() < 0.1);
-///     Ok(())
-/// }
+/// // 1 Jy is about 8.9 AB mag
+/// let flux = 1.0 * &*JANSKY;
+/// let mag = flux.to_equiv(&MAG, ab_magnitude())?;
+/// assert!((mag.value() - 8.9).abs() < 0.1);
+/// # Ok(())
+/// # }
+/// # #[cfg(not(feature = "logarithmic"))]
+/// # fn main() {}
 /// ```
 pub fn ab_magnitude() -> Equivalency {
     Equivalency::new("ab_magnitude", move |from, to| {
@@ -272,18 +278,21 @@ pub fn ab_magnitude() -> Equivalency {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
+/// # #[cfg(feature = "logarithmic")]
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::spectral_density::ab_magnitude_lambda;
 /// use iridium_units::systems::logarithmic::MAG;
 ///
-/// fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let wavelength = 500.0 * &*NM;
-///     let flambda_unit = &*W / (&*M * &*M * &*M);
-///     let f_lambda = 1e-10 * flambda_unit;
-///     let mag = f_lambda.to_equiv(&MAG, ab_magnitude_lambda(wavelength))?;
-///     Ok(())
-/// }
+/// let wavelength = 500.0 * &*NM;
+/// let flambda_unit = &*W / (&*M * &*M * &*M);
+/// let f_lambda = 1e-10 * flambda_unit;
+/// let mag = f_lambda.to_equiv(&MAG, ab_magnitude_lambda(wavelength))?;
+/// # Ok(())
+/// # }
+/// # #[cfg(not(feature = "logarithmic"))]
+/// # fn main() {}
 /// ```
 pub fn ab_magnitude_lambda(wavelength: Quantity) -> Equivalency {
     // Get wavelength in SI (meters)
@@ -572,6 +581,7 @@ mod tests {
         assert!(result.is_err());
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_negative_flux_fails() {
         // Create a negative flux quantity
@@ -608,6 +618,7 @@ mod tests {
         assert!((f_nu_back - f_nu).abs() / f_nu < 1e-10);
     }
 
+    #[cfg(feature = "logarithmic")]
     #[test]
     fn test_ab_magnitude_lambda() {
         // Test direct Fλ ↔ AB mag conversion
