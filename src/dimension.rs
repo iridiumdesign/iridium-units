@@ -109,18 +109,15 @@ impl Rational16 {
         if numer == 0 {
             return Rational16 { numer: 0, denom: 1 };
         }
+        // Widen to i32 to avoid i16::MIN overflow issues
+        let mut n = numer as i32;
+        let mut d = denom as i32;
         // Ensure positive denominator
-        let (n, d) = if denom < 0 {
-            (if numer == i16::MIN { i16::MAX } else { -numer },
-             if denom == i16::MIN { i16::MAX } else { -denom })
-        } else {
-            (numer, denom)
-        };
-        // Absolute values for GCD (cast via i32 to handle i16::MIN)
-        let abs_n = (-(n as i32 * ((n < 0) as i32 * 2 - 1))) as u16;
-        let abs_d = d as u16;
-        let g = gcd(abs_n, abs_d);
-        Rational16 { numer: n / (g as i16), denom: d / (g as i16) }
+        if d < 0 {
+            n = -n;
+            d = -d;
+        }
+        rational16_from_i32(n, d)
     }
 
     /// Create a new rational number, returning an error if the denominator is zero.
@@ -151,7 +148,7 @@ impl Rational16 {
 
     /// Const-compatible negation.
     pub const fn const_neg(self) -> Self {
-        Rational16::new(if self.numer == i16::MIN { i16::MAX } else { -self.numer }, self.denom)
+        rational16_from_i32(-(self.numer as i32), self.denom as i32)
     }
 
     /// Const-compatible subtraction.

@@ -316,7 +316,7 @@ use iridium_units::equivalencies::dimensionless_angles::{has_angle_dimension, an
 
 // Check if a unit contains angle dimensions
 assert!(has_angle_dimension(&(RAD / S)));  // true
-assert!(!has_angle_dimension(HZ));           // false
+assert!(!has_angle_dimension(&Unit::from(HZ)));  // false
 
 // Get total angle power
 let omega_sq = (RAD / S).pow(2);
