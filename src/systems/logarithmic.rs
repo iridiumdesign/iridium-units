@@ -365,16 +365,15 @@ pub fn ratio_to_dex(ratio: f64) -> Result<f64, crate::error::UnitError> {
 /// use iridium_units::systems::logarithmic::combine_magnitudes;
 ///
 /// // Two equal-brightness stars (e.g., both at mag 5.0)
-/// let combined = combine_magnitudes(5.0, 5.0);
+/// let combined = combine_magnitudes(5.0, 5.0).unwrap();
 /// // Combined flux is 2x, so magnitude decreases by 2.5*log10(2) ≈ 0.75
 /// assert!((combined - 4.247).abs() < 0.001);
 /// ```
 #[inline]
-pub fn combine_magnitudes(mag1: f64, mag2: f64) -> f64 {
+pub fn combine_magnitudes(mag1: f64, mag2: f64) -> Result<f64, crate::error::UnitError> {
     let flux1 = mag_to_flux_ratio(mag1);
     let flux2 = mag_to_flux_ratio(mag2);
-    // Combined flux is always positive since individual fluxes are positive
-    flux_ratio_to_mag(flux1 + flux2).unwrap()
+    flux_ratio_to_mag(flux1 + flux2)
 }
 
 /// Calculate the magnitude difference (contrast) between two magnitudes.
@@ -496,7 +495,7 @@ mod tests {
     fn test_combine_equal_magnitudes() {
         // Two stars of equal brightness (mag 0) have combined mag = -0.752
         // (because 2x flux = -2.5*log10(2) ≈ -0.752 mag brighter)
-        let combined = combine_magnitudes(0.0, 0.0);
+        let combined = combine_magnitudes(0.0, 0.0).unwrap();
         let expected = flux_ratio_to_mag(2.0).unwrap();  // -0.752...
         assert!((combined - expected).abs() < 1e-10);
     }
@@ -514,6 +513,30 @@ mod tests {
         // Roundtrip
         let dist_back = distance_from_modulus(mu_100);
         assert!((dist_back - 100.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_error_on_non_positive_inputs() {
+        // Zero
+        assert!(flux_ratio_to_mag(0.0).is_err());
+        assert!(power_ratio_to_db(0.0).is_err());
+        assert!(amplitude_ratio_to_db(0.0).is_err());
+        assert!(ratio_to_dex(0.0).is_err());
+        assert!(modulus_from_distance(0.0).is_err());
+
+        // Negative
+        assert!(flux_ratio_to_mag(-1.0).is_err());
+        assert!(power_ratio_to_db(-1.0).is_err());
+        assert!(amplitude_ratio_to_db(-1.0).is_err());
+        assert!(ratio_to_dex(-1.0).is_err());
+        assert!(modulus_from_distance(-1.0).is_err());
+
+        // NaN
+        assert!(flux_ratio_to_mag(f64::NAN).is_err());
+        assert!(power_ratio_to_db(f64::NAN).is_err());
+        assert!(amplitude_ratio_to_db(f64::NAN).is_err());
+        assert!(ratio_to_dex(f64::NAN).is_err());
+        assert!(modulus_from_distance(f64::NAN).is_err());
     }
 
     #[test]
