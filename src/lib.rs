@@ -41,7 +41,9 @@
 //!
 //! Units and quantities can be parsed from strings with flexible syntax support:
 //!
-//! ```ignore
+//! ```no_run
+//! # #[cfg(feature = "astrophysics")]
+//! # fn main() {
 //! use iridium_units::prelude::*;
 //! use std::str::FromStr;
 //!
@@ -62,6 +64,9 @@
 //! let natural = parse_unit("km per hour").unwrap();     // Natural language
 //! let astro = parse_unit("M_sun").unwrap();       // Astrophysical subscripts
 //! let parens = parse_unit("(kg m)/s^2").unwrap(); // Parentheses
+//! # }
+//! # #[cfg(not(feature = "astrophysics"))]
+//! # fn main() {}
 //! ```
 //!
 //! See the [`parsing`] module for comprehensive documentation of supported formats.
@@ -84,12 +89,17 @@
 //! Some physical quantities can be converted through physical laws even though
 //! they have different dimensions:
 //!
-//! ```ignore
+//! ```no_run
+//! # #[cfg(feature = "astrophysics")]
+//! # fn main() {
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::spectral;
 //!
-//! let wavelength = 500.0 * NM;
-//! let frequency = wavelength.to_with_equiv(&HZ, &[spectral()]).unwrap();
+//! let wavelength = 500.0 * &*NM;
+//! let frequency = wavelength.to_equiv(&*HZ, spectral()).unwrap();
+//! # }
+//! # #[cfg(not(feature = "astrophysics"))]
+//! # fn main() {}
 //! ```
 
 pub mod dimension;

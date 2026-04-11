@@ -2,11 +2,14 @@
 name = "iridium-units"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.94"
 license = "MIT"
 description = "A high-performance runtime unit-of-measure library for Rust"
 keywords = ["units", "dimensional-analysis", "physics", "astronomy"]
 categories = ["science", "mathematics"]
 repository = "https://github.com/iridiumdesign/iridium-units"
+documentation = "https://docs.rs/iridium-units"
+readme = "README.md"
 
 [features]
 default = ["cgs", "astrophysics", "logarithmic"]

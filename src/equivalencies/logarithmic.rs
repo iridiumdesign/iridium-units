@@ -7,17 +7,20 @@
 //!
 //! # Example
 //!
-//! ```ignore
+//! ```
 //! use iridium_units::prelude::*;
 //! use iridium_units::equivalencies::logarithmic::magnitude_flux;
 //! use iridium_units::systems::logarithmic::MAG;
 //!
-//! // A star at magnitude 5
-//! let mag = 5.0 * &*MAG;
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     // A star at magnitude 5
+//!     let mag = 5.0 * &*MAG;
 //!
-//! // Convert to flux ratio (dimensionless)
-//! let flux_ratio = mag.to_equiv(&Unit::dimensionless(), magnitude_flux())?;
-//! // flux_ratio.value() ≈ 0.01 (5 mag = 1/100 flux ratio)
+//!     // Convert to flux ratio (dimensionless)
+//!     let flux_ratio = mag.to_equiv(&Unit::dimensionless(), magnitude_flux())?;
+//!     // flux_ratio.value() ≈ 0.01 (5 mag = 1/100 flux ratio)
+//!     Ok(())
+//! }
 //! ```
 
 use crate::dimension::Dimension;
@@ -38,14 +41,17 @@ use crate::systems::logarithmic::{
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::logarithmic::magnitude_flux;
 /// use iridium_units::systems::logarithmic::MAG;
 ///
-/// let star = 5.0 * &*MAG;  // 5th magnitude star
-/// let flux = star.to_equiv(&Unit::dimensionless(), magnitude_flux())?;
-/// assert!((flux.value() - 0.01).abs() < 1e-10);  // 1/100 of reference flux
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let star = 5.0 * &*MAG;  // 5th magnitude star
+///     let flux = star.to_equiv(&Unit::dimensionless(), magnitude_flux())?;
+///     assert!((flux.value() - 0.01).abs() < 1e-10);  // 1/100 of reference flux
+///     Ok(())
+/// }
 /// ```
 pub fn magnitude_flux() -> Equivalency {
     Equivalency::new("magnitude_flux", |from, to| {
@@ -90,14 +96,17 @@ pub fn magnitude_flux() -> Equivalency {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::logarithmic::db_power;
 /// use iridium_units::systems::logarithmic::DB;
 ///
-/// let signal = 10.0 * &*DB;  // 10 dB
-/// let power = signal.to_equiv(&Unit::dimensionless(), db_power())?;
-/// assert!((power.value() - 10.0).abs() < 1e-10);  // 10x power ratio
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let signal = 10.0 * &*DB;  // 10 dB
+///     let power = signal.to_equiv(&Unit::dimensionless(), db_power())?;
+///     assert!((power.value() - 10.0).abs() < 1e-10);  // 10x power ratio
+///     Ok(())
+/// }
 /// ```
 pub fn db_power() -> Equivalency {
     Equivalency::new("db_power", |from, to| {
@@ -182,14 +191,17 @@ pub fn db_amplitude() -> Equivalency {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
 /// use iridium_units::equivalencies::logarithmic::dex_ratio;
 /// use iridium_units::systems::logarithmic::DEX;
 ///
-/// let order = 2.0 * &*DEX;  // 2 orders of magnitude
-/// let ratio = order.to_equiv(&Unit::dimensionless(), dex_ratio())?;
-/// assert!((ratio.value() - 100.0).abs() < 1e-10);  // factor of 100
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let order = 2.0 * &*DEX;  // 2 orders of magnitude
+///     let ratio = order.to_equiv(&Unit::dimensionless(), dex_ratio())?;
+///     assert!((ratio.value() - 100.0).abs() < 1e-10);  // factor of 100
+///     Ok(())
+/// }
 /// ```
 pub fn dex_ratio() -> Equivalency {
     Equivalency::new("dex_ratio", |from, to| {

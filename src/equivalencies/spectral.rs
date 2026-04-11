@@ -58,16 +58,17 @@ fn classify_spectral(unit: &Unit) -> Option<SpectralType> {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```
 /// use iridium_units::prelude::*;
+/// use iridium_units::systems::si::EV;
 /// use iridium_units::equivalencies::spectral;
 ///
 /// // Convert 500 nm to Hz
-/// let wavelength = 500.0 * NM;
+/// let wavelength = 500.0 * &*NM;
 /// let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
 ///
 /// // Convert 1 eV to wavelength
-/// let energy = 1.0 * EV;
+/// let energy = 1.0 * &*EV;
 /// let wavelength = energy.to_equiv(&NM, spectral()).unwrap();
 /// ```
 pub fn spectral() -> Equivalency {
