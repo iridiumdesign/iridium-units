@@ -138,9 +138,10 @@ impl Quantity {
     /// Convert to another unit using a list of equivalencies.
     pub fn to_equiv_list(&self, target: impl Into<Unit>, equivs: &[Equivalency]) -> UnitResult<Quantity> {
         let target = target.into();
-        // First, try direct conversion
-        if let Ok(q) = self.to(&target) {
-            return Ok(q);
+        // First, try direct conversion (inline to avoid cloning target)
+        if self.unit().dimension() == target.dimension() {
+            let si_value = self.unit().to_si(self.value());
+            return Ok(Quantity::new(target.from_si(si_value), target));
         }
 
         // Try each equivalency

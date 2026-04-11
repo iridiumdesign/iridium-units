@@ -331,6 +331,10 @@ impl Quantity {
 /// processing large datasets, as it computes the conversion factor once
 /// and applies it to all values.
 ///
+/// Accepts `BaseUnit`, `Unit`, or `&Unit`. When passing `&Unit`, the unit
+/// is cloned once (amortized over the batch). Pass an owned `Unit` to avoid
+/// the clone.
+///
 /// Note: This uses a single multiplicative factor, so it does not support
 /// offset units like Celsius or Fahrenheit. Use [`Quantity::to()`] for those.
 ///
