@@ -102,7 +102,6 @@ mod tests {
     use super::*;
     use crate::systems::si::{ARCSEC, MAS};
     use crate::systems::astrophysical::PARSEC;
-    use crate::Quantity;
 
     #[test]
     fn test_parallax_1_arcsec() {

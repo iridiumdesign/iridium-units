@@ -442,11 +442,6 @@ mod tests {
     use crate::systems::astrophysical::JANSKY;
     use crate::systems::si::{HZ, K, SR, W, M, GHZ};
 
-    fn flux_density_unit() -> Unit {
-        // W/(m² Hz)
-        &*W / (&M.pow(2) * &*HZ)
-    }
-
     fn spectral_radiance_unit() -> Unit {
         // W/(m² Hz sr)
         &*W / (&M.pow(2) * &*HZ * &*SR)

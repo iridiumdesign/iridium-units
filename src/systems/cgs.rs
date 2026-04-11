@@ -162,7 +162,7 @@ lazy_static! {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{N, J, PA, T};
+    use crate::systems::si::{N, J, T};
 
     #[test]
     fn test_dyne_to_newton() {

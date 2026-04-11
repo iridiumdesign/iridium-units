@@ -260,7 +260,6 @@ dependencies = [
  "approx",
  "criterion",
  "lazy_static",
- "once_cell",
  "proptest",
  "thiserror",
 ]

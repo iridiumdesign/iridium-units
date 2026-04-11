@@ -248,7 +248,6 @@ pub fn doppler_relativistic(rest_freq: Quantity) -> Equivalency {
 mod tests {
     use super::*;
     use crate::systems::si::{GHZ, HZ, M, S, KM};
-    use crate::Quantity;
 
     fn km_per_s() -> Unit {
         &*KM / &*S

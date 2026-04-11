@@ -238,8 +238,7 @@ fn create_spectral_converter(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{HZ, NM, M, EV, J};
-    use crate::Quantity;
+    use crate::systems::si::{HZ, NM, EV, J};
 
     #[test]
     fn test_wavelength_to_frequency() {

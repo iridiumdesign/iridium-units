@@ -38,13 +38,16 @@ use crate::quantity::Quantity;
 use crate::unit::Unit;
 use std::sync::Arc;
 
+/// Type alias for the converter factory function used by equivalencies.
+pub type ConverterFn = Arc<dyn Fn(&Unit, &Unit) -> Option<Converter> + Send + Sync>;
+
 /// An equivalency that enables conversion between different physical dimensions.
 #[derive(Clone)]
 pub struct Equivalency {
     /// Name of this equivalency
     pub name: &'static str,
     /// Function that attempts to create a converter between two units
-    converter_fn: Arc<dyn Fn(&Unit, &Unit) -> Option<Converter> + Send + Sync>,
+    converter_fn: ConverterFn,
 }
 
 impl Equivalency {

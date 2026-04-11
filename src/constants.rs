@@ -37,7 +37,7 @@ pub const VACUUM_PERMEABILITY: f64 = 1.256_637_062_12e-6;
 pub const VACUUM_PERMITTIVITY: f64 = 8.854_187_812_8e-12;
 
 /// Fine-structure constant α (dimensionless)
-pub const FINE_STRUCTURE_CONSTANT: f64 = 7.297_352_5693e-3;
+pub const FINE_STRUCTURE_CONSTANT: f64 = 7.297_352_569_3e-3;
 
 // =============================================================================
 // Derived Constants
@@ -66,7 +66,7 @@ pub const RYDBERG_CONSTANT: f64 = 1.097_373_156_816_0e7;
 // =============================================================================
 
 /// Electron mass (kg)
-pub const ELECTRON_MASS: f64 = 9.109_383_7015e-31;
+pub const ELECTRON_MASS: f64 = 9.109_383_701_5e-31;
 
 /// Proton mass (kg)
 pub const PROTON_MASS: f64 = 1.672_621_923_69e-27;
@@ -85,7 +85,7 @@ pub const ATOMIC_MASS_UNIT: f64 = 1.660_539_066_60e-27;
 pub const BOHR_RADIUS: f64 = 5.291_772_109_03e-11;
 
 /// Hartree energy Eₕ (J)
-pub const HARTREE_ENERGY: f64 = 4.359_744_722_2071e-18;
+pub const HARTREE_ENERGY: f64 = 4.359_744_722_207_1e-18;
 
 // =============================================================================
 // Astronomical Constants (IAU 2015 Resolution B3)
@@ -138,7 +138,7 @@ pub const JULIAN_YEAR: f64 = 365.25 * 86400.0;
 pub const TROPICAL_YEAR: f64 = 365.242_19 * 86400.0;
 
 /// Sidereal day (s)
-pub const SIDEREAL_DAY: f64 = 86164.0905;
+pub const SIDEREAL_DAY: f64 = 86_164.090_5;
 
 // =============================================================================
 // Electromagnetic Constants
@@ -148,10 +148,10 @@ pub const SIDEREAL_DAY: f64 = 86164.0905;
 pub const IMPEDANCE_OF_FREE_SPACE: f64 = 376.730_313_668;
 
 /// Classical electron radius rₑ (m)
-pub const CLASSICAL_ELECTRON_RADIUS: f64 = 2.817_940_3262e-15;
+pub const CLASSICAL_ELECTRON_RADIUS: f64 = 2.817_940_326_2e-15;
 
 /// Thomson cross section (m²)
-pub const THOMSON_CROSS_SECTION: f64 = 6.652_458_7321e-29;
+pub const THOMSON_CROSS_SECTION: f64 = 6.652_458_732_1e-29;
 
 /// Magnetic flux quantum Φ₀ = h/(2e) (Wb)
 pub const MAGNETIC_FLUX_QUANTUM: f64 = 2.067_833_848e-15;
