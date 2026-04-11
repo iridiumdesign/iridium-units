@@ -74,7 +74,7 @@
 //! use iridium_units::prelude::*;
 //!
 //! let registry = UnitRegistry::with_builtins()
-//!     .with_alias(&["my_unit", "mu"], M.clone());
+//!     .with_unit(&["my_unit", "mu"], M.clone());
 //!
 //! let unit = registry.parse_unit("my_unit").unwrap();
 //! ```

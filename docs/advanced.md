@@ -29,7 +29,7 @@ let q = registry.parse_quantity("10 mu")?;  // 10 my_units = 15 m
 let registry = UnitRegistry::with_builtins()
     .with_unit(&["custom_length"], length_unit)
     .with_unit(&["custom_time"], time_unit)
-    .with_alias(&["cl"], length_unit);
+    .with_unit(&["cl"], length_unit);
 ```
 
 ### Merging Registries

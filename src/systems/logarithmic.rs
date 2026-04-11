@@ -97,7 +97,7 @@ lazy_static! {
     /// - Distance from observer
     /// - Interstellar extinction
     pub static ref APPARENT_MAG: Unit = Unit::Base(BaseUnit::new(
-        "apparent_magnitude", "m", &["app_mag", "apparent_mag"],
+        "apparent_magnitude", "m_app", &["app_mag", "apparent_mag"],
         Dimension::MAGNITUDE,
         1.0
     ));
@@ -110,7 +110,7 @@ lazy_static! {
     /// - Rigel: -7.84 (very luminous)
     /// - Proxima Centauri: +15.6 (dim red dwarf)
     pub static ref ABSOLUTE_MAG: Unit = Unit::Base(BaseUnit::new(
-        "absolute_magnitude", "M", &["abs_mag", "absolute_mag"],
+        "absolute_magnitude", "M_abs", &["abs_mag", "absolute_mag"],
         Dimension::MAGNITUDE,
         1.0
     ));
@@ -206,25 +206,29 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 ///
 /// Uses the Pogson formula: m = -2.5 * log10(F/F₀)
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics if flux_ratio is not positive.
+/// Returns an error if flux_ratio is not positive (including NaN).
 ///
 /// # Example
 ///
 /// ```
 /// use iridium_units::systems::logarithmic::flux_ratio_to_mag;
 ///
-/// let mag = flux_ratio_to_mag(1.0);
+/// let mag = flux_ratio_to_mag(1.0).unwrap();
 /// assert!((mag - 0.0).abs() < 1e-10);  // flux ratio of 1 = 0 mag
 ///
-/// let mag_100 = flux_ratio_to_mag(100.0);
+/// let mag_100 = flux_ratio_to_mag(100.0).unwrap();
 /// assert!((mag_100 - (-5.0)).abs() < 1e-10);  // flux ratio of 100 = -5 mag
 /// ```
 #[inline]
-pub fn flux_ratio_to_mag(flux_ratio: f64) -> f64 {
-    assert!(flux_ratio > 0.0, "flux ratio must be positive");
-    MAG_FACTOR * flux_ratio.log10()
+pub fn flux_ratio_to_mag(flux_ratio: f64) -> Result<f64, crate::error::UnitError> {
+    if !(flux_ratio > 0.0) {
+        return Err(crate::error::UnitError::LogarithmicError(
+            "flux ratio must be positive".to_string(),
+        ));
+    }
+    Ok(MAG_FACTOR * flux_ratio.log10())
 }
 
 /// Convert a decibel value to a power ratio.
@@ -251,25 +255,27 @@ pub fn db_to_power_ratio(db: f64) -> f64 {
 ///
 /// Uses the formula: dB = 10 * log10(P/P₀)
 ///
-/// # Panics
-///
-/// Panics if power_ratio is not positive.
+/// Returns an error if power_ratio is not positive.
 ///
 /// # Example
 ///
 /// ```
 /// use iridium_units::systems::logarithmic::power_ratio_to_db;
 ///
-/// let db = power_ratio_to_db(10.0);
+/// let db = power_ratio_to_db(10.0).unwrap();
 /// assert!((db - 10.0).abs() < 1e-10);  // power ratio of 10 = 10 dB
 ///
-/// let db_2 = power_ratio_to_db(2.0);
+/// let db_2 = power_ratio_to_db(2.0).unwrap();
 /// assert!((db_2 - 3.01).abs() < 0.01);  // power ratio of 2 ≈ 3 dB
 /// ```
 #[inline]
-pub fn power_ratio_to_db(power_ratio: f64) -> f64 {
-    assert!(power_ratio > 0.0, "power ratio must be positive");
-    10.0 * power_ratio.log10()
+pub fn power_ratio_to_db(power_ratio: f64) -> Result<f64, crate::error::UnitError> {
+    if !(power_ratio > 0.0) {
+        return Err(crate::error::UnitError::LogarithmicError(
+            "power ratio must be positive".to_string(),
+        ));
+    }
+    Ok(10.0 * power_ratio.log10())
 }
 
 /// Convert a decibel value to an amplitude (voltage) ratio.
@@ -286,13 +292,15 @@ pub fn db_to_amplitude_ratio(db: f64) -> f64 {
 ///
 /// Uses the formula: dB = 20 * log10(V/V₀)
 ///
-/// # Panics
-///
-/// Panics if amplitude_ratio is not positive.
+/// Returns an error if amplitude_ratio is not positive.
 #[inline]
-pub fn amplitude_ratio_to_db(amplitude_ratio: f64) -> f64 {
-    assert!(amplitude_ratio > 0.0, "amplitude ratio must be positive");
-    20.0 * amplitude_ratio.log10()
+pub fn amplitude_ratio_to_db(amplitude_ratio: f64) -> Result<f64, crate::error::UnitError> {
+    if !(amplitude_ratio > 0.0) {
+        return Err(crate::error::UnitError::LogarithmicError(
+            "amplitude ratio must be positive".to_string(),
+        ));
+    }
+    Ok(20.0 * amplitude_ratio.log10())
 }
 
 /// Convert a dex value to a linear ratio.
@@ -319,25 +327,29 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 ///
 /// Uses the formula: dex = log10(x/x₀)
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics if ratio is not positive.
+/// Returns an error if ratio is not positive (including NaN).
 ///
 /// # Example
 ///
 /// ```
 /// use iridium_units::systems::logarithmic::ratio_to_dex;
 ///
-/// let dex = ratio_to_dex(10.0);
+/// let dex = ratio_to_dex(10.0).unwrap();
 /// assert!((dex - 1.0).abs() < 1e-10);  // ratio of 10 = 1 dex
 ///
-/// let dex_100 = ratio_to_dex(100.0);
+/// let dex_100 = ratio_to_dex(100.0).unwrap();
 /// assert!((dex_100 - 2.0).abs() < 1e-10);  // ratio of 100 = 2 dex
 /// ```
 #[inline]
-pub fn ratio_to_dex(ratio: f64) -> f64 {
-    assert!(ratio > 0.0, "ratio must be positive");
-    ratio.log10()
+pub fn ratio_to_dex(ratio: f64) -> Result<f64, crate::error::UnitError> {
+    if !(ratio > 0.0) {
+        return Err(crate::error::UnitError::LogarithmicError(
+            "ratio must be positive".to_string(),
+        ));
+    }
+    Ok(ratio.log10())
 }
 
 // =============================================================================
@@ -353,12 +365,12 @@ pub fn ratio_to_dex(ratio: f64) -> f64 {
 /// use iridium_units::systems::logarithmic::combine_magnitudes;
 ///
 /// // Two equal-brightness stars (e.g., both at mag 5.0)
-/// let combined = combine_magnitudes(5.0, 5.0);
+/// let combined = combine_magnitudes(5.0, 5.0).unwrap();
 /// // Combined flux is 2x, so magnitude decreases by 2.5*log10(2) ≈ 0.75
 /// assert!((combined - 4.247).abs() < 0.001);
 /// ```
 #[inline]
-pub fn combine_magnitudes(mag1: f64, mag2: f64) -> f64 {
+pub fn combine_magnitudes(mag1: f64, mag2: f64) -> Result<f64, crate::error::UnitError> {
     let flux1 = mag_to_flux_ratio(mag1);
     let flux2 = mag_to_flux_ratio(mag2);
     flux_ratio_to_mag(flux1 + flux2)
@@ -416,13 +428,15 @@ pub fn distance_from_modulus(distance_modulus: f64) -> f64 {
 ///
 /// µ = 5 * log10(d) - 5
 ///
-/// # Panics
-///
-/// Panics if distance_pc is not positive.
+/// Returns an error if distance_pc is not positive.
 #[inline]
-pub fn modulus_from_distance(distance_pc: f64) -> f64 {
-    assert!(distance_pc > 0.0, "distance must be positive");
-    5.0 * distance_pc.log10() - 5.0
+pub fn modulus_from_distance(distance_pc: f64) -> Result<f64, crate::error::UnitError> {
+    if !(distance_pc > 0.0) {
+        return Err(crate::error::UnitError::LogarithmicError(
+            "distance must be positive".to_string(),
+        ));
+    }
+    Ok(5.0 * distance_pc.log10() - 5.0)
 }
 
 #[cfg(test)]
@@ -433,7 +447,7 @@ mod tests {
     fn test_mag_to_flux_roundtrip() {
         for mag in [-5.0, -1.0, 0.0, 1.0, 5.0, 10.0, 20.0] {
             let flux = mag_to_flux_ratio(mag);
-            let back = flux_ratio_to_mag(flux);
+            let back = flux_ratio_to_mag(flux).unwrap();
             assert!((back - mag).abs() < 1e-10, "roundtrip failed for mag={}", mag);
         }
     }
@@ -450,7 +464,7 @@ mod tests {
     fn test_db_to_power_roundtrip() {
         for db in [-20.0, -10.0, -3.0, 0.0, 3.0, 10.0, 20.0] {
             let power = db_to_power_ratio(db);
-            let back = power_ratio_to_db(power);
+            let back = power_ratio_to_db(power).unwrap();
             assert!((back - db).abs() < 1e-10, "roundtrip failed for db={}", db);
         }
     }
@@ -472,7 +486,7 @@ mod tests {
     fn test_dex_roundtrip() {
         for dex in [-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0] {
             let ratio = dex_to_ratio(dex);
-            let back = ratio_to_dex(ratio);
+            let back = ratio_to_dex(ratio).unwrap();
             assert!((back - dex).abs() < 1e-10, "roundtrip failed for dex={}", dex);
         }
     }
@@ -481,24 +495,48 @@ mod tests {
     fn test_combine_equal_magnitudes() {
         // Two stars of equal brightness (mag 0) have combined mag = -0.752
         // (because 2x flux = -2.5*log10(2) ≈ -0.752 mag brighter)
-        let combined = combine_magnitudes(0.0, 0.0);
-        let expected = flux_ratio_to_mag(2.0);  // -0.752...
+        let combined = combine_magnitudes(0.0, 0.0).unwrap();
+        let expected = flux_ratio_to_mag(2.0).unwrap();  // -0.752...
         assert!((combined - expected).abs() < 1e-10);
     }
 
     #[test]
     fn test_distance_modulus() {
         // At 10 pc, m = M (distance modulus = 0)
-        let mu = modulus_from_distance(10.0);
+        let mu = modulus_from_distance(10.0).unwrap();
         assert!((mu - 0.0).abs() < 1e-10);
 
         // At 100 pc, distance modulus = 5
-        let mu_100 = modulus_from_distance(100.0);
+        let mu_100 = modulus_from_distance(100.0).unwrap();
         assert!((mu_100 - 5.0).abs() < 1e-10);
 
         // Roundtrip
         let dist_back = distance_from_modulus(mu_100);
         assert!((dist_back - 100.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_error_on_non_positive_inputs() {
+        // Zero
+        assert!(flux_ratio_to_mag(0.0).is_err());
+        assert!(power_ratio_to_db(0.0).is_err());
+        assert!(amplitude_ratio_to_db(0.0).is_err());
+        assert!(ratio_to_dex(0.0).is_err());
+        assert!(modulus_from_distance(0.0).is_err());
+
+        // Negative
+        assert!(flux_ratio_to_mag(-1.0).is_err());
+        assert!(power_ratio_to_db(-1.0).is_err());
+        assert!(amplitude_ratio_to_db(-1.0).is_err());
+        assert!(ratio_to_dex(-1.0).is_err());
+        assert!(modulus_from_distance(-1.0).is_err());
+
+        // NaN
+        assert!(flux_ratio_to_mag(f64::NAN).is_err());
+        assert!(power_ratio_to_db(f64::NAN).is_err());
+        assert!(amplitude_ratio_to_db(f64::NAN).is_err());
+        assert!(ratio_to_dex(f64::NAN).is_err());
+        assert!(modulus_from_distance(f64::NAN).is_err());
     }
 
     #[test]

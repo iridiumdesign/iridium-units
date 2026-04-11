@@ -1,5 +1,6 @@
 //! Physical quantities with values and units.
 
+use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::unit::Unit;
 use std::fmt;
@@ -117,11 +118,19 @@ impl Quantity {
     }
 
     /// Raise this quantity to a power.
-    pub fn pow(&self, exp: i32) -> Quantity {
-        Quantity::new(
-            self.value.powi(exp),
-            self.unit.pow(exp),
-        )
+    ///
+    /// Accepts any type convertible to `Rational16`, including `Rational16` itself.
+    /// When passing an `i32`, the value must fit in `i16` range.
+    ///
+    /// Uses `powi` for integer exponents and `powf` for fractional exponents.
+    pub fn pow(&self, exp: impl Into<Rational16>) -> Quantity {
+        let exp = exp.into();
+        let value = if exp.denom == 1 {
+            self.value.powi(exp.numer as i32)
+        } else {
+            self.value.powf(exp.to_f64())
+        };
+        Quantity::new(value, self.unit.pow(exp))
     }
 
     /// Take the square root of this quantity.
@@ -845,5 +854,25 @@ mod tests {
         use super::conversion_factor;
         let factor = conversion_factor(&kilometer(), &meter()).unwrap();
         assert!((factor - 1000.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_pow_integer() {
+        let m = 3.0 * meter();
+        let m2 = m.pow(2);
+        assert!((m2.value() - 9.0).abs() < 1e-10);
+        assert_eq!(m2.unit().dimension(), Dimension {
+            length: Rational16::new(2, 1),
+            ..Dimension::DIMENSIONLESS
+        });
+    }
+
+    #[test]
+    fn test_pow_fractional() {
+        // sqrt(4 m²) = 2 m
+        let area = 4.0 * meter().pow(Rational16::new(2, 1));
+        let root = area.pow(Rational16::new(1, 2));
+        assert!((root.value() - 2.0).abs() < 1e-10);
+        assert_eq!(root.unit().dimension(), Dimension::LENGTH);
     }
 }

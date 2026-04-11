@@ -214,8 +214,8 @@ Units for logarithmic quantities.
 | Unit | Symbol | Description |
 |------|--------|-------------|
 | `MAG` | mag | Generic magnitude |
-| `APPARENT_MAG` | m | Apparent magnitude |
-| `ABSOLUTE_MAG` | M | Absolute magnitude |
+| `APPARENT_MAG` | m_app | Apparent magnitude |
+| `ABSOLUTE_MAG` | M_abs | Absolute magnitude |
 | `MILLIMAG` | mmag | 10⁻³ mag |
 
 ### Decibel Units
@@ -238,18 +238,18 @@ use iridium_units::systems::logarithmic::*;
 
 // Magnitude ↔ Flux ratio
 let flux_ratio = mag_to_flux_ratio(5.0);      // 0.01
-let mag = flux_ratio_to_mag(0.01);            // 5.0
+let mag = flux_ratio_to_mag(0.01).unwrap();   // 5.0
 
 // Decibels ↔ Power ratio
 let power = db_to_power_ratio(10.0);          // 10.0
-let db = power_ratio_to_db(100.0);            // 20.0
+let db = power_ratio_to_db(100.0).unwrap();   // 20.0
 
 // Dex ↔ Linear ratio
 let ratio = dex_to_ratio(2.0);                // 100.0
-let dex = ratio_to_dex(1000.0);               // 3.0
+let dex = ratio_to_dex(1000.0).unwrap();      // 3.0
 
 // Astronomical utilities
-let combined = combine_magnitudes(5.0, 5.0);  // ~4.25 mag
+let combined = combine_magnitudes(5.0, 5.0).unwrap();  // ~4.25 mag
 let dm = distance_modulus(10.0);              // Distance modulus at 10 pc
 let d = distance_from_modulus(5.0);           // Distance from DM = 5
 ```

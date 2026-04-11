@@ -61,10 +61,7 @@ pub fn magnitude_flux() -> Equivalency {
                     Ok(mag_to_flux_ratio(mag))
                 },
                 move |flux| {
-                    if flux <= 0.0 {
-                        return Err("flux ratio must be positive for magnitude conversion".to_string());
-                    }
-                    Ok(flux_ratio_to_mag(flux))
+                    flux_ratio_to_mag(flux).map_err(|e| e.to_string())
                 },
             ));
         }
@@ -73,10 +70,7 @@ pub fn magnitude_flux() -> Equivalency {
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
                 move |flux| {
-                    if flux <= 0.0 {
-                        return Err("flux ratio must be positive for magnitude conversion".to_string());
-                    }
-                    Ok(flux_ratio_to_mag(flux))
+                    flux_ratio_to_mag(flux).map_err(|e| e.to_string())
                 },
                 move |mag| {
                     Ok(mag_to_flux_ratio(mag))
@@ -118,10 +112,7 @@ pub fn db_power() -> Equivalency {
                     Ok(db_to_power_ratio(db))
                 },
                 move |power| {
-                    if power <= 0.0 {
-                        return Err("power ratio must be positive for dB conversion".to_string());
-                    }
-                    Ok(power_ratio_to_db(power))
+                    power_ratio_to_db(power).map_err(|e| e.to_string())
                 },
             ));
         }
@@ -130,10 +121,7 @@ pub fn db_power() -> Equivalency {
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
                 move |power| {
-                    if power <= 0.0 {
-                        return Err("power ratio must be positive for dB conversion".to_string());
-                    }
-                    Ok(power_ratio_to_db(power))
+                    power_ratio_to_db(power).map_err(|e| e.to_string())
                 },
                 move |db| {
                     Ok(db_to_power_ratio(db))
@@ -165,10 +153,7 @@ pub fn db_amplitude() -> Equivalency {
                     Ok(db_to_amplitude_ratio(db))
                 },
                 move |amplitude| {
-                    if amplitude <= 0.0 {
-                        return Err("amplitude ratio must be positive for dB conversion".to_string());
-                    }
-                    Ok(amplitude_ratio_to_db(amplitude))
+                    amplitude_ratio_to_db(amplitude).map_err(|e| e.to_string())
                 },
             ));
         }
@@ -177,10 +162,7 @@ pub fn db_amplitude() -> Equivalency {
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
                 move |amplitude| {
-                    if amplitude <= 0.0 {
-                        return Err("amplitude ratio must be positive for dB conversion".to_string());
-                    }
-                    Ok(amplitude_ratio_to_db(amplitude))
+                    amplitude_ratio_to_db(amplitude).map_err(|e| e.to_string())
                 },
                 move |db| {
                     Ok(db_to_amplitude_ratio(db))
@@ -222,10 +204,7 @@ pub fn dex_ratio() -> Equivalency {
                     Ok(dex_to_ratio(dex))
                 },
                 move |ratio| {
-                    if ratio <= 0.0 {
-                        return Err("ratio must be positive for dex conversion".to_string());
-                    }
-                    Ok(ratio_to_dex(ratio))
+                    ratio_to_dex(ratio).map_err(|e| e.to_string())
                 },
             ));
         }
@@ -234,10 +213,7 @@ pub fn dex_ratio() -> Equivalency {
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
                 move |ratio| {
-                    if ratio <= 0.0 {
-                        return Err("ratio must be positive for dex conversion".to_string());
-                    }
-                    Ok(ratio_to_dex(ratio))
+                    ratio_to_dex(ratio).map_err(|e| e.to_string())
                 },
                 move |dex| {
                     Ok(dex_to_ratio(dex))
