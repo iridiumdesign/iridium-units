@@ -11,13 +11,13 @@ use iridium_units::prelude::*;
 // Create a custom registry
 let mut registry = UnitRegistry::with_builtins();
 
-// Add custom units
-let my_unit = Unit::Base(BaseUnit::new(
+// Define a custom unit
+let my_unit = BaseUnit::new(
     "my_unit", "mu", &["myunit"],
     Dimension::LENGTH,
     1.5  // 1 my_unit = 1.5 meters
-));
-registry.register(&["my_unit", "mu"], my_unit);
+);
+registry.register(&["my_unit", "mu"], Unit::from(my_unit));
 
 // Parse with custom registry
 let q = registry.parse_quantity("10 mu")?;  // 10 my_units = 15 m
@@ -48,33 +48,33 @@ The classic obscure velocity unit, useful for proving your unit library actually
 use iridium_units::prelude::*;
 use iridium_units::parsing::UnitRegistry;
 
-// Create custom units
-let furlong = Unit::Base(BaseUnit::new(
+// Define custom units as BaseUnit values
+let furlong = BaseUnit::new(
     "furlong", "fur", &["furlongs"],
     Dimension::LENGTH,
     201.168  // 1 furlong = 201.168 meters (1/8 mile)
-));
+);
 
-let fortnight = Unit::Base(BaseUnit::new(
+let fortnight = BaseUnit::new(
     "fortnight", "ftn", &["fortnights"],
     Dimension::TIME,
     1_209_600.0  // 14 days in seconds
-));
+);
 
 // Register them
 let mut registry = UnitRegistry::with_builtins();
-registry.register(&["furlong", "fur", "furlongs"], furlong.clone());
-registry.register(&["fortnight", "ftn", "fortnights"], fortnight.clone());
+registry.register(&["furlong", "fur", "furlongs"], Unit::from(furlong));
+registry.register(&["fortnight", "ftn", "fortnights"], Unit::from(fortnight));
 
 // Now convert the speed of light to furlongs per fortnight
 let c = 299_792_458.0 * M / S;
-let fur_per_ftn = &furlong / &fortnight;
-let c_obscure = c.to(&fur_per_ftn)?;
+let fur_per_ftn = furlong / fortnight;
+let c_obscure = c.to(fur_per_ftn)?;
 println!("{}", c_obscure);  // ~1.803e12 fur/ftn
 
 // Or parse directly
 let speed = registry.parse_quantity("100 fur/ftn")?;
-let in_mph = speed.to(&(MILE / H))?;
+let in_mph = speed.to(MILE / H)?;
 println!("{}", in_mph);  // ~0.000372 mph (a very slow speed)
 ```
 
@@ -129,11 +129,13 @@ use iridium_units::dimension::Rational16;
 let half = Rational16::new(1, 2);
 let third = Rational16::new(1, 3);
 
-// Square root has exponent 1/2
-let length = 4.0 * M;
-let sqrt_length = length.sqrt();  // 2 m^(1/2)
+// Square root of area → length
+let area = 100.0 * &M.pow(2);
+let side = area.pow(half);  // 10 m
 
-// Cube root would have exponent 1/3
+// Cube root of volume → length
+let volume = 27.0 * &M.pow(3);
+let edge = volume.pow(third);  // 3 m
 ```
 
 ---
@@ -149,14 +151,14 @@ use iridium_units::quantity::{batch_convert, batch_convert_into, conversion_fact
 
 // Convert a vector
 let km_values: Vec<f64> = (0..10000).map(|i| i as f64).collect();
-let m_values = batch_convert(&km_values, &KM, &M)?;
+let m_values = batch_convert(&km_values, KM, M)?;
 
 // Zero-allocation conversion into existing buffer
 let mut output = vec![0.0; 10000];
-batch_convert_into(&km_values, &KM, &M, &mut output)?;
+batch_convert_into(&km_values, KM, M, &mut output)?;
 
 // Get factor for manual SIMD operations
-let factor = conversion_factor(&KM, &M)?;
+let factor = conversion_factor(KM, M)?;
 ```
 
 ### Performance Comparison

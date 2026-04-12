@@ -1,6 +1,22 @@
 //! Imperial/US customary units.
 //!
 //! This module provides common Imperial and US customary units.
+//!
+//! # Examples
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! // Marathon distance
+//! let marathon = 42.195 * KM;
+//! let in_miles = marathon.to(MILE).unwrap();
+//! assert!((in_miles.value() - 26.219).abs() < 0.001);
+//!
+//! // Weight conversion
+//! let weight = 150.0 * POUND;
+//! let in_kg = weight.to(KG).unwrap();
+//! assert!((in_kg.value() - 68.04).abs() < 0.01);
+//! ```
 
 use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;

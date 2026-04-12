@@ -3,6 +3,22 @@
 //! This module provides units commonly used in astronomy and astrophysics,
 //! including distance units (parsec, AU, light-year), solar units, and
 //! spectroscopic units.
+//!
+//! # Examples
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! // Distance to Proxima Centauri
+//! let distance = 1.3 * PARSEC;
+//! let in_ly = distance.to(LIGHT_YEAR).unwrap();
+//! assert!((in_ly.value() - 4.24).abs() < 0.01);
+//!
+//! // 1 parsec in AU
+//! let one_pc = 1.0 * PARSEC;
+//! let in_au = one_pc.to(AU).unwrap();
+//! assert!((in_au.value() - 206_265.0).abs() / 206_265.0 < 0.001);
+//! ```
 
 use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-iridium-units is a Rust library for units of measure with runtime dimensional analysis. It is designed to support astrophysics calculations.
+iridium-units is a Rust library for units of measure with runtime dimensional analysis. It supports SI, CGS, astrophysical, imperial, and logarithmic unit systems.
 
 ## Build Commands
 
@@ -20,7 +20,7 @@ cargo doc --open     # Build and view documentation
 
 ### Core Types
 
-- **`Dimension`** (`src/dimension.rs`): Represents physical dimensions using 11 base dimensions (length, time, mass, current, temperature, angle, solid_angle, luminous_intensity, magnitude, amount, photon) with rational exponents via `Rational8`.
+- **`Dimension`** (`src/dimension.rs`): Represents physical dimensions using 11 base dimensions (length, time, mass, current, temperature, angle, solid_angle, luminous_intensity, magnitude, amount, photon) with rational exponents via `Rational16`.
 
 - **`Unit`** (`src/unit/mod.rs`): Enum representing physical units:
   - `Base(BaseUnit)` - Irreducible units like meter, second
@@ -48,7 +48,7 @@ Enable conversion between different physical dimensions:
 - **`parallax()`**: parallax angle ↔ distance
 - **`mass_energy()`**: mass ↔ energy (E=mc²)
 
-Usage: `quantity.to_equiv(&target_unit, equivalency())`
+Usage: `quantity.to_equiv(target_unit, equivalency())`
 
 ### Physical Constants (`src/constants.rs`)
 

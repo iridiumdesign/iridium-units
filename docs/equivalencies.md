@@ -9,7 +9,7 @@ use iridium_units::prelude::*;
 use iridium_units::equivalencies::spectral;
 
 let wavelength = 500.0 * NM;
-let frequency = wavelength.to_equiv(&HZ, spectral())?;
+let frequency = wavelength.to_equiv(HZ, spectral())?;
 ```
 
 ## Available Equivalencies
@@ -26,14 +26,14 @@ use iridium_units::equivalencies::spectral;
 
 // Wavelength ↔ Frequency
 let wavelength = 500.0 * NM;
-let freq = wavelength.to_equiv(&HZ, spectral())?;  // ~6×10¹⁴ Hz
+let freq = wavelength.to_equiv(HZ, spectral())?;  // ~6×10¹⁴ Hz
 
 // Wavelength ↔ Energy
-let energy = wavelength.to_equiv(&EV, spectral())?;  // ~2.5 eV
+let energy = wavelength.to_equiv(EV, spectral())?;  // ~2.5 eV
 
 // Energy ↔ Frequency
 let photon_energy = 1.0 * EV;
-let freq = photon_energy.to_equiv(&HZ, spectral())?;
+let freq = photon_energy.to_equiv(HZ, spectral())?;
 ```
 
 ---
@@ -57,7 +57,7 @@ let wavelength = 500.0 * NM;
 
 // Convert 1 Jansky to erg/s/cm²/Å at 500 nm
 let f_nu = 1.0 * JANSKY;
-let f_lambda = f_nu.to_equiv(&FLAM, spectral_density(wavelength))?;
+let f_lambda = f_nu.to_equiv(FLAM, spectral_density(wavelength))?;
 ```
 
 #### AB Magnitude System
@@ -72,11 +72,11 @@ use iridium_units::systems::logarithmic::MAG;
 
 // Flux to AB magnitude
 let flux = 1.0 * JANSKY;
-let mag = flux.to_equiv(&MAG, ab_magnitude())?;  // ~8.9 mag
+let mag = flux.to_equiv(MAG, ab_magnitude())?;  // ~8.9 mag
 
 // AB magnitude to flux
 let mag = 20.0 * MAG;
-let flux = mag.to_equiv(&JANSKY, ab_magnitude())?;  // ~3.6×10⁻⁵ Jy
+let flux = mag.to_equiv(JANSKY, ab_magnitude())?;  // ~3.6×10⁻⁵ Jy
 ```
 
 **Convenience functions:**
@@ -105,7 +105,7 @@ let rest_freq = 1.420405751768e9 * HZ;  // 21 cm line
 let observed = 1.420e9 * HZ;
 
 // Get velocity from frequency shift
-let velocity = observed.to_equiv(&(M / S), doppler_radio(rest_freq))?;
+let velocity = observed.to_equiv(M / S, doppler_radio(rest_freq))?;
 ```
 
 #### Optical Convention
@@ -117,7 +117,7 @@ Used in optical astronomy for redshift z.
 use iridium_units::equivalencies::doppler_optical;
 
 let rest_freq = 5e14 * HZ;
-let velocity = observed.to_equiv(&(M / S), doppler_optical(rest_freq))?;
+let velocity = observed.to_equiv(M / S, doppler_optical(rest_freq))?;
 ```
 
 #### Relativistic Convention
@@ -129,7 +129,7 @@ Physically correct for all velocities. Never exceeds c.
 use iridium_units::equivalencies::doppler_relativistic;
 
 let rest_freq = 1e9 * HZ;
-let velocity = observed.to_equiv(&(M / S), doppler_relativistic(rest_freq))?;
+let velocity = observed.to_equiv(M / S, doppler_relativistic(rest_freq))?;
 ```
 
 ---
@@ -146,7 +146,7 @@ use iridium_units::systems::si::ARCSEC;
 
 // Proxima Centauri: parallax = 0.7687 arcsec
 let p = 0.7687 * ARCSEC;
-let distance = p.to_equiv(&PARSEC, parallax())?;  // ~1.30 pc
+let distance = p.to_equiv(PARSEC, parallax())?;  // ~1.30 pc
 ```
 
 ---
@@ -160,11 +160,11 @@ use iridium_units::equivalencies::mass_energy;
 
 // Mass to energy
 let mass = 1.0 * KG;
-let energy = mass.to_equiv(&J, mass_energy())?;  // ~9×10¹⁶ J
+let energy = mass.to_equiv(J, mass_energy())?;  // ~9×10¹⁶ J
 
 // Electron rest mass energy
 let m_e = 9.109e-31 * KG;
-let E = m_e.to_equiv(&MEV, mass_energy())?;  // ~0.511 MeV
+let E = m_e.to_equiv(MEV, mass_energy())?;  // ~0.511 MeV
 ```
 
 ---
@@ -190,11 +190,11 @@ use iridium_units::equivalencies::temperature_energy;
 
 // Room temperature in eV
 let T = 300.0 * K;
-let E = T.to_equiv(&EV, temperature_energy())?;  // ~0.026 eV
+let E = T.to_equiv(EV, temperature_energy())?;  // ~0.026 eV
 
 // 1 eV corresponds to what temperature?
 let E = 1.0 * EV;
-let T = E.to_equiv(&K, temperature_energy())?;  // ~11600 K
+let T = E.to_equiv(K, temperature_energy())?;  // ~11600 K
 ```
 
 ---
@@ -215,7 +215,7 @@ let freq = 1.420405751768e9 * HZ;  // 21 cm
 let beam = 1e-6 * SR;              // 1 µsr beam
 
 let flux = 1.0 * JANSKY;
-let T_b = flux.to_equiv(&K, brightness_temperature(freq, beam))?;
+let T_b = flux.to_equiv(K, brightness_temperature(freq, beam))?;
 ```
 
 #### Full Planck Function
@@ -224,7 +224,7 @@ Accurate at all temperatures, including where Rayleigh-Jeans breaks down.
 ```rust
 use iridium_units::equivalencies::brightness_temperature_planck;
 
-let T_b = flux.to_equiv(&K, brightness_temperature_planck(freq, beam))?;
+let T_b = flux.to_equiv(K, brightness_temperature_planck(freq, beam))?;
 ```
 
 ---
@@ -241,7 +241,7 @@ use iridium_units::equivalencies::magnitude_flux;
 
 // Magnitude to flux ratio
 let mag = 5.0 * MAG;
-let flux_ratio = mag.to_equiv(&Unit::dimensionless(), magnitude_flux())?;
+let flux_ratio = mag.to_equiv(Unit::dimensionless(), magnitude_flux())?;
 // 5 mag = 0.01 (100× fainter than reference)
 ```
 
@@ -252,7 +252,7 @@ dB = 10 × log₁₀(P/P₀)
 use iridium_units::equivalencies::db_power;
 
 let signal = 10.0 * DB;
-let power_ratio = signal.to_equiv(&Unit::dimensionless(), db_power())?;
+let power_ratio = signal.to_equiv(Unit::dimensionless(), db_power())?;
 // 10 dB = 10× power
 ```
 
@@ -263,7 +263,7 @@ dex = log₁₀(x/x₀)
 use iridium_units::equivalencies::dex_ratio;
 
 let order = 2.0 * DEX;
-let ratio = order.to_equiv(&Unit::dimensionless(), dex_ratio())?;
+let ratio = order.to_equiv(Unit::dimensionless(), dex_ratio())?;
 // 2 dex = 100×
 ```
 
@@ -289,7 +289,7 @@ let E = 0.5 * &I * &omega * &omega;
 use iridium_units::equivalencies::dimensionless_angles;
 
 let E = (0.5 * &I * &omega * &omega)
-    .to_equiv(&J, dimensionless_angles())?;
+    .to_equiv(J, dimensionless_angles())?;
 // Now correctly in Joules
 ```
 
@@ -302,11 +302,11 @@ let E = (0.5 * &I * &omega * &omega)
 ```rust
 // Angular frequency conversion
 let omega = 2.0 * PI * RAD / S;  // 2π rad/s
-let f = omega.to_equiv(&HZ, dimensionless_angles())?;  // 2π Hz
+let f = omega.to_equiv(HZ, dimensionless_angles())?;  // 2π Hz
 
 // Pure angle to dimensionless
 let theta = PI * RAD;
-let value = theta.to_equiv(&Unit::dimensionless(), dimensionless_angles())?;
+let value = theta.to_equiv(Unit::dimensionless(), dimensionless_angles())?;
 // value = π
 ```
 
@@ -334,7 +334,7 @@ use iridium_units::prelude::*;
 use iridium_units::equivalencies::{spectral, mass_energy};
 
 let quantity = /* some quantity */;
-let result = quantity.to_equiv_list(&target_unit, &[spectral(), mass_energy()])?;
+let result = quantity.to_equiv_list(target_unit, &[spectral(), mass_energy()])?;
 ```
 
 The first matching equivalency will be used.

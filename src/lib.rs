@@ -116,6 +116,7 @@ pub use dimension::{Dimension, Rational16};
 pub use error::{UnitError, UnitResult};
 pub use quantity::Quantity;
 pub use unit::Unit;
+pub use unit::base::BaseUnit;
 
 // Re-export parsing functions and types
 pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRegistry};
@@ -132,6 +133,7 @@ pub mod prelude {
     pub use crate::error::{UnitError, UnitResult};
     pub use crate::quantity::Quantity;
     pub use crate::unit::Unit;
+    pub use crate::unit::base::BaseUnit;
 
     // Re-export parsing functions and types
     pub use crate::parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRegistry};

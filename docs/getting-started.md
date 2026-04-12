@@ -1,6 +1,7 @@
 # Getting Started with iridium-units
 
-iridium-units is a Rust library for units of measure with runtime dimensional analysis, designed for astrophysics calculations.
+iridium-units is a Rust library for physical units with runtime dimensional
+analysis. It works for anything from kitchen conversions to astrophysics.
 
 ## Installation
 
@@ -15,7 +16,7 @@ iridium-units = "0.1"
 
 ### Creating Quantities
 
-Quantities are created by multiplying a number by a unit reference:
+Quantities are created by multiplying a number by a unit:
 
 ```rust
 use iridium_units::prelude::*;
@@ -39,10 +40,11 @@ use iridium_units::prelude::*;
 
 let distance = 5.0 * KM;
 let in_meters = distance.to(M)?;      // 5000 m
-let in_miles = distance.to(MILE)?;    // ~3.1 miles
+let in_miles = distance.to(MILE)?;     // ~3.1 miles
 
 // Get just the numeric value
-let meters_value = distance.to_value(&M)?;  // 5000.0
+let meters_value = distance.to_value(M)?;  // 5000.0
+# Ok::<(), iridium_units::error::UnitError>(())
 ```
 
 ### Dimensional Analysis
@@ -55,11 +57,12 @@ use iridium_units::prelude::*;
 let distance = 100.0 * M;
 let time = 10.0 * S;
 
-// This works - creates velocity
+// This works — creates velocity
 let velocity = &distance / &time;
 
-// This fails at runtime - can't add meters to seconds
-let result = &distance + &time;  // Returns Err(IncompatibleDimensions)
+// This fails at runtime — can't add meters to seconds
+let result = distance.checked_add(&time);
+assert!(result.is_err());
 ```
 
 ### Parsing Units from Strings
@@ -88,12 +91,10 @@ let speed = parse_unit("km per hour")?;
 // LaTeX notation
 let energy = parse_unit("kg m^{2} s^{-2}")?;
 
-// Astrophysical subscripts
-let solar_mass = parse_unit("M_sun")?;
-
 // Parse quantities (value + unit)
 let distance = parse_quantity("100 km")?;
 let wavelength = parse_quantity("500 nm")?;
+# Ok::<(), iridium_units::error::UnitError>(())
 ```
 
 ## Unit Systems
@@ -122,7 +123,7 @@ let pressure = 1.0 * PA;   // pascal
 // Prefixed units
 let km = 1.0 * KM;         // kilometer
 let nm = 1.0 * NM;         // nanometer
-let GHz = 1.0 * GHZ;       // gigahertz
+let ghz = 1.0 * GHZ;       // gigahertz
 ```
 
 ### Astrophysical Units (`systems::astrophysical`)
@@ -167,7 +168,9 @@ let order = 2.0 * DEX;              // dex (order of magnitude)
 
 ## Equivalencies
 
-Equivalencies enable conversions between different physical dimensions when there's a physical relationship. See [equivalencies.md](equivalencies.md) for full documentation.
+Equivalencies enable conversions between different physical dimensions when
+there's a physical relationship (like wavelength to frequency). See
+[equivalencies.md](equivalencies.md) for full documentation.
 
 ```rust
 use iridium_units::prelude::*;
@@ -175,7 +178,8 @@ use iridium_units::equivalencies::spectral;
 
 // Convert wavelength to frequency
 let wavelength = 500.0 * NM;
-let frequency = wavelength.to_equiv(&HZ, spectral())?;
+let frequency = wavelength.to_equiv(HZ, spectral())?;
+# Ok::<(), iridium_units::error::UnitError>(())
 ```
 
 ## Physical Constants
@@ -199,11 +203,11 @@ All fallible operations return `UnitResult<T>`:
 use iridium_units::prelude::*;
 use iridium_units::error::UnitError;
 
-let result = (1.0 * M) + (1.0 * S);
-match result {
-    Ok(sum) => println!("Sum: {}", sum),
-    Err(UnitError::IncompatibleDimensions { lhs, rhs }) => {
-        println!("Cannot add {} and {}", lhs, rhs);
+let mass = 1.0 * KG;
+match mass.to(M) {
+    Ok(converted) => println!("Converted: {}", converted),
+    Err(UnitError::DimensionMismatch { from, to }) => {
+        println!("Cannot convert {} to {}", from, to);
     }
     Err(e) => println!("Error: {}", e),
 }
@@ -219,14 +223,100 @@ use iridium_units::quantity::{batch_convert, conversion_factor};
 
 // Convert 10,000 values at once (~80x faster than individual conversion)
 let values_km: Vec<f64> = (0..10000).map(|i| i as f64).collect();
-let values_m = batch_convert(&values_km, &KM, &M)?;
+let values_m = batch_convert(&values_km, KM, M)?;
 
 // Or get the factor for manual/SIMD operations
-let factor = conversion_factor(&KM, &M)?;
+let factor = conversion_factor(KM, M)?;
+# Ok::<(), iridium_units::error::UnitError>(())
+```
+
+## Cookbook
+
+Practical recipes for common tasks.
+
+### Speed, Distance, and Time
+
+```rust
+use iridium_units::prelude::*;
+
+// Marathon pace: 42.195 km in 3:30:00
+let distance = 42.195 * KM;
+let time = 3.5 * H;
+let pace = &distance / &time;
+
+let pace_mph = pace.to(MILE / H).unwrap();
+println!("Pace: {}", pace_mph);  // ~7.5 mi/h
+
+let pace_ms = pace.to(M / S).unwrap();
+println!("Pace: {}", pace_ms);  // ~3.35 m/s
+```
+
+### Temperature Conversion
+
+```rust
+use iridium_units::prelude::*;
+
+// Boiling point of water
+let boiling = 100.0 * DEG_C;
+let in_fahrenheit = boiling.to(DEG_F).unwrap();
+let in_kelvin = boiling.to(K).unwrap();
+
+assert!((in_fahrenheit.value() - 212.0).abs() < 1e-6);
+assert!((in_kelvin.value() - 373.15).abs() < 1e-6);
+```
+
+### Force and Pressure
+
+```rust
+use iridium_units::prelude::*;
+
+// F = ma
+let mass = 75.0 * KG;
+let accel = 9.8 * &(M / S.pow(2));
+let force = &mass * &accel;
+
+let in_newtons = force.to(N).unwrap();
+assert!((in_newtons.value() - 735.0).abs() < 0.1);
+
+// Pressure = Force / Area
+let area = 0.5 * &M.pow(2);
+let pressure = &force / &area;
+let in_pascal = pressure.to(PA).unwrap();
+assert!((in_pascal.value() - 1470.0).abs() < 1.0);
+```
+
+### Parsing User Input
+
+```rust
+use iridium_units::prelude::*;
+
+// Accept units from user input, config files, etc.
+let input = "100 km/h";
+let speed = parse_quantity(input).unwrap();
+let in_ms = speed.to(M / S).unwrap();
+println!("{} = {}", input, in_ms);
+```
+
+### Custom Units
+
+```rust
+use iridium_units::prelude::*;
+
+// Define a custom unit
+let furlong = Unit::Base(BaseUnit::new(
+    "furlong", "fur", &[],
+    Dimension::LENGTH,
+    201.168  // meters per furlong
+));
+
+// Use it for conversion
+let marathon = 42.195 * KM;
+let in_furlongs = marathon.to(furlong).unwrap();
+println!("{} furlongs", in_furlongs.value());  // ~209.7
 ```
 
 ## Next Steps
 
-- [Equivalencies Guide](equivalencies.md) - Converting between different physical domains
-- [Unit Systems Reference](unit-systems.md) - Complete unit reference
-- [Advanced Topics](advanced.md) - Custom units, registries, and more
+- [Equivalencies Guide](equivalencies.md) — Converting between different physical domains
+- [Unit Systems Reference](unit-systems.md) — Complete unit tables
+- [Advanced Topics](advanced.md) — Custom registries, batch operations, and more

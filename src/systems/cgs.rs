@@ -2,6 +2,22 @@
 //!
 //! The CGS system was the first coherent metric system and is still
 //! commonly used in astrophysics and electromagnetism.
+//!
+//! # Examples
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//! use iridium_units::systems::cgs::{DYNE, ERG};
+//!
+//! // Convert SI to CGS
+//! let force = 1.0 * N;
+//! let in_dyne = force.to(DYNE).unwrap();
+//! assert!((in_dyne.value() - 1e5).abs() < 1e-5);
+//!
+//! let energy = 1.0 * J;
+//! let in_erg = energy.to(ERG).unwrap();
+//! assert!((in_erg.value() - 1e7).abs() < 1e-3);
+//! ```
 
 use crate::dimension::{Dimension, Rational16};
 use crate::unit::base::BaseUnit;

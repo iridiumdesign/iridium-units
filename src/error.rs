@@ -1,4 +1,32 @@
 //! Error types for the iridium-units library.
+//!
+//! All fallible operations return [`UnitResult<T>`], which is an alias for
+//! `Result<T, UnitError>`. Errors include helpful context like unit names
+//! and, for unknown units, spelling suggestions.
+//!
+//! # Examples
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//! use iridium_units::error::UnitError;
+//!
+//! // Incompatible conversion
+//! let mass = 1.0 * KG;
+//! let result = mass.to(M);
+//! assert!(matches!(result, Err(UnitError::DimensionMismatch { .. })));
+//!
+//! // Incompatible addition
+//! let distance = 10.0 * M;
+//! let time = 5.0 * S;
+//! let result = distance.checked_add(&time);
+//! assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
+//!
+//! // Unknown unit with suggestion
+//! let result = parse_unit("metrs");
+//! if let Err(UnitError::UnknownUnit { suggestions, .. }) = result {
+//!     assert!(!suggestions.is_empty());
+//! }
+//! ```
 
 use thiserror::Error;
 
