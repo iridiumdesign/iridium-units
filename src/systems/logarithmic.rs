@@ -149,7 +149,7 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns an error if flux_ratio is not positive (including NaN).
+/// Returns an error if flux_ratio is not finite and positive.
 ///
 /// # Example
 ///
@@ -166,7 +166,7 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 pub fn flux_ratio_to_mag(flux_ratio: f64) -> Result<f64, crate::error::UnitError> {
     if !flux_ratio.is_finite() || flux_ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "flux ratio must be positive".to_string(),
+            "flux ratio must be finite and positive".to_string(),
         ));
     }
     Ok(MAG_FACTOR * flux_ratio.log10())
@@ -196,7 +196,7 @@ pub fn db_to_power_ratio(db: f64) -> f64 {
 ///
 /// Uses the formula: dB = 10 * log10(P/P₀)
 ///
-/// Returns an error if power_ratio is not positive.
+/// Returns an error if power_ratio is not finite and positive.
 ///
 /// # Example
 ///
@@ -213,7 +213,7 @@ pub fn db_to_power_ratio(db: f64) -> f64 {
 pub fn power_ratio_to_db(power_ratio: f64) -> Result<f64, crate::error::UnitError> {
     if !power_ratio.is_finite() || power_ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "power ratio must be positive".to_string(),
+            "power ratio must be finite and positive".to_string(),
         ));
     }
     Ok(10.0 * power_ratio.log10())
@@ -233,12 +233,12 @@ pub fn db_to_amplitude_ratio(db: f64) -> f64 {
 ///
 /// Uses the formula: dB = 20 * log10(V/V₀)
 ///
-/// Returns an error if amplitude_ratio is not positive.
+/// Returns an error if amplitude_ratio is not finite and positive.
 #[inline]
 pub fn amplitude_ratio_to_db(amplitude_ratio: f64) -> Result<f64, crate::error::UnitError> {
     if !amplitude_ratio.is_finite() || amplitude_ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "amplitude ratio must be positive".to_string(),
+            "amplitude ratio must be finite and positive".to_string(),
         ));
     }
     Ok(20.0 * amplitude_ratio.log10())
@@ -270,7 +270,7 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns an error if ratio is not positive (including NaN).
+/// Returns an error if ratio is not finite and positive.
 ///
 /// # Example
 ///
@@ -287,7 +287,7 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 pub fn ratio_to_dex(ratio: f64) -> Result<f64, crate::error::UnitError> {
     if !ratio.is_finite() || ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "ratio must be positive".to_string(),
+            "ratio must be finite and positive".to_string(),
         ));
     }
     Ok(ratio.log10())
@@ -369,12 +369,12 @@ pub fn distance_from_modulus(distance_modulus: f64) -> f64 {
 ///
 /// µ = 5 * log10(d) - 5
 ///
-/// Returns an error if distance_pc is not positive.
+/// Returns an error if distance_pc is not finite and positive.
 #[inline]
 pub fn modulus_from_distance(distance_pc: f64) -> Result<f64, crate::error::UnitError> {
     if !distance_pc.is_finite() || distance_pc <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "distance must be positive".to_string(),
+            "distance must be finite and positive".to_string(),
         ));
     }
     Ok(5.0 * distance_pc.log10() - 5.0)
