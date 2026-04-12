@@ -324,16 +324,27 @@ impl From<i32> for Rational16 {
 /// - amount (moles), photon (photon count)
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Dimension {
+    /// Length dimension exponent (e.g., 1 for meters, -1 for per-meter).
     pub length: Rational16,
+    /// Time dimension exponent (e.g., -1 for Hz, -2 for acceleration).
     pub time: Rational16,
+    /// Mass dimension exponent (e.g., 1 for kg).
     pub mass: Rational16,
+    /// Electric current dimension exponent.
     pub current: Rational16,
+    /// Temperature dimension exponent.
     pub temperature: Rational16,
+    /// Angle dimension exponent (e.g., 1 for radians).
     pub angle: Rational16,
+    /// Solid angle dimension exponent (e.g., 1 for steradians).
     pub solid_angle: Rational16,
+    /// Luminous intensity dimension exponent.
     pub luminous_intensity: Rational16,
+    /// Magnitude dimension exponent (for logarithmic units).
     pub magnitude: Rational16,
+    /// Amount of substance dimension exponent (e.g., 1 for moles).
     pub amount: Rational16,
+    /// Photon count dimension exponent.
     pub photon: Rational16,
 }
 

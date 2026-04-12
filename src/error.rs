@@ -35,11 +35,21 @@ use thiserror::Error;
 pub enum UnitError {
     /// Attempted to convert between incompatible dimensions.
     #[error("cannot convert between incompatible dimensions: {from} -> {to}")]
-    DimensionMismatch { from: String, to: String },
+    DimensionMismatch {
+        /// The source unit.
+        from: String,
+        /// The target unit.
+        to: String,
+    },
 
     /// Attempted to add or subtract quantities with different dimensions.
     #[error("cannot add/subtract quantities with different dimensions: {lhs} vs {rhs}")]
-    IncompatibleDimensions { lhs: String, rhs: String },
+    IncompatibleDimensions {
+        /// The left-hand side unit.
+        lhs: String,
+        /// The right-hand side unit.
+        rhs: String,
+    },
 
     /// Unknown unit name in string parsing.
     #[error("unknown unit: '{name}'{}",
@@ -47,7 +57,9 @@ pub enum UnitError {
         else { format!(", did you mean '{}'?", suggestions.join("' or '")) }
     )]
     UnknownUnit {
+        /// The unrecognized unit name.
         name: String,
+        /// Suggested similar unit names, if any.
         suggestions: Vec<String>,
     },
 
@@ -57,7 +69,12 @@ pub enum UnitError {
 
     /// No equivalency available for the requested conversion.
     #[error("no equivalency found for conversion: {from} -> {to}")]
-    NoEquivalency { from: String, to: String },
+    NoEquivalency {
+        /// The source unit.
+        from: String,
+        /// The target unit.
+        to: String,
+    },
 
     /// Attempted to get scalar value from non-dimensionless quantity.
     #[error("cannot convert non-dimensionless quantity to scalar")]
@@ -80,7 +97,12 @@ pub enum UnitError {
     #[error(
         "cannot use simple scaling for offset units: {from} -> {to}, use Quantity::to() instead"
     )]
-    OffsetConversion { from: String, to: String },
+    OffsetConversion {
+        /// The source unit.
+        from: String,
+        /// The target unit.
+        to: String,
+    },
 
     /// Invalid input for batch operation.
     #[error("batch operation error: {0}")]

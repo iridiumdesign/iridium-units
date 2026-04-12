@@ -10,6 +10,7 @@ categories = ["science", "mathematics"]
 repository = "https://github.com/iridiumdesign/iridium-units"
 documentation = "https://docs.rs/iridium-units"
 readme = "README.md"
+exclude = ["CLAUDE.md", ".github/"]
 
 [features]
 default = ["cgs", "astrophysics", "logarithmic"]
