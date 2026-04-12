@@ -61,10 +61,7 @@ pub fn parallax() -> Equivalency {
             Some(Converter::new(
                 move |p_rad| {
                     if p_rad <= 0.0 {
-                        return Err(format!(
-                            "parallax angle must be positive, got {}",
-                            p_rad
-                        ));
+                        return Err(format!("parallax angle must be positive, got {}", p_rad));
                     }
                     Ok(PARSEC_M * ARCSEC_RAD / p_rad)
                 },
@@ -86,10 +83,7 @@ pub fn parallax() -> Equivalency {
                 },
                 move |p_rad| {
                     if p_rad <= 0.0 {
-                        return Err(format!(
-                            "parallax angle must be positive, got {}",
-                            p_rad
-                        ));
+                        return Err(format!("parallax angle must be positive, got {}", p_rad));
                     }
                     Ok(PARSEC_M * ARCSEC_RAD / p_rad)
                 },
@@ -101,8 +95,8 @@ pub fn parallax() -> Equivalency {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{ARCSEC, MAS};
     use crate::systems::astrophysical::PARSEC;
+    use crate::systems::si::{ARCSEC, MAS};
 
     #[test]
     fn test_parallax_1_arcsec() {

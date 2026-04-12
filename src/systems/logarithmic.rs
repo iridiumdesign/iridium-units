@@ -74,17 +74,29 @@ pub const MAG_FACTOR: f64 = -2.5;
 
 /// Generic magnitude unit.
 pub const MAG: BaseUnit = BaseUnit::new(
-    "magnitude", "mag", &["magnitudes"], Dimension::MAGNITUDE, 1.0,
+    "magnitude",
+    "mag",
+    &["magnitudes"],
+    Dimension::MAGNITUDE,
+    1.0,
 );
 
 /// Apparent magnitude - observed brightness from Earth.
 pub const APPARENT_MAG: BaseUnit = BaseUnit::new(
-    "apparent_magnitude", "m_app", &["app_mag", "apparent_mag"], Dimension::MAGNITUDE, 1.0,
+    "apparent_magnitude",
+    "m_app",
+    &["app_mag", "apparent_mag"],
+    Dimension::MAGNITUDE,
+    1.0,
 );
 
 /// Absolute magnitude - brightness at 10 parsecs distance.
 pub const ABSOLUTE_MAG: BaseUnit = BaseUnit::new(
-    "absolute_magnitude", "M_abs", &["abs_mag", "absolute_mag"], Dimension::MAGNITUDE, 1.0,
+    "absolute_magnitude",
+    "M_abs",
+    &["abs_mag", "absolute_mag"],
+    Dimension::MAGNITUDE,
+    1.0,
 );
 
 // =============================================================================
@@ -92,23 +104,17 @@ pub const ABSOLUTE_MAG: BaseUnit = BaseUnit::new(
 // =============================================================================
 
 /// Decibel - logarithmic unit for power ratios.
-pub const DB: BaseUnit = BaseUnit::new(
-    "decibel", "dB", &["decibels"], Dimension::MAGNITUDE, 1.0,
-);
+pub const DB: BaseUnit = BaseUnit::new("decibel", "dB", &["decibels"], Dimension::MAGNITUDE, 1.0);
 
 /// Bel - base unit of decibels (1 B = 10 dB).
-pub const BEL: BaseUnit = BaseUnit::new(
-    "bel", "B", &["bels"], Dimension::MAGNITUDE, 10.0,
-);
+pub const BEL: BaseUnit = BaseUnit::new("bel", "B", &["bels"], Dimension::MAGNITUDE, 10.0);
 
 // =============================================================================
 // Dex Unit
 // =============================================================================
 
 /// Dex - order of magnitude unit.
-pub const DEX: BaseUnit = BaseUnit::new(
-    "dex", "dex", &[], Dimension::MAGNITUDE, 1.0,
-);
+pub const DEX: BaseUnit = BaseUnit::new("dex", "dex", &[], Dimension::MAGNITUDE, 1.0);
 
 // =============================================================================
 // Millimagnitude
@@ -116,7 +122,11 @@ pub const DEX: BaseUnit = BaseUnit::new(
 
 /// Millimagnitude (10^-3 magnitude).
 pub const MILLIMAG: BaseUnit = BaseUnit::new(
-    "millimagnitude", "mmag", &["millimag"], Dimension::MAGNITUDE, 0.001,
+    "millimagnitude",
+    "mmag",
+    &["millimag"],
+    Dimension::MAGNITUDE,
+    0.001,
 );
 
 // =============================================================================
@@ -149,7 +159,7 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns an error if flux_ratio is not positive (including NaN).
+/// Returns an error if flux_ratio is not finite and positive.
 ///
 /// # Example
 ///
@@ -164,9 +174,9 @@ pub fn mag_to_flux_ratio(mag: f64) -> f64 {
 /// ```
 #[inline]
 pub fn flux_ratio_to_mag(flux_ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if !(flux_ratio > 0.0) {
+    if !flux_ratio.is_finite() || flux_ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "flux ratio must be positive".to_string(),
+            "flux ratio must be finite and positive".to_string(),
         ));
     }
     Ok(MAG_FACTOR * flux_ratio.log10())
@@ -196,7 +206,7 @@ pub fn db_to_power_ratio(db: f64) -> f64 {
 ///
 /// Uses the formula: dB = 10 * log10(P/P₀)
 ///
-/// Returns an error if power_ratio is not positive.
+/// Returns an error if power_ratio is not finite and positive.
 ///
 /// # Example
 ///
@@ -211,9 +221,9 @@ pub fn db_to_power_ratio(db: f64) -> f64 {
 /// ```
 #[inline]
 pub fn power_ratio_to_db(power_ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if !(power_ratio > 0.0) {
+    if !power_ratio.is_finite() || power_ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "power ratio must be positive".to_string(),
+            "power ratio must be finite and positive".to_string(),
         ));
     }
     Ok(10.0 * power_ratio.log10())
@@ -233,12 +243,12 @@ pub fn db_to_amplitude_ratio(db: f64) -> f64 {
 ///
 /// Uses the formula: dB = 20 * log10(V/V₀)
 ///
-/// Returns an error if amplitude_ratio is not positive.
+/// Returns an error if amplitude_ratio is not finite and positive.
 #[inline]
 pub fn amplitude_ratio_to_db(amplitude_ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if !(amplitude_ratio > 0.0) {
+    if !amplitude_ratio.is_finite() || amplitude_ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "amplitude ratio must be positive".to_string(),
+            "amplitude ratio must be finite and positive".to_string(),
         ));
     }
     Ok(20.0 * amplitude_ratio.log10())
@@ -270,7 +280,7 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns an error if ratio is not positive (including NaN).
+/// Returns an error if ratio is not finite and positive.
 ///
 /// # Example
 ///
@@ -285,9 +295,9 @@ pub fn dex_to_ratio(dex: f64) -> f64 {
 /// ```
 #[inline]
 pub fn ratio_to_dex(ratio: f64) -> Result<f64, crate::error::UnitError> {
-    if !(ratio > 0.0) {
+    if !ratio.is_finite() || ratio <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "ratio must be positive".to_string(),
+            "ratio must be finite and positive".to_string(),
         ));
     }
     Ok(ratio.log10())
@@ -369,12 +379,12 @@ pub fn distance_from_modulus(distance_modulus: f64) -> f64 {
 ///
 /// µ = 5 * log10(d) - 5
 ///
-/// Returns an error if distance_pc is not positive.
+/// Returns an error if distance_pc is not finite and positive.
 #[inline]
 pub fn modulus_from_distance(distance_pc: f64) -> Result<f64, crate::error::UnitError> {
-    if !(distance_pc > 0.0) {
+    if !distance_pc.is_finite() || distance_pc <= 0.0 {
         return Err(crate::error::UnitError::LogarithmicError(
-            "distance must be positive".to_string(),
+            "distance must be finite and positive".to_string(),
         ));
     }
     Ok(5.0 * distance_pc.log10() - 5.0)
@@ -389,7 +399,11 @@ mod tests {
         for mag in [-5.0, -1.0, 0.0, 1.0, 5.0, 10.0, 20.0] {
             let flux = mag_to_flux_ratio(mag);
             let back = flux_ratio_to_mag(flux).unwrap();
-            assert!((back - mag).abs() < 1e-10, "roundtrip failed for mag={}", mag);
+            assert!(
+                (back - mag).abs() < 1e-10,
+                "roundtrip failed for mag={}",
+                mag
+            );
         }
     }
 
@@ -428,7 +442,11 @@ mod tests {
         for dex in [-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0] {
             let ratio = dex_to_ratio(dex);
             let back = ratio_to_dex(ratio).unwrap();
-            assert!((back - dex).abs() < 1e-10, "roundtrip failed for dex={}", dex);
+            assert!(
+                (back - dex).abs() < 1e-10,
+                "roundtrip failed for dex={}",
+                dex
+            );
         }
     }
 
@@ -437,7 +455,7 @@ mod tests {
         // Two stars of equal brightness (mag 0) have combined mag = -0.752
         // (because 2x flux = -2.5*log10(2) ≈ -0.752 mag brighter)
         let combined = combine_magnitudes(0.0, 0.0).unwrap();
-        let expected = flux_ratio_to_mag(2.0).unwrap();  // -0.752...
+        let expected = flux_ratio_to_mag(2.0).unwrap(); // -0.752...
         assert!((combined - expected).abs() < 1e-10);
     }
 

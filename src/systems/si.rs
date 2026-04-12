@@ -38,7 +38,8 @@ pub const KELVIN: BaseUnit = BaseUnit::new("kelvin", "K", &[], Dimension::TEMPER
 pub const MOLE: BaseUnit = BaseUnit::new("mole", "mol", &[], Dimension::AMOUNT, 1.0);
 
 /// Candela - SI base unit of luminous intensity
-pub const CANDELA: BaseUnit = BaseUnit::new("candela", "cd", &[], Dimension::LUMINOUS_INTENSITY, 1.0);
+pub const CANDELA: BaseUnit =
+    BaseUnit::new("candela", "cd", &[], Dimension::LUMINOUS_INTENSITY, 1.0);
 
 /// Radian - SI unit of angle (dimensionless in SI, but we track it)
 pub const RADIAN: BaseUnit = BaseUnit::new("radian", "rad", &[], Dimension::ANGLE, 1.0);
@@ -76,19 +77,23 @@ pub const SR: BaseUnit = STERADIAN;
 /// Degree Celsius (offset from Kelvin by +273.15)
 /// K = (°C + 273.15) × 1.0
 pub const DEG_C: BaseUnit = BaseUnit::with_offset(
-    "celsius", "°C", &["degC", "Celsius"],
+    "celsius",
+    "°C",
+    &["degC", "Celsius"],
     Dimension::TEMPERATURE,
-    1.0,     // 1°C interval = 1K interval
-    273.15,  // K = °C + 273.15
+    1.0,    // 1°C interval = 1K interval
+    273.15, // K = °C + 273.15
 );
 
 /// Degree Fahrenheit (offset from Rankine by +459.67)
 /// K = (°F + 459.67) × 5/9
 pub const DEG_F: BaseUnit = BaseUnit::with_offset(
-    "fahrenheit", "°F", &["degF", "Fahrenheit"],
+    "fahrenheit",
+    "°F",
+    &["degF", "Fahrenheit"],
     Dimension::TEMPERATURE,
-    5.0 / 9.0,  // 1°F interval = 5/9 K interval
-    459.67,      // K = (°F + 459.67) × 5/9
+    5.0 / 9.0, // 1°F interval = 5/9 K interval
+    459.67,    // K = (°F + 459.67) × 5/9
 );
 
 // =============================================================================
@@ -142,7 +147,13 @@ pub const H: BaseUnit = BaseUnit::new("hour", "h", &["hr"], Dimension::TIME, 360
 pub const DAY: BaseUnit = BaseUnit::new("day", "d", &["day"], Dimension::TIME, 86400.0);
 
 /// Julian year (365.25 days)
-pub const YR: BaseUnit = BaseUnit::new("year", "yr", &["a", "year"], Dimension::TIME, 365.25 * 86400.0);
+pub const YR: BaseUnit = BaseUnit::new(
+    "year",
+    "yr",
+    &["a", "year"],
+    Dimension::TIME,
+    365.25 * 86400.0,
+);
 
 // =============================================================================
 // Mass units
@@ -188,28 +199,28 @@ const DIM_PRESSURE: Dimension = Dimension::MASS
     .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
 /// Dimension: voltage (M L^2 T^-3 I^-1)
-const DIM_VOLTAGE: Dimension = DIM_POWER
-    .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
+const DIM_VOLTAGE: Dimension = DIM_POWER.mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 
 /// Dimension: capacitance (I^2 T^4 M^-1 L^-2)
-const DIM_CAPACITANCE: Dimension = Dimension::CURRENT.pow(Rational16::new(2, 1))
+const DIM_CAPACITANCE: Dimension = Dimension::CURRENT
+    .pow(Rational16::new(2, 1))
     .mul(&Dimension::TIME.pow(Rational16::new(4, 1)))
     .mul(&Dimension::MASS.pow(Rational16::new(-1, 1)))
     .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
 
 /// Dimension: resistance (M L^2 T^-3 I^-2)
-const DIM_RESISTANCE: Dimension = DIM_POWER
-    .mul(&Dimension::CURRENT.pow(Rational16::new(-2, 1)));
+const DIM_RESISTANCE: Dimension = DIM_POWER.mul(&Dimension::CURRENT.pow(Rational16::new(-2, 1)));
 
 /// Dimension: conductance (I^2 T^3 M^-1 L^-2)
-const DIM_CONDUCTANCE: Dimension = Dimension::CURRENT.pow(Rational16::new(2, 1))
+const DIM_CONDUCTANCE: Dimension = Dimension::CURRENT
+    .pow(Rational16::new(2, 1))
     .mul(&Dimension::TIME.pow(Rational16::new(3, 1)))
     .mul(&Dimension::MASS.pow(Rational16::new(-1, 1)))
     .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
 
 /// Dimension: magnetic flux (M L^2 T^-2 I^-1)
-const DIM_MAGNETIC_FLUX: Dimension = DIM_ENERGY
-    .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
+const DIM_MAGNETIC_FLUX: Dimension =
+    DIM_ENERGY.mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 
 /// Dimension: magnetic field (M T^-2 I^-1)
 const DIM_MAGNETIC_FIELD: Dimension = Dimension::MASS
@@ -217,19 +228,18 @@ const DIM_MAGNETIC_FIELD: Dimension = Dimension::MASS
     .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 
 /// Dimension: inductance (M L^2 T^-2 I^-2)
-const DIM_INDUCTANCE: Dimension = DIM_ENERGY
-    .mul(&Dimension::CURRENT.pow(Rational16::new(-2, 1)));
+const DIM_INDUCTANCE: Dimension = DIM_ENERGY.mul(&Dimension::CURRENT.pow(Rational16::new(-2, 1)));
 
 /// Dimension: luminous flux (J Ω)
-const DIM_LUMINOUS_FLUX: Dimension = Dimension::LUMINOUS_INTENSITY
-    .mul(&Dimension::SOLID_ANGLE);
+const DIM_LUMINOUS_FLUX: Dimension = Dimension::LUMINOUS_INTENSITY.mul(&Dimension::SOLID_ANGLE);
 
 /// Dimension: illuminance (J Ω L^-2)
-const DIM_ILLUMINANCE: Dimension = DIM_LUMINOUS_FLUX
-    .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
+const DIM_ILLUMINANCE: Dimension =
+    DIM_LUMINOUS_FLUX.mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)));
 
 /// Dimension: absorbed dose (L^2 T^-2)
-const DIM_DOSE: Dimension = Dimension::LENGTH.pow(Rational16::new(2, 1))
+const DIM_DOSE: Dimension = Dimension::LENGTH
+    .pow(Rational16::new(2, 1))
     .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
 /// Dimension: charge (I T)
@@ -255,11 +265,29 @@ pub const J: BaseUnit = BaseUnit::new("joule", "J", &[], DIM_ENERGY, 1.0);
 /// Electronvolt (1.602176634e-19 J)
 pub const EV: BaseUnit = BaseUnit::new("electronvolt", "eV", &[], DIM_ENERGY, 1.602_176_634e-19);
 /// Kiloelectronvolt (10^3 eV)
-pub const KEV: BaseUnit = BaseUnit::new("kiloelectronvolt", "keV", &[], DIM_ENERGY, 1.602_176_634e-16);
+pub const KEV: BaseUnit = BaseUnit::new(
+    "kiloelectronvolt",
+    "keV",
+    &[],
+    DIM_ENERGY,
+    1.602_176_634e-16,
+);
 /// Megaelectronvolt (10^6 eV)
-pub const MEV: BaseUnit = BaseUnit::new("megaelectronvolt", "MeV", &[], DIM_ENERGY, 1.602_176_634e-13);
+pub const MEV: BaseUnit = BaseUnit::new(
+    "megaelectronvolt",
+    "MeV",
+    &[],
+    DIM_ENERGY,
+    1.602_176_634e-13,
+);
 /// Gigaelectronvolt (10^9 eV)
-pub const GEV: BaseUnit = BaseUnit::new("gigaelectronvolt", "GeV", &[], DIM_ENERGY, 1.602_176_634e-10);
+pub const GEV: BaseUnit = BaseUnit::new(
+    "gigaelectronvolt",
+    "GeV",
+    &[],
+    DIM_ENERGY,
+    1.602_176_634e-10,
+);
 
 /// Watt - power (kg m^2 / s^3)
 pub const W: BaseUnit = BaseUnit::new("watt", "W", &[], DIM_POWER, 1.0);
@@ -316,37 +344,55 @@ pub const SV: BaseUnit = BaseUnit::new("sievert", "Sv", &[], DIM_DOSE, 1.0);
 
 /// Degree (pi/180 rad)
 pub const DEG: BaseUnit = BaseUnit::new(
-    "degree", "deg", &["degree"], Dimension::ANGLE,
+    "degree",
+    "deg",
+    &["degree"],
+    Dimension::ANGLE,
     std::f64::consts::PI / 180.0,
 );
 
 /// Arcminute (1/60 degree)
 pub const ARCMIN: BaseUnit = BaseUnit::new(
-    "arcminute", "arcmin", &["arcminute"], Dimension::ANGLE,
+    "arcminute",
+    "arcmin",
+    &["arcminute"],
+    Dimension::ANGLE,
     std::f64::consts::PI / 180.0 / 60.0,
 );
 
 /// Arcsecond (1/3600 degree)
 pub const ARCSEC: BaseUnit = BaseUnit::new(
-    "arcsecond", "arcsec", &["arcsecond"], Dimension::ANGLE,
+    "arcsecond",
+    "arcsec",
+    &["arcsecond"],
+    Dimension::ANGLE,
     std::f64::consts::PI / 180.0 / 3600.0,
 );
 
 /// Milliarcsecond (10^-3 arcsec)
 pub const MAS: BaseUnit = BaseUnit::new(
-    "milliarcsecond", "mas", &[], Dimension::ANGLE,
+    "milliarcsecond",
+    "mas",
+    &[],
+    Dimension::ANGLE,
     std::f64::consts::PI / 180.0 / 3600.0 / 1000.0,
 );
 
 /// Microarcsecond (10^-6 arcsec)
 pub const UAS: BaseUnit = BaseUnit::new(
-    "microarcsecond", "uas", &[], Dimension::ANGLE,
+    "microarcsecond",
+    "uas",
+    &[],
+    Dimension::ANGLE,
     std::f64::consts::PI / 180.0 / 3600.0 / 1e6,
 );
 
 /// Hour angle
 pub const HOURANGLE: BaseUnit = BaseUnit::new(
-    "hourangle", "hourangle", &[], Dimension::ANGLE,
+    "hourangle",
+    "hourangle",
+    &[],
+    Dimension::ANGLE,
     std::f64::consts::PI / 12.0,
 );
 

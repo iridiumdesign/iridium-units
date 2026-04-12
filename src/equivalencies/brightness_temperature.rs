@@ -62,8 +62,7 @@ use crate::unit::Unit;
 /// Check if a unit has flux density dimension (M T⁻²)
 /// This is the dimension of W/(m² Hz) = Jansky × 10⁻²⁶
 fn is_flux_density(unit: &Unit) -> bool {
-    let flux_density_dim = Dimension::MASS
-        .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
+    let flux_density_dim = Dimension::MASS.mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
     unit.dimension() == flux_density_dim
 }
 
@@ -327,7 +326,10 @@ pub fn brightness_temperature_intensity(frequency: Quantity) -> Equivalency {
 ///
 /// The Rayleigh-Jeans approximation [`brightness_temperature`] is faster and
 /// sufficient for most radio astronomy applications.
-pub fn brightness_temperature_planck(frequency: Quantity, beam_solid_angle: Quantity) -> Equivalency {
+pub fn brightness_temperature_planck(
+    frequency: Quantity,
+    beam_solid_angle: Quantity,
+) -> Equivalency {
     // Extract frequency in Hz (SI)
     let nu_hz = frequency.value() * frequency.unit().scale();
 
@@ -355,7 +357,9 @@ pub fn brightness_temperature_planck(frequency: Quantity, beam_solid_angle: Quan
             return Some(Converter::new(
                 move |s_nu_si| {
                     if s_nu_si <= 0.0 {
-                        return Err("flux density must be positive for Planck conversion".to_string());
+                        return Err(
+                            "flux density must be positive for Planck conversion".to_string()
+                        );
                     }
                     // T = (hν/k) / ln(1 + 2hν³Ω/(c²S_ν))
                     let x = planck_prefactor_flux / s_nu_si;
@@ -408,7 +412,9 @@ pub fn brightness_temperature_planck(frequency: Quantity, beam_solid_angle: Quan
                 },
                 move |s_nu_si| {
                     if s_nu_si <= 0.0 {
-                        return Err("flux density must be positive for Planck conversion".to_string());
+                        return Err(
+                            "flux density must be positive for Planck conversion".to_string()
+                        );
                     }
                     let x = planck_prefactor_flux / s_nu_si;
                     let ln_arg = 1.0 + x;
@@ -449,7 +455,7 @@ pub fn rayleigh_jeans_validity_temperature(frequency_hz: f64, fractional_error: 
 mod tests {
     use super::*;
     use crate::systems::astrophysical::JANSKY;
-    use crate::systems::si::{HZ, K, SR, W, M, GHZ};
+    use crate::systems::si::{GHZ, HZ, K, M, SR, W};
 
     fn spectral_radiance_unit() -> Unit {
         // W/(m² Hz sr)
@@ -458,14 +464,18 @@ mod tests {
 
     #[test]
     fn test_rayleigh_jeans_roundtrip() {
-        let freq = 1.0e9 * HZ.clone();  // 1 GHz
-        let beam = 1e-6 * SR.clone();   // 1 µsr
+        let freq = 1.0e9 * HZ.clone(); // 1 GHz
+        let beam = 1e-6 * SR.clone(); // 1 µsr
 
         let flux = 1.0 * JANSKY.clone();
-        let temp = flux.to_equiv(&K, brightness_temperature(freq.clone(), beam.clone())).unwrap();
+        let temp = flux
+            .to_equiv(&K, brightness_temperature(freq.clone(), beam.clone()))
+            .unwrap();
 
         // Convert back
-        let flux_back = temp.to_equiv(&JANSKY, brightness_temperature(freq, beam)).unwrap();
+        let flux_back = temp
+            .to_equiv(&JANSKY, brightness_temperature(freq, beam))
+            .unwrap();
 
         assert!((flux_back.value() - 1.0).abs() < 1e-10);
     }
@@ -473,10 +483,10 @@ mod tests {
     #[test]
     fn test_rayleigh_jeans_known_value() {
         // Test against known formula: T_b = S_ν × c² / (2k × ν² × Ω)
-        let freq_hz: f64 = 1.0e9;  // 1 GHz
-        let omega_sr: f64 = 1e-6;  // 1 µsr
+        let freq_hz: f64 = 1.0e9; // 1 GHz
+        let omega_sr: f64 = 1e-6; // 1 µsr
         let s_nu_jy: f64 = 1.0;
-        let s_nu_si = s_nu_jy * 1e-26;  // Convert to W/(m² Hz)
+        let s_nu_si = s_nu_jy * 1e-26; // Convert to W/(m² Hz)
 
         let expected_t = s_nu_si * SPEED_OF_LIGHT.powi(2)
             / (2.0 * BOLTZMANN_CONSTANT * freq_hz.powi(2) * omega_sr);
@@ -485,7 +495,9 @@ mod tests {
         let beam = omega_sr * SR.clone();
         let flux = s_nu_jy * JANSKY.clone();
 
-        let temp = flux.to_equiv(&K, brightness_temperature(freq, beam)).unwrap();
+        let temp = flux
+            .to_equiv(&K, brightness_temperature(freq, beam))
+            .unwrap();
 
         assert!((temp.value() - expected_t).abs() / expected_t < 1e-10);
     }
@@ -493,31 +505,43 @@ mod tests {
     #[test]
     fn test_planck_vs_rayleigh_jeans_high_temp() {
         // At high temperature, Planck and R-J should agree
-        let freq = 1.0e9 * HZ.clone();  // 1 GHz
+        let freq = 1.0e9 * HZ.clone(); // 1 GHz
         let beam = 1e-6 * SR.clone();
 
         // Start with a high temperature (R-J valid: T >> hν/k ≈ 0.048 K)
         let temp_high = 1000.0 * K.clone();
 
-        let flux_rj = temp_high.to_equiv(&JANSKY, brightness_temperature(freq.clone(), beam.clone())).unwrap();
-        let flux_planck = temp_high.to_equiv(&JANSKY, brightness_temperature_planck(freq, beam)).unwrap();
+        let flux_rj = temp_high
+            .to_equiv(&JANSKY, brightness_temperature(freq.clone(), beam.clone()))
+            .unwrap();
+        let flux_planck = temp_high
+            .to_equiv(&JANSKY, brightness_temperature_planck(freq, beam))
+            .unwrap();
 
         // Should agree to better than 0.1% at this temperature
         let rel_diff = (flux_rj.value() - flux_planck.value()).abs() / flux_rj.value();
-        assert!(rel_diff < 0.001, "R-J and Planck differ by {} at 1000 K", rel_diff);
+        assert!(
+            rel_diff < 0.001,
+            "R-J and Planck differ by {} at 1000 K",
+            rel_diff
+        );
     }
 
     #[test]
     fn test_planck_low_temp_differs() {
         // At low temperature (relative to hν/k), Planck and R-J should differ
-        let freq = 100.0e9 * HZ.clone();  // 100 GHz -> hν/k ≈ 4.8 K
+        let freq = 100.0e9 * HZ.clone(); // 100 GHz -> hν/k ≈ 4.8 K
         let beam = 1e-6 * SR.clone();
 
         // Temperature comparable to hν/k
         let temp_low = 10.0 * K.clone();
 
-        let flux_rj = temp_low.to_equiv(&JANSKY, brightness_temperature(freq.clone(), beam.clone())).unwrap();
-        let flux_planck = temp_low.to_equiv(&JANSKY, brightness_temperature_planck(freq, beam)).unwrap();
+        let flux_rj = temp_low
+            .to_equiv(&JANSKY, brightness_temperature(freq.clone(), beam.clone()))
+            .unwrap();
+        let flux_planck = temp_low
+            .to_equiv(&JANSKY, brightness_temperature_planck(freq, beam))
+            .unwrap();
 
         // Should differ noticeably (Planck gives less flux than R-J at low T)
         assert!(flux_planck.value() < flux_rj.value());
@@ -525,14 +549,21 @@ mod tests {
 
     #[test]
     fn test_planck_roundtrip() {
-        let freq = 345.0e9 * HZ.clone();  // 345 GHz (submm)
+        let freq = 345.0e9 * HZ.clone(); // 345 GHz (submm)
         let beam = 1e-8 * SR.clone();
 
         let flux = 100.0 * JANSKY.clone();
-        let temp = flux.to_equiv(&K, brightness_temperature_planck(freq.clone(), beam.clone())).unwrap();
+        let temp = flux
+            .to_equiv(
+                &K,
+                brightness_temperature_planck(freq.clone(), beam.clone()),
+            )
+            .unwrap();
 
         // Convert back
-        let flux_back = temp.to_equiv(&JANSKY, brightness_temperature_planck(freq, beam)).unwrap();
+        let flux_back = temp
+            .to_equiv(&JANSKY, brightness_temperature_planck(freq, beam))
+            .unwrap();
 
         assert!((flux_back.value() - 100.0).abs() / 100.0 < 1e-10);
     }
@@ -543,10 +574,17 @@ mod tests {
 
         // Test with spectral radiance
         let intensity = 1e-20 * spectral_radiance_unit();
-        let temp = intensity.to_equiv(&K, brightness_temperature_intensity(freq.clone())).unwrap();
+        let temp = intensity
+            .to_equiv(&K, brightness_temperature_intensity(freq.clone()))
+            .unwrap();
 
         // Convert back
-        let intensity_back = temp.to_equiv(&spectral_radiance_unit(), brightness_temperature_intensity(freq)).unwrap();
+        let intensity_back = temp
+            .to_equiv(
+                &spectral_radiance_unit(),
+                brightness_temperature_intensity(freq),
+            )
+            .unwrap();
 
         assert!((intensity_back.value() - 1e-20).abs() / 1e-20 < 1e-10);
     }
@@ -584,14 +622,16 @@ mod tests {
     #[test]
     fn test_ghz_frequency() {
         // Test that GHz units work correctly
-        let freq = 1.4 * GHZ.clone();  // 1.4 GHz (21 cm line)
+        let freq = 1.4 * GHZ.clone(); // 1.4 GHz (21 cm line)
         let beam = 1e-6 * SR.clone();
 
         let flux = 1.0 * JANSKY.clone();
-        let temp = flux.to_equiv(&K, brightness_temperature(freq, beam)).unwrap();
+        let temp = flux
+            .to_equiv(&K, brightness_temperature(freq, beam))
+            .unwrap();
 
         // Should get a reasonable temperature (not crazy high or low)
         assert!(temp.value() > 0.0);
-        assert!(temp.value() < 1e10);  // Sanity check
+        assert!(temp.value() < 1e10); // Sanity check
     }
 }

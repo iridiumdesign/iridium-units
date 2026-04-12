@@ -14,47 +14,35 @@ fn bench_batch_conversion(c: &mut Criterion) {
         let values: Vec<f64> = (0..*size).map(|i| i as f64).collect();
 
         // Benchmark: Create quantities and convert individually
-        group.bench_with_input(
-            BenchmarkId::new("individual", size),
-            size,
-            |b, _| {
-                b.iter(|| {
-                    let converted: Vec<f64> = values
-                        .iter()
-                        .map(|v| {
-                            let q = *v * KM;
-                            q.to(&M).unwrap().value()
-                        })
-                        .collect();
-                    black_box(converted)
-                })
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("individual", size), size, |b, _| {
+            b.iter(|| {
+                let converted: Vec<f64> = values
+                    .iter()
+                    .map(|v| {
+                        let q = *v * KM;
+                        q.to(&M).unwrap().value()
+                    })
+                    .collect();
+                black_box(converted)
+            })
+        });
 
         // Benchmark: Use batch conversion
-        group.bench_with_input(
-            BenchmarkId::new("batch", size),
-            size,
-            |b, _| {
-                b.iter(|| {
-                    let converted = batch_convert(&values, &KM, &M).unwrap();
-                    black_box(converted)
-                })
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("batch", size), size, |b, _| {
+            b.iter(|| {
+                let converted = batch_convert(&values, &KM, &M).unwrap();
+                black_box(converted)
+            })
+        });
 
         // Benchmark: Manual factor application
-        group.bench_with_input(
-            BenchmarkId::new("manual_factor", size),
-            size,
-            |b, _| {
-                let factor = conversion_factor(&KM, &M).unwrap();
-                b.iter(|| {
-                    let converted: Vec<f64> = values.iter().map(|v| v * factor).collect();
-                    black_box(converted)
-                })
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("manual_factor", size), size, |b, _| {
+            let factor = conversion_factor(&KM, &M).unwrap();
+            b.iter(|| {
+                let converted: Vec<f64> = values.iter().map(|v| v * factor).collect();
+                black_box(converted)
+            })
+        });
     }
 
     group.finish();

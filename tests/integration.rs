@@ -42,7 +42,7 @@ fn kinetic_energy_calculation() {
 #[test]
 fn earth_surface_gravity() {
     // g = GM/r²
-    use iridium_units::constants::{GRAVITATIONAL_CONSTANT, EARTH_MASS, EARTH_RADIUS};
+    use iridium_units::constants::{EARTH_MASS, EARTH_RADIUS, GRAVITATIONAL_CONSTANT};
 
     let surface_gravity = GRAVITATIONAL_CONSTANT * EARTH_MASS / (EARTH_RADIUS * EARTH_RADIUS);
     // Should be ~9.8 m/s²
@@ -290,11 +290,14 @@ fn batch_convert_preserves_precision() {
 #[test]
 fn custom_registry_roundtrip() {
     let furlong = Unit::Base(iridium_units::unit::base::BaseUnit::new(
-        "furlong", "fur", &[], iridium_units::dimension::Dimension::LENGTH, 201.168,
+        "furlong",
+        "fur",
+        &[],
+        iridium_units::dimension::Dimension::LENGTH,
+        201.168,
     ));
 
-    let registry = UnitRegistry::with_builtins()
-        .with_unit(&["furlong", "fur"], furlong);
+    let registry = UnitRegistry::with_builtins().with_unit(&["furlong", "fur"], furlong);
 
     let parsed = registry.parse_unit("furlong").unwrap();
     let dist = 8.0 * &parsed;
@@ -311,11 +314,13 @@ fn custom_registry_roundtrip() {
 #[cfg(feature = "logarithmic")]
 #[test]
 fn magnitude_flux_roundtrip() {
-    use iridium_units::systems::logarithmic::MAG;
     use iridium_units::equivalencies::logarithmic::magnitude_flux;
+    use iridium_units::systems::logarithmic::MAG;
 
     let mag5 = 5.0 * MAG;
-    let flux = mag5.to_equiv(&Unit::dimensionless(), magnitude_flux()).unwrap();
+    let flux = mag5
+        .to_equiv(&Unit::dimensionless(), magnitude_flux())
+        .unwrap();
     assert!((flux.value() - 0.01).abs() < 1e-10);
 
     let back = flux.to_equiv(MAG, magnitude_flux()).unwrap();
@@ -325,8 +330,8 @@ fn magnitude_flux_roundtrip() {
 #[cfg(feature = "logarithmic")]
 #[test]
 fn db_power_3db_rule() {
-    use iridium_units::systems::logarithmic::DB;
     use iridium_units::equivalencies::logarithmic::db_power;
+    use iridium_units::systems::logarithmic::DB;
 
     // 3 dB ≈ 2x power, 10 dB = 10x power, 20 dB = 100x power
     for (db_val, expected_ratio) in [(3.0, 2.0), (10.0, 10.0), (20.0, 100.0)] {

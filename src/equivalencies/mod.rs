@@ -16,7 +16,7 @@
 //! use iridium_units::equivalencies::spectral;
 //!
 //! let wavelength = 500.0 * NM;
-//! let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
+//! let frequency = wavelength.to_equiv(HZ, spectral()).unwrap();
 //! # }
 //! # #[cfg(not(feature = "astrophysics"))]
 //! # fn main() {}
@@ -49,9 +49,7 @@ pub type ConverterFn = Arc<dyn Fn(&Unit, &Unit) -> Option<Converter> + Send + Sy
 /// An equivalency that enables conversion between different physical dimensions.
 #[derive(Clone)]
 pub struct Equivalency {
-    /// Name of this equivalency
-    pub name: &'static str,
-    /// Function that attempts to create a converter between two units
+    name: &'static str,
     converter_fn: ConverterFn,
 }
 
@@ -67,6 +65,11 @@ impl Equivalency {
         }
     }
 
+    /// Get the name of this equivalency.
+    pub fn name(&self) -> &str {
+        self.name
+    }
+
     /// Try to create a converter between two units.
     pub fn get_converter(&self, from: &Unit, to: &Unit) -> Option<Converter> {
         (self.converter_fn)(from, to)
@@ -75,7 +78,7 @@ impl Equivalency {
 
 impl std::fmt::Debug for Equivalency {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Equivalency({})", self.name)
+        write!(f, "Equivalency({})", self.name())
     }
 }
 
@@ -84,10 +87,8 @@ impl std::fmt::Debug for Equivalency {
 /// Converters use `Result<f64, String>` to handle invalid inputs
 /// (e.g., zero wavelength, negative temperature, superluminal velocity).
 pub struct Converter {
-    /// Function to convert from source to target unit
-    pub forward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
-    /// Function to convert from target to source unit
-    pub backward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
+    forward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
+    backward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
 }
 
 impl Converter {
@@ -136,7 +137,11 @@ impl Quantity {
     }
 
     /// Convert to another unit using a list of equivalencies.
-    pub fn to_equiv_list(&self, target: impl Into<Unit>, equivs: &[Equivalency]) -> UnitResult<Quantity> {
+    pub fn to_equiv_list(
+        &self,
+        target: impl Into<Unit>,
+        equivs: &[Equivalency],
+    ) -> UnitResult<Quantity> {
         let target = target.into();
         // First, try direct conversion (inline to avoid cloning target)
         if self.unit().dimension() == target.dimension() {
@@ -150,12 +155,13 @@ impl Quantity {
                 // Convert to SI value first (handles offset units like °C)
                 let si_value = self.unit().to_si(self.value());
                 // Apply the equivalency conversion (may fail for invalid inputs)
-                let converted_si = converter.convert(si_value).map_err(|msg| {
-                    UnitError::NoEquivalency {
-                        from: format!("{} ({})", self.unit(), msg),
-                        to: target.to_string(),
-                    }
-                })?;
+                let converted_si =
+                    converter
+                        .convert(si_value)
+                        .map_err(|msg| UnitError::NoEquivalency {
+                            from: format!("{} ({})", self.unit(), msg),
+                            to: target.to_string(),
+                        })?;
                 // Convert from SI to target unit (handles offset units like °C)
                 let target_value = target.from_si(converted_si);
                 return Ok(Quantity::new(target_value, target));
@@ -171,17 +177,19 @@ impl Quantity {
 
 // Re-export commonly used equivalencies
 #[cfg(feature = "astrophysics")]
-pub use brightness_temperature::{brightness_temperature, brightness_temperature_intensity, brightness_temperature_planck};
+pub use brightness_temperature::{
+    brightness_temperature, brightness_temperature_intensity, brightness_temperature_planck,
+};
 pub use dimensionless_angles::dimensionless_angles;
 #[cfg(feature = "astrophysics")]
 pub use doppler::{doppler_optical, doppler_radio, doppler_relativistic};
 #[cfg(feature = "logarithmic")]
-pub use logarithmic::{magnitude_flux, db_power, db_amplitude, dex_ratio};
+pub use logarithmic::{db_amplitude, db_power, dex_ratio, magnitude_flux};
 pub use mass_energy::mass_energy;
 #[cfg(feature = "astrophysics")]
 pub use parallax::parallax;
 #[cfg(feature = "astrophysics")]
 pub use spectral::spectral;
 #[cfg(feature = "astrophysics")]
-pub use spectral_density::{spectral_density, ab_magnitude, ab_magnitude_lambda};
+pub use spectral_density::{ab_magnitude, ab_magnitude_lambda, spectral_density};
 pub use temperature::{temperature, temperature_energy};
