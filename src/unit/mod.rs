@@ -1,4 +1,32 @@
 //! Unit types and operations.
+//!
+//! This module provides the [`Unit`] type, which represents a physical unit
+//! like meter, kilogram, or m/s. Most users interact with units through
+//! the predefined constants in [`crate::systems`] (e.g., `M`, `KG`, `HZ`).
+//!
+//! # Creating quantities
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! let distance = 100.0 * KM;
+//! let time = 2.0 * H;
+//! let speed = &distance / &time;
+//!
+//! // Convert to a different unit
+//! let speed_ms = speed.to(M / S).unwrap();
+//! assert!((speed_ms.value() - 13.8888).abs() < 0.001);
+//! ```
+//!
+//! # Composite units from arithmetic
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! let velocity_unit = M / S;           // m/s
+//! let accel_unit = M / S.pow(2);       // m/s²
+//! let force_unit = KG * M / S.pow(2);  // kg·m/s² (newton)
+//! ```
 
 pub mod base;
 pub mod composite;
@@ -14,6 +42,25 @@ use std::ops::{Div, Mul};
 ///
 /// Units can be base units (like meter), named derived units (like newton),
 /// composite units (like m/s), or dimensionless.
+///
+/// # Examples
+///
+/// ```
+/// use iridium_units::prelude::*;
+///
+/// // Base units are Copy — use them directly
+/// let mass = 10.0 * KG;
+///
+/// // Arithmetic creates composite units
+/// let velocity_unit = KM / H;
+///
+/// // Check dimensions
+/// assert_eq!((M / S).dimension(), (KM / H).dimension());
+///
+/// // Convert between compatible units
+/// let speed = 100.0 * &(KM / H);
+/// let in_ms = speed.to(M / S).unwrap();
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub enum Unit {
     /// A base irreducible unit (meter, second, kilogram, etc.)

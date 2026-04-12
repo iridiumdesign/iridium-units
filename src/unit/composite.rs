@@ -1,4 +1,16 @@
 //! Composite unit definitions.
+//!
+//! Composite units are created automatically when you combine base units
+//! through multiplication, division, or exponentiation. You rarely need
+//! to construct them directly.
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! // These expressions create composite units internally
+//! let velocity = M / S;          // m·s⁻¹
+//! let energy = KG * M.pow(2) / S.pow(2);  // kg·m²·s⁻²
+//! ```
 
 use crate::dimension::{Dimension, Rational16};
 use std::fmt;

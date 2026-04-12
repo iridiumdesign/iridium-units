@@ -3,7 +3,24 @@
 //! This module provides fundamental physical constants used throughout
 //! the library. Values are from CODATA 2018 where applicable.
 //!
-//! All constants are in SI base units.
+//! All constants are `f64` values in SI base units.
+//!
+//! # Examples
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//! use iridium_units::constants::*;
+//!
+//! // Calculate Earth's surface gravity: g = GM/r²
+//! let g = GRAVITATIONAL_CONSTANT * EARTH_MASS / (EARTH_RADIUS * EARTH_RADIUS);
+//! assert!((g - 9.8).abs() < 0.1);  // ~9.8 m/s²
+//!
+//! // Photon energy at 500 nm: E = hc/λ
+//! let wavelength = 500e-9;  // 500 nm in meters
+//! let energy_j = PLANCK_CONSTANT * SPEED_OF_LIGHT / wavelength;
+//! let energy_ev = energy_j / ELEMENTARY_CHARGE;
+//! assert!((energy_ev - 2.48).abs() < 0.01);  // ~2.48 eV
+//! ```
 
 // =============================================================================
 // Fundamental Constants (CODATA 2018)

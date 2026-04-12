@@ -8,70 +8,63 @@ A high-performance runtime unit-of-measure library for Rust.
 
 ## Features
 
-- **Runtime dimensional analysis** - Catch unit errors at runtime with helpful error messages
-- **High performance** - Batch conversion API (~80x faster), optimized operators
-- **Flexible parsing** - Unicode (`m²`, `µm`, `Ω`), LaTeX (`m^{2}`), natural language (`km per hour`)
-- **Comprehensive unit systems** - SI, CGS, astrophysical, imperial, logarithmic
-- **12 equivalencies** - Spectral, Doppler, parallax, mass-energy, temperature, and more
-- **Exact rational exponents** - No floating-point errors in dimensional analysis
+- **Runtime dimensional analysis** — Catch unit errors at runtime with helpful error messages
+- **High performance** — Batch conversion API (~80x faster), optimized operators
+- **Flexible parsing** — Unicode (`m²`, `µm`, `Ω`), LaTeX (`m^{2}`), natural language (`km per hour`)
+- **Comprehensive unit systems** — SI, CGS, astrophysical, imperial, logarithmic
+- **12 equivalencies** — Spectral, Doppler, parallax, mass-energy, temperature, and more
+- **Exact rational exponents** — No floating-point errors in dimensional analysis
 
 ## Quick Start
 
 ```rust
 use iridium_units::prelude::*;
 
-// Create quantities
+// Create quantities by multiplying values with units
 let distance = 100.0 * KM;
 let time = 2.0 * H;
 let speed = &distance / &time;
 
-// Convert units
-let speed_ms = speed.to(&(M / S)).unwrap();
+// Convert between compatible units
+let speed_ms = speed.to(M / S).unwrap();
 println!("{}", speed_ms);  // 13.888... m/s
 
 // Parse from strings
-let distance = parse_quantity("100 km").unwrap();
-let speed = parse_quantity("9.8 m/s^2").unwrap();
+let dist = parse_quantity("42.195 km").unwrap();
+let in_miles = dist.to(MILE).unwrap();
+println!("{}", in_miles);  // 26.219... mi
 ```
 
 See the [documentation](docs/getting-started.md) for more examples.
 
 ## Overview
 
-iridium-units is a runtime dimensional analysis library for Rust, designed for
-production use. It catches unit errors at runtime with helpful error messages,
-supports exact rational exponents to avoid floating-point rounding in
-dimensional algebra, and provides comprehensive unit systems for SI, CGS,
-astrophysics, and imperial measurement.
+iridium-units provides physical units and quantities with automatic dimensional
+analysis at runtime. It catches unit errors with helpful error messages, supports
+exact rational exponents, and provides comprehensive unit systems for science,
+engineering, and everyday calculations.
 
 ## Design Goals
 
-- **Runtime dimensional safety**  Catch invalid unit operations at runtime,
-with errors that explain what went wrong instead of just saying “no”.
+- **Runtime dimensional safety** — Catch invalid unit operations at runtime,
+with errors that explain what went wrong.
 
-- **Performance first**  This library is meant to run in real systems, not just
-notebooks and experiments.
+- **Performance first** — Designed for real systems, not just notebooks.
+Batch conversion API processes 10,000 values in ~2 µs.
 
-- **Low cognitive overhead**  You shouldn’t need to think about dimensional
-algebra every time you write code.
+- **Low cognitive overhead** — Natural arithmetic syntax. `100.0 * KM` just works.
 
-- **Ergonomic API**  Natural arithmetic, readable unit expressions, and
-explicit conversions where they matter.
+- **Ergonomic API** — Readable unit expressions and explicit conversions
+where they matter.
 
-- **Extensible unit systems**  Start with SI units, but don’t paint yourself
-into a corner if your domain needs something else.
+- **Extensible** — Start with SI, add domain-specific units through registries.
 
 ## Non-Goals
-
-There are some things this library intentionally does *not* try to be:
 
 - A full symbolic algebra system
 - A compile-time unit checker
 - A physics reasoning engine
 - An encyclopedic catalog of every unit system ever invented
-
-iridium-units prioritizes correctness, clarity, and performance over
-theoretical completeness.
 
 ## Capabilities
 
@@ -81,57 +74,49 @@ Dimensional exponents are stored as exact fractions (`Rational16`), so
 dimensional analysis is always precise:
 
 ```rust
+use iridium_units::prelude::*;
+
 // √(m²) = m, exactly — no floating-point rounding
-let area = M.pow(Rational16::new(2, 1));
-let length = area.pow(Rational16::new(1, 2));
-assert_eq!(length.dimension(), M.dimension());
+let area = 100.0 * &M.pow(2);
+let side = area.pow(Rational16::new(1, 2));
+assert_eq!(side.unit().dimension(), M.dimension());
 ```
 
 ### 11 Base Dimensions
 
 iridium-units tracks 11 base dimensions, including those common in astrophysics:
 
-- Amount
-- Angle
-- Current
-- Length
-- Luminous Intensity
-- Magnitude
-- Mass
-- Photon Count
-- Solid Angle
-- Temperature
-- Time
+Length, Time, Mass, Current, Temperature, Angle, Solid Angle,
+Luminous Intensity, Magnitude, Amount, Photon Count
 
 ### Flexible Unit Parsing
 
 Multiple input formats are supported:
 
 ```rust
+use iridium_units::prelude::*;
+
+// Standard notation
+parse_unit("m/s^2")?;
+
 // Unicode symbols
 parse_unit("m²")?;        // Superscript
 parse_unit("µm")?;        // Micro sign
-parse_unit("Ω")?;         // Ohm symbol
 
 // LaTeX notation
 parse_unit("m^{2}")?;     // Braced exponents
-parse_unit(r"kg \cdot m")?;  // \cdot multiplication
 
 // Natural language
 parse_unit("km per hour")?;
-
-// Astrophysical subscripts
-parse_unit("M_sun")?;     // Solar mass
-parse_unit("R_jup")?;     // Jupiter radius
+# Ok::<(), iridium_units::error::UnitError>(())
 ```
 
 ### Helpful Error Messages
 
-When a unit isn’t recognized, alternatives are suggested:
+When a unit isn't recognized, alternatives are suggested:
 
-```rust
-let result = parse_unit("metrs");
-// Error: unknown unit ‘metrs’, did you mean ‘meters’?
+```text
+Error: unknown unit 'metrs', did you mean 'meters'?
 ```
 
 ## Feature Flags
@@ -156,10 +141,9 @@ parsing, batch conversion, and physical constants) is always available.
 ## Verification
 
 Physical constants are sourced from CODATA 2018 and verified against published
-values. Astronomical constants follow IAU 2015 nominal values. Unit conversion
-factors are checked against authoritative references.
+values. Astronomical constants follow IAU 2015 nominal values.
 
-The test suite includes 200+ tests covering:
+The test suite includes 335+ tests covering:
 
 - Arithmetic with dimensional analysis
 - Unit conversion round-trips

@@ -1,4 +1,25 @@
 //! Base unit definitions.
+//!
+//! Base units are the fundamental building blocks of the unit system.
+//! They are `Copy` types defined as `const` values in [`crate::systems`].
+//!
+//! # Examples
+//!
+//! ```
+//! use iridium_units::prelude::*;
+//!
+//! // Predefined base units are const and Copy
+//! let distance = 42.195 * KM;
+//! let in_miles = distance.to(MILE).unwrap();
+//!
+//! // Create composite units with arithmetic
+//! let accel = 9.8 * &(M / S.pow(2));
+//!
+//! // Access unit metadata
+//! assert_eq!(M.symbol, "m");
+//! assert_eq!(M.name, "meter");
+//! assert_eq!(M.dimension(), Dimension::LENGTH);
+//! ```
 
 use crate::dimension::Dimension;
 use std::fmt;
