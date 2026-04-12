@@ -69,7 +69,7 @@ pub enum Unit {
     /// A composite unit from arithmetic operations (m/s, kg·m/s², etc.)
     Composite(CompositeUnit),
 
-    /// Dimensionless with optional scale factor.
+    /// Dimensionless with a scale factor.
     Dimensionless {
         /// Multiplicative scale factor (1.0 for pure dimensionless).
         scale: f64,

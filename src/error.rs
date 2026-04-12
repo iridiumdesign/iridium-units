@@ -70,7 +70,7 @@ pub enum UnitError {
     /// No equivalency available for the requested conversion.
     #[error("no equivalency found for conversion: {from} -> {to}")]
     NoEquivalency {
-        /// The source unit.
+        /// The source unit, which may include additional context.
         from: String,
         /// The target unit.
         to: String,
