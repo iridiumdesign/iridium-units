@@ -18,14 +18,32 @@ use std::fmt;
 /// A component of a composite unit: a unit symbol with its power.
 #[derive(Clone, Debug, PartialEq)]
 pub struct UnitComponent {
-    /// The unit symbol (e.g., "m", "s", "kg")
-    pub symbol: String,
-    /// The dimension of this component
-    pub dimension: Dimension,
-    /// The scale factor of this component
-    pub scale: f64,
-    /// The power/exponent of this component
-    pub power: Rational16,
+    pub(crate) symbol: String,
+    pub(crate) dimension: Dimension,
+    pub(crate) scale: f64,
+    pub(crate) power: Rational16,
+}
+
+impl UnitComponent {
+    /// Get the unit symbol (e.g., "m", "s", "kg").
+    pub fn symbol(&self) -> &str {
+        &self.symbol
+    }
+
+    /// Get the dimension of this component.
+    pub fn dimension(&self) -> Dimension {
+        self.dimension
+    }
+
+    /// Get the scale factor of this component.
+    pub fn scale(&self) -> f64 {
+        self.scale
+    }
+
+    /// Get the power/exponent of this component.
+    pub fn power(&self) -> Rational16 {
+        self.power
+    }
 }
 
 impl UnitComponent {
@@ -55,10 +73,20 @@ impl UnitComponent {
 /// Examples: m/s (velocity), kg·m/s² (force), W/m²/Hz (spectral flux density)
 #[derive(Clone, Debug, PartialEq)]
 pub struct CompositeUnit {
-    /// Additional scale factor applied to the whole unit
-    pub scale: f64,
-    /// Component units with their symbols, dimensions, scales, and powers
-    pub components: Vec<UnitComponent>,
+    pub(crate) scale: f64,
+    pub(crate) components: Vec<UnitComponent>,
+}
+
+impl CompositeUnit {
+    /// Get the additional scale factor applied to the whole unit.
+    pub fn scale(&self) -> f64 {
+        self.scale
+    }
+
+    /// Get the component units.
+    pub fn components(&self) -> &[UnitComponent] {
+        &self.components
+    }
 }
 
 impl CompositeUnit {

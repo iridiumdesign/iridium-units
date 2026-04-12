@@ -114,7 +114,7 @@ pub mod systems;
 // Re-export main types
 pub use dimension::{Dimension, Rational16};
 pub use error::{UnitError, UnitResult};
-pub use quantity::Quantity;
+pub use quantity::{Quantity, batch_convert, batch_convert_into, conversion_factor};
 pub use unit::Unit;
 pub use unit::base::BaseUnit;
 
@@ -131,7 +131,7 @@ pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRe
 pub mod prelude {
     pub use crate::dimension::{Dimension, Rational16};
     pub use crate::error::{UnitError, UnitResult};
-    pub use crate::quantity::Quantity;
+    pub use crate::quantity::{Quantity, batch_convert, batch_convert_into, conversion_factor};
     pub use crate::unit::Unit;
     pub use crate::unit::base::BaseUnit;
 

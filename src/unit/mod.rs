@@ -86,7 +86,7 @@ impl Unit {
 
     /// Create a unit from a base unit.
     pub fn from_base(base: &BaseUnit) -> Self {
-        Unit::Base(base.clone())
+        Unit::Base(*base)
     }
 
     /// Get the dimension of this unit.

@@ -74,20 +74,20 @@ use std::ops::{Add, Mul, Neg, Sub};
 ///
 /// // Addition: 1/2 + 1/3 = 5/6
 /// let sum = half + third;
-/// assert_eq!(sum.numer, 5);
-/// assert_eq!(sum.denom, 6);
+/// assert_eq!(sum.numer(), 5);
+/// assert_eq!(sum.denom(), 6);
 ///
 /// // Multiplication: 1/2 × 1/3 = 1/6
 /// let product = half * third;
-/// assert_eq!(product.numer, 1);
-/// assert_eq!(product.denom, 6);
+/// assert_eq!(product.numer(), 1);
+/// assert_eq!(product.denom(), 6);
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Rational16 {
     /// Numerator (can be negative)
-    pub numer: i16,
+    pub(crate) numer: i16,
     /// Denominator (always positive after normalization)
-    pub denom: i16,
+    pub(crate) denom: i16,
 }
 
 impl Rational16 {
@@ -128,6 +128,16 @@ impl Rational16 {
         Ok(Self::new(numer, denom))
     }
 
+    /// Get the numerator.
+    pub const fn numer(&self) -> i16 {
+        self.numer
+    }
+
+    /// Get the denominator (always positive after normalization).
+    pub const fn denom(&self) -> i16 {
+        self.denom
+    }
+
     /// Check if this rational is zero.
     pub const fn is_zero(&self) -> bool {
         self.numer == 0
@@ -162,16 +172,6 @@ impl Rational16 {
         let denom = self.denom as i32 * rhs.denom as i32;
         rational16_from_i32(numer, denom)
     }
-}
-
-/// Greatest common divisor using Euclidean algorithm.
-const fn gcd(mut a: u16, mut b: u16) -> u16 {
-    while b != 0 {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    if a == 0 { 1 } else { a }
 }
 
 /// GCD for i32 values (used in overflow-safe arithmetic).

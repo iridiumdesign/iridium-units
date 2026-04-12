@@ -9,6 +9,15 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 /// A physical quantity: a numeric value with an associated unit.
 ///
+/// # Arithmetic
+///
+/// - **Multiplication and division** always succeed and combine dimensions
+///   automatically (e.g., `m * m` → `m²`, `m / s` → `m·s⁻¹`).
+/// - **Addition and subtraction** via `+` and `-` **panic** if the two
+///   quantities have incompatible dimensions. Use [`checked_add`](Quantity::checked_add)
+///   and [`checked_sub`](Quantity::checked_sub) for fallible versions that
+///   return `Result`.
+///
 /// # Examples
 ///
 /// ```

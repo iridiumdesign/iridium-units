@@ -16,7 +16,7 @@
 //! use iridium_units::equivalencies::spectral;
 //!
 //! let wavelength = 500.0 * NM;
-//! let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
+//! let frequency = wavelength.to_equiv(HZ, spectral()).unwrap();
 //! # }
 //! # #[cfg(not(feature = "astrophysics"))]
 //! # fn main() {}
@@ -49,9 +49,7 @@ pub type ConverterFn = Arc<dyn Fn(&Unit, &Unit) -> Option<Converter> + Send + Sy
 /// An equivalency that enables conversion between different physical dimensions.
 #[derive(Clone)]
 pub struct Equivalency {
-    /// Name of this equivalency
-    pub name: &'static str,
-    /// Function that attempts to create a converter between two units
+    name: &'static str,
     converter_fn: ConverterFn,
 }
 
@@ -67,6 +65,11 @@ impl Equivalency {
         }
     }
 
+    /// Get the name of this equivalency.
+    pub fn name(&self) -> &str {
+        self.name
+    }
+
     /// Try to create a converter between two units.
     pub fn get_converter(&self, from: &Unit, to: &Unit) -> Option<Converter> {
         (self.converter_fn)(from, to)
@@ -75,7 +78,7 @@ impl Equivalency {
 
 impl std::fmt::Debug for Equivalency {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Equivalency({})", self.name)
+        write!(f, "Equivalency({})", self.name())
     }
 }
 
@@ -84,10 +87,8 @@ impl std::fmt::Debug for Equivalency {
 /// Converters use `Result<f64, String>` to handle invalid inputs
 /// (e.g., zero wavelength, negative temperature, superluminal velocity).
 pub struct Converter {
-    /// Function to convert from source to target unit
-    pub forward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
-    /// Function to convert from target to source unit
-    pub backward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
+    forward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
+    backward: Box<dyn Fn(f64) -> Result<f64, String> + Send + Sync>,
 }
 
 impl Converter {
