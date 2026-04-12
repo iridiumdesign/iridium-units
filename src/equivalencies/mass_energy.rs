@@ -85,7 +85,7 @@ pub fn mass_energy() -> Equivalency {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{KG, J, MEV};
+    use crate::systems::si::{J, KG, MEV};
 
     #[test]
     fn test_mass_to_energy() {

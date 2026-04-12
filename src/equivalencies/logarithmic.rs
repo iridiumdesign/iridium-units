@@ -26,9 +26,8 @@
 use crate::dimension::Dimension;
 use crate::equivalencies::{Converter, Equivalency};
 use crate::systems::logarithmic::{
-    db_to_amplitude_ratio, db_to_power_ratio, dex_to_ratio,
-    flux_ratio_to_mag, mag_to_flux_ratio, power_ratio_to_db,
-    ratio_to_dex, amplitude_ratio_to_db,
+    amplitude_ratio_to_db, db_to_amplitude_ratio, db_to_power_ratio, dex_to_ratio,
+    flux_ratio_to_mag, mag_to_flux_ratio, power_ratio_to_db, ratio_to_dex,
 };
 
 /// Equivalency between stellar magnitudes and flux ratios.
@@ -66,21 +65,15 @@ pub fn magnitude_flux() -> Equivalency {
                     // mag is already in SI magnitude units (scaled by to_equiv)
                     Ok(mag_to_flux_ratio(mag))
                 },
-                move |flux| {
-                    flux_ratio_to_mag(flux).map_err(|e| e.to_string())
-                },
+                move |flux| flux_ratio_to_mag(flux).map_err(|e| e.to_string()),
             ));
         }
 
         // Dimensionless (flux ratio) → Magnitude
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
-                move |flux| {
-                    flux_ratio_to_mag(flux).map_err(|e| e.to_string())
-                },
-                move |mag| {
-                    Ok(mag_to_flux_ratio(mag))
-                },
+                move |flux| flux_ratio_to_mag(flux).map_err(|e| e.to_string()),
+                move |mag| Ok(mag_to_flux_ratio(mag)),
             ));
         }
 
@@ -117,24 +110,16 @@ pub fn db_power() -> Equivalency {
         // Note: to_equiv already handles scaling, so we work with SI values
         if from_dim == Dimension::MAGNITUDE && to_dim.is_dimensionless() {
             return Some(Converter::new(
-                move |db| {
-                    Ok(db_to_power_ratio(db))
-                },
-                move |power| {
-                    power_ratio_to_db(power).map_err(|e| e.to_string())
-                },
+                move |db| Ok(db_to_power_ratio(db)),
+                move |power| power_ratio_to_db(power).map_err(|e| e.to_string()),
             ));
         }
 
         // Dimensionless (power ratio) → dB
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
-                move |power| {
-                    power_ratio_to_db(power).map_err(|e| e.to_string())
-                },
-                move |db| {
-                    Ok(db_to_power_ratio(db))
-                },
+                move |power| power_ratio_to_db(power).map_err(|e| e.to_string()),
+                move |db| Ok(db_to_power_ratio(db)),
             ));
         }
 
@@ -158,24 +143,16 @@ pub fn db_amplitude() -> Equivalency {
         // Note: to_equiv already handles scaling, so we work with SI values
         if from_dim == Dimension::MAGNITUDE && to_dim.is_dimensionless() {
             return Some(Converter::new(
-                move |db| {
-                    Ok(db_to_amplitude_ratio(db))
-                },
-                move |amplitude| {
-                    amplitude_ratio_to_db(amplitude).map_err(|e| e.to_string())
-                },
+                move |db| Ok(db_to_amplitude_ratio(db)),
+                move |amplitude| amplitude_ratio_to_db(amplitude).map_err(|e| e.to_string()),
             ));
         }
 
         // Dimensionless (amplitude ratio) → dB
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
-                move |amplitude| {
-                    amplitude_ratio_to_db(amplitude).map_err(|e| e.to_string())
-                },
-                move |db| {
-                    Ok(db_to_amplitude_ratio(db))
-                },
+                move |amplitude| amplitude_ratio_to_db(amplitude).map_err(|e| e.to_string()),
+                move |db| Ok(db_to_amplitude_ratio(db)),
             ));
         }
 
@@ -212,24 +189,16 @@ pub fn dex_ratio() -> Equivalency {
         // Note: to_equiv already handles scaling, so we work with SI values
         if from_dim == Dimension::MAGNITUDE && to_dim.is_dimensionless() {
             return Some(Converter::new(
-                move |dex| {
-                    Ok(dex_to_ratio(dex))
-                },
-                move |ratio| {
-                    ratio_to_dex(ratio).map_err(|e| e.to_string())
-                },
+                move |dex| Ok(dex_to_ratio(dex)),
+                move |ratio| ratio_to_dex(ratio).map_err(|e| e.to_string()),
             ));
         }
 
         // Dimensionless (ratio) → Dex
         if from_dim.is_dimensionless() && to_dim == Dimension::MAGNITUDE {
             return Some(Converter::new(
-                move |ratio| {
-                    ratio_to_dex(ratio).map_err(|e| e.to_string())
-                },
-                move |dex| {
-                    Ok(dex_to_ratio(dex))
-                },
+                move |ratio| ratio_to_dex(ratio).map_err(|e| e.to_string()),
+                move |dex| Ok(dex_to_ratio(dex)),
             ));
         }
 
@@ -240,13 +209,15 @@ pub fn dex_ratio() -> Equivalency {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::logarithmic::{MAG, DB, DEX, MILLIMAG};
+    use crate::systems::logarithmic::{DB, DEX, MAG, MILLIMAG};
     use crate::unit::Unit;
 
     #[test]
     fn test_magnitude_to_flux() {
         let mag5 = 5.0 * MAG.clone();
-        let flux = mag5.to_equiv(&Unit::dimensionless(), magnitude_flux()).unwrap();
+        let flux = mag5
+            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .unwrap();
         // 5 mag = 10^(-0.4*5) = 0.01 flux ratio
         assert!((flux.value() - 0.01).abs() < 1e-10);
     }
@@ -262,7 +233,9 @@ mod tests {
     #[test]
     fn test_zero_magnitude() {
         let mag0 = 0.0 * MAG.clone();
-        let flux = mag0.to_equiv(&Unit::dimensionless(), magnitude_flux()).unwrap();
+        let flux = mag0
+            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .unwrap();
         // 0 mag = flux ratio of 1
         assert!((flux.value() - 1.0).abs() < 1e-10);
     }
@@ -271,7 +244,9 @@ mod tests {
     fn test_negative_magnitude() {
         // Negative magnitudes mean brighter than reference
         let mag_neg5 = -5.0 * MAG.clone();
-        let flux = mag_neg5.to_equiv(&Unit::dimensionless(), magnitude_flux()).unwrap();
+        let flux = mag_neg5
+            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .unwrap();
         // -5 mag = 100x flux ratio
         assert!((flux.value() - 100.0).abs() < 1e-10);
     }
@@ -280,7 +255,9 @@ mod tests {
     fn test_millimag_conversion() {
         // 5000 mmag = 5 mag
         let mmag = 5000.0 * MILLIMAG.clone();
-        let flux = mmag.to_equiv(&Unit::dimensionless(), magnitude_flux()).unwrap();
+        let flux = mmag
+            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .unwrap();
         assert!((flux.value() - 0.01).abs() < 1e-10);
     }
 
@@ -312,7 +289,9 @@ mod tests {
     fn test_db_amplitude_6db() {
         // 6 dB = 2x amplitude (20 dB per decade)
         let db6 = 6.0 * DB.clone();
-        let amp = db6.to_equiv(&Unit::dimensionless(), db_amplitude()).unwrap();
+        let amp = db6
+            .to_equiv(&Unit::dimensionless(), db_amplitude())
+            .unwrap();
         // 6 dB ≈ 1.995x amplitude
         assert!((amp.value() - 2.0).abs() < 0.01);
     }

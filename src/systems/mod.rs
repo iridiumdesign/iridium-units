@@ -25,12 +25,12 @@ pub mod si;
 /// let speed = 10.0 * (u::M / u::S);
 /// ```
 pub mod u {
-    pub use super::si::*;
     #[cfg(feature = "astrophysics")]
     pub use super::astrophysical::*;
     #[cfg(feature = "cgs")]
     pub use super::cgs::GRAM;
     pub use super::imperial::{FOOT, INCH, MILE, POUND, YARD};
     #[cfg(feature = "logarithmic")]
-    pub use super::logarithmic::{MAG, APPARENT_MAG, ABSOLUTE_MAG, DB, DEX, MILLIMAG};
+    pub use super::logarithmic::{ABSOLUTE_MAG, APPARENT_MAG, DB, DEX, MAG, MILLIMAG};
+    pub use super::si::*;
 }

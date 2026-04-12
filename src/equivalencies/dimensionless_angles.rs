@@ -117,8 +117,8 @@ fn remove_angle_dimensions(dim: &Dimension) -> Dimension {
         mass: dim.mass,
         current: dim.current,
         temperature: dim.temperature,
-        angle: Rational16::ZERO,        // Treat as dimensionless
-        solid_angle: Rational16::ZERO,  // Treat as dimensionless
+        angle: Rational16::ZERO,       // Treat as dimensionless
+        solid_angle: Rational16::ZERO, // Treat as dimensionless
         luminous_intensity: dim.luminous_intensity,
         magnitude: dim.magnitude,
         amount: dim.amount,
@@ -172,7 +172,7 @@ pub fn angle_power(unit: &Unit) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{RAD, SR, S, HZ, KG, M, J, W};
+    use crate::systems::si::{HZ, J, KG, M, RAD, S, SR, W};
     use std::f64::consts::PI;
 
     #[test]
@@ -216,7 +216,7 @@ mod tests {
         // Work = τ × θ
         // τ = 10 N·m, θ = 2 rad
         // W = 20 J
-        let tau = 10.0 * KG * M * M / (S * S);  // N·m
+        let tau = 10.0 * KG * M * M / (S * S); // N·m
         let theta = 2.0 * RAD;
         let work_raw = &tau * &theta;
 
@@ -273,7 +273,9 @@ mod tests {
     fn test_pure_angle_to_dimensionless() {
         // 1 rad should convert to dimensionless 1
         let angle = 1.0 * RAD;
-        let dimless = angle.to_equiv(&Unit::dimensionless(), dimensionless_angles()).unwrap();
+        let dimless = angle
+            .to_equiv(&Unit::dimensionless(), dimensionless_angles())
+            .unwrap();
         assert!((dimless.value() - 1.0).abs() < 1e-10);
     }
 
@@ -281,7 +283,9 @@ mod tests {
     fn test_pi_radians() {
         // π rad = π (dimensionless)
         let angle = PI * RAD;
-        let dimless = angle.to_equiv(&Unit::dimensionless(), dimensionless_angles()).unwrap();
+        let dimless = angle
+            .to_equiv(&Unit::dimensionless(), dimensionless_angles())
+            .unwrap();
         assert!((dimless.value() - PI).abs() < 1e-10);
     }
 }

@@ -74,17 +74,29 @@ pub const MAG_FACTOR: f64 = -2.5;
 
 /// Generic magnitude unit.
 pub const MAG: BaseUnit = BaseUnit::new(
-    "magnitude", "mag", &["magnitudes"], Dimension::MAGNITUDE, 1.0,
+    "magnitude",
+    "mag",
+    &["magnitudes"],
+    Dimension::MAGNITUDE,
+    1.0,
 );
 
 /// Apparent magnitude - observed brightness from Earth.
 pub const APPARENT_MAG: BaseUnit = BaseUnit::new(
-    "apparent_magnitude", "m_app", &["app_mag", "apparent_mag"], Dimension::MAGNITUDE, 1.0,
+    "apparent_magnitude",
+    "m_app",
+    &["app_mag", "apparent_mag"],
+    Dimension::MAGNITUDE,
+    1.0,
 );
 
 /// Absolute magnitude - brightness at 10 parsecs distance.
 pub const ABSOLUTE_MAG: BaseUnit = BaseUnit::new(
-    "absolute_magnitude", "M_abs", &["abs_mag", "absolute_mag"], Dimension::MAGNITUDE, 1.0,
+    "absolute_magnitude",
+    "M_abs",
+    &["abs_mag", "absolute_mag"],
+    Dimension::MAGNITUDE,
+    1.0,
 );
 
 // =============================================================================
@@ -92,23 +104,17 @@ pub const ABSOLUTE_MAG: BaseUnit = BaseUnit::new(
 // =============================================================================
 
 /// Decibel - logarithmic unit for power ratios.
-pub const DB: BaseUnit = BaseUnit::new(
-    "decibel", "dB", &["decibels"], Dimension::MAGNITUDE, 1.0,
-);
+pub const DB: BaseUnit = BaseUnit::new("decibel", "dB", &["decibels"], Dimension::MAGNITUDE, 1.0);
 
 /// Bel - base unit of decibels (1 B = 10 dB).
-pub const BEL: BaseUnit = BaseUnit::new(
-    "bel", "B", &["bels"], Dimension::MAGNITUDE, 10.0,
-);
+pub const BEL: BaseUnit = BaseUnit::new("bel", "B", &["bels"], Dimension::MAGNITUDE, 10.0);
 
 // =============================================================================
 // Dex Unit
 // =============================================================================
 
 /// Dex - order of magnitude unit.
-pub const DEX: BaseUnit = BaseUnit::new(
-    "dex", "dex", &[], Dimension::MAGNITUDE, 1.0,
-);
+pub const DEX: BaseUnit = BaseUnit::new("dex", "dex", &[], Dimension::MAGNITUDE, 1.0);
 
 // =============================================================================
 // Millimagnitude
@@ -116,7 +122,11 @@ pub const DEX: BaseUnit = BaseUnit::new(
 
 /// Millimagnitude (10^-3 magnitude).
 pub const MILLIMAG: BaseUnit = BaseUnit::new(
-    "millimagnitude", "mmag", &["millimag"], Dimension::MAGNITUDE, 0.001,
+    "millimagnitude",
+    "mmag",
+    &["millimag"],
+    Dimension::MAGNITUDE,
+    0.001,
 );
 
 // =============================================================================
@@ -389,7 +399,11 @@ mod tests {
         for mag in [-5.0, -1.0, 0.0, 1.0, 5.0, 10.0, 20.0] {
             let flux = mag_to_flux_ratio(mag);
             let back = flux_ratio_to_mag(flux).unwrap();
-            assert!((back - mag).abs() < 1e-10, "roundtrip failed for mag={}", mag);
+            assert!(
+                (back - mag).abs() < 1e-10,
+                "roundtrip failed for mag={}",
+                mag
+            );
         }
     }
 
@@ -428,7 +442,11 @@ mod tests {
         for dex in [-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0] {
             let ratio = dex_to_ratio(dex);
             let back = ratio_to_dex(ratio).unwrap();
-            assert!((back - dex).abs() < 1e-10, "roundtrip failed for dex={}", dex);
+            assert!(
+                (back - dex).abs() < 1e-10,
+                "roundtrip failed for dex={}",
+                dex
+            );
         }
     }
 
@@ -437,7 +455,7 @@ mod tests {
         // Two stars of equal brightness (mag 0) have combined mag = -0.752
         // (because 2x flux = -2.5*log10(2) ≈ -0.752 mag brighter)
         let combined = combine_magnitudes(0.0, 0.0).unwrap();
-        let expected = flux_ratio_to_mag(2.0).unwrap();  // -0.752...
+        let expected = flux_ratio_to_mag(2.0).unwrap(); // -0.752...
         assert!((combined - expected).abs() < 1e-10);
     }
 

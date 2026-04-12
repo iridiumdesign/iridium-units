@@ -400,7 +400,6 @@ impl Div<BaseUnit> for &Unit {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -414,7 +413,13 @@ mod tests {
     }
 
     fn kilometer() -> Unit {
-        Unit::Base(BaseUnit::new("kilometer", "km", &[], Dimension::LENGTH, 1000.0))
+        Unit::Base(BaseUnit::new(
+            "kilometer",
+            "km",
+            &[],
+            Dimension::LENGTH,
+            1000.0,
+        ))
     }
 
     #[test]
@@ -460,9 +465,20 @@ mod tests {
 
     #[test]
     fn test_offset_unit_conversion_factor_rejected() {
-        let kelvin = Unit::Base(BaseUnit::new("kelvin", "K", &[], Dimension::TEMPERATURE, 1.0));
+        let kelvin = Unit::Base(BaseUnit::new(
+            "kelvin",
+            "K",
+            &[],
+            Dimension::TEMPERATURE,
+            1.0,
+        ));
         let celsius = Unit::Base(BaseUnit::with_offset(
-            "celsius", "°C", &[], Dimension::TEMPERATURE, 1.0, 273.15,
+            "celsius",
+            "°C",
+            &[],
+            Dimension::TEMPERATURE,
+            1.0,
+            273.15,
         ));
         let result = celsius.conversion_factor(&kelvin);
         assert!(matches!(result, Err(UnitError::OffsetConversion { .. })));
@@ -471,7 +487,12 @@ mod tests {
     #[test]
     fn test_offset_unit_identity_conversion_ok() {
         let celsius = Unit::Base(BaseUnit::with_offset(
-            "celsius", "°C", &[], Dimension::TEMPERATURE, 1.0, 273.15,
+            "celsius",
+            "°C",
+            &[],
+            Dimension::TEMPERATURE,
+            1.0,
+            273.15,
         ));
         let result = celsius.conversion_factor(&celsius);
         assert!(result.is_ok());
@@ -481,7 +502,12 @@ mod tests {
     #[test]
     fn test_pow_one_preserves_unit() {
         let celsius = Unit::Base(BaseUnit::with_offset(
-            "celsius", "°C", &[], Dimension::TEMPERATURE, 1.0, 273.15,
+            "celsius",
+            "°C",
+            &[],
+            Dimension::TEMPERATURE,
+            1.0,
+            273.15,
         ));
         let powered = celsius.pow(1);
         assert!(powered.has_offset());

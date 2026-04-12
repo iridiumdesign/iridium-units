@@ -221,9 +221,9 @@ use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::quantity::Quantity;
 use crate::unit::Unit;
-use std::sync::LazyLock;
 use std::collections::HashMap;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use std::sync::RwLock;
 
 // ============================================================================
@@ -250,7 +250,11 @@ fn levenshtein_distance(a: &str, b: &str) -> usize {
     for i in 1..=a_len {
         curr_row[0] = i;
         for j in 1..=b_len {
-            let cost = if a_chars[i - 1] == b_chars[j - 1] { 0 } else { 1 };
+            let cost = if a_chars[i - 1] == b_chars[j - 1] {
+                0
+            } else {
+                1
+            };
             curr_row[j] = (prev_row[j] + 1)
                 .min(curr_row[j - 1] + 1)
                 .min(prev_row[j - 1] + cost);
@@ -262,7 +266,11 @@ fn levenshtein_distance(a: &str, b: &str) -> usize {
 }
 
 /// Find similar unit names for suggestions.
-fn find_similar_units(name: &str, registry: &HashMap<String, UnitEntry>, max_suggestions: usize) -> Vec<String> {
+fn find_similar_units(
+    name: &str,
+    registry: &HashMap<String, UnitEntry>,
+    max_suggestions: usize,
+) -> Vec<String> {
     let name_lower = name.to_lowercase();
     let threshold = (name_lower.len() / 2).clamp(2, 3);
 
@@ -297,8 +305,8 @@ fn normalize_unicode(s: &str) -> String {
         let c = chars[i];
         match c {
             // Greek letters
-            'µ' | 'μ' => result.push('u'),  // micro sign (U+00B5) and Greek mu (U+03BC)
-            '\u{2126}' | '\u{03A9}' => result.push_str("ohm"),  // Ohm sign (U+2126) and Greek Omega (U+03A9)
+            'µ' | 'μ' => result.push('u'), // micro sign (U+00B5) and Greek mu (U+03BC)
+            '\u{2126}' | '\u{03A9}' => result.push_str("ohm"), // Ohm sign (U+2126) and Greek Omega (U+03A9)
             'α' => result.push_str("alpha"),
             'β' => result.push_str("beta"),
             'γ' => result.push_str("gamma"),
@@ -307,7 +315,7 @@ fn normalize_unicode(s: &str) -> String {
             'π' => result.push_str("pi"),
 
             // Symbols
-            '\u{212B}' | '\u{00C5}' => result.push_str("angstrom"),  // Angstrom sign (U+212B) and A with ring (U+00C5)
+            '\u{212B}' | '\u{00C5}' => result.push_str("angstrom"), // Angstrom sign (U+212B) and A with ring (U+00C5)
             '°' => result.push_str("deg"),
             '′' => result.push_str("arcmin"),
             '″' => result.push_str("arcsec"),
@@ -366,7 +374,12 @@ fn normalize_latex(s: &str) -> String {
     while let Some(start) = result.find("^{") {
         if let Some(end) = result[start..].find('}') {
             let inner = &result[start + 2..start + end];
-            result = format!("{}{}{}", &result[..start + 1], inner, &result[start + end + 1..]);
+            result = format!(
+                "{}{}{}",
+                &result[..start + 1],
+                inner,
+                &result[start + end + 1..]
+            );
         } else {
             break;
         }
@@ -421,18 +434,35 @@ fn normalize_subscripts(s: &str) -> String {
 
     // Common astrophysical subscript patterns
     let subscript_mappings = [
-        ("M_sun", "msun"), ("m_sun", "msun"), ("M_⊙", "msun"),
-        ("R_sun", "rsun"), ("r_sun", "rsun"), ("R_⊙", "rsun"),
-        ("L_sun", "lsun"), ("l_sun", "lsun"), ("L_⊙", "lsun"),
-        ("M_jup", "mjup"), ("m_jup", "mjup"),
-        ("R_jup", "rjup"), ("r_jup", "rjup"),
-        ("M_earth", "mearth"), ("m_earth", "mearth"), ("M_⊕", "mearth"),
-        ("R_earth", "rearth"), ("r_earth", "rearth"), ("R_⊕", "rearth"),
-        ("sol_mass", "msun"), ("solar_mass", "msun"),
-        ("sol_rad", "rsun"), ("solar_rad", "rsun"),
-        ("sol_lum", "lsun"), ("solar_lum", "lsun"),
-        ("jup_mass", "mjup"), ("jupiter_mass", "mjup"),
-        ("jup_rad", "rjup"), ("jupiter_rad", "rjup"),
+        ("M_sun", "msun"),
+        ("m_sun", "msun"),
+        ("M_⊙", "msun"),
+        ("R_sun", "rsun"),
+        ("r_sun", "rsun"),
+        ("R_⊙", "rsun"),
+        ("L_sun", "lsun"),
+        ("l_sun", "lsun"),
+        ("L_⊙", "lsun"),
+        ("M_jup", "mjup"),
+        ("m_jup", "mjup"),
+        ("R_jup", "rjup"),
+        ("r_jup", "rjup"),
+        ("M_earth", "mearth"),
+        ("m_earth", "mearth"),
+        ("M_⊕", "mearth"),
+        ("R_earth", "rearth"),
+        ("r_earth", "rearth"),
+        ("R_⊕", "rearth"),
+        ("sol_mass", "msun"),
+        ("solar_mass", "msun"),
+        ("sol_rad", "rsun"),
+        ("solar_rad", "rsun"),
+        ("sol_lum", "lsun"),
+        ("solar_lum", "lsun"),
+        ("jup_mass", "mjup"),
+        ("jupiter_mass", "mjup"),
+        ("jup_rad", "rjup"),
+        ("jupiter_rad", "rjup"),
         ("earth_mass", "mearth"),
         ("earth_rad", "rearth"),
     ];
@@ -464,14 +494,18 @@ fn check_balanced_parens(s: &str) -> UnitResult<()> {
             ')' => {
                 depth -= 1;
                 if depth < 0 {
-                    return Err(UnitError::ParseError("unbalanced parentheses: unexpected ')'".into()));
+                    return Err(UnitError::ParseError(
+                        "unbalanced parentheses: unexpected ')'".into(),
+                    ));
                 }
             }
             _ => {}
         }
     }
     if depth != 0 {
-        return Err(UnitError::ParseError("unbalanced parentheses: missing ')'".into()));
+        return Err(UnitError::ParseError(
+            "unbalanced parentheses: missing ')'".into(),
+        ));
     }
     Ok(())
 }
@@ -635,7 +669,9 @@ impl UnitRegistry {
 
     /// Look up a unit by name.
     pub fn lookup(&self, name: &str) -> Option<Unit> {
-        self.entries.get(&name.to_lowercase()).map(|e| e.unit.clone())
+        self.entries
+            .get(&name.to_lowercase())
+            .map(|e| e.unit.clone())
     }
 
     /// Parse a unit string using this registry.
@@ -690,8 +726,8 @@ static UNIT_REGISTRY: LazyLock<RwLock<HashMap<String, UnitEntry>>> = LazyLock::n
 
 /// Register all built-in units with the registry.
 fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
-    use crate::systems::si::*;
     use crate::systems::imperial::*;
+    use crate::systems::si::*;
 
     // Helper to register a unit with multiple names
     macro_rules! register {
@@ -717,10 +753,42 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, SR, "sr", "steradian", "steradians");
 
     // SI Length
-    register!(map, KM, "km", "kilometer", "kilometers", "kilometre", "kilometres");
-    register!(map, CM, "cm", "centimeter", "centimeters", "centimetre", "centimetres");
-    register!(map, MM, "mm", "millimeter", "millimeters", "millimetre", "millimetres");
-    register!(map, UM, "um", "micrometer", "micrometers", "micron", "microns");
+    register!(
+        map,
+        KM,
+        "km",
+        "kilometer",
+        "kilometers",
+        "kilometre",
+        "kilometres"
+    );
+    register!(
+        map,
+        CM,
+        "cm",
+        "centimeter",
+        "centimeters",
+        "centimetre",
+        "centimetres"
+    );
+    register!(
+        map,
+        MM,
+        "mm",
+        "millimeter",
+        "millimeters",
+        "millimetre",
+        "millimetres"
+    );
+    register!(
+        map,
+        UM,
+        "um",
+        "micrometer",
+        "micrometers",
+        "micron",
+        "microns"
+    );
     register!(map, NM, "nm", "nanometer", "nanometers");
     register!(map, PM, "pm", "picometer", "picometers");
     register!(map, FM, "fm", "femtometer", "femtometers");
@@ -809,11 +877,9 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
 #[cfg(feature = "astrophysics")]
 fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
     use crate::systems::astrophysical::{
-        AU, PARSEC, KPC, MPC, GPC, LIGHT_YEAR,
-        SOLAR_MASS, SOLAR_RADIUS, SOLAR_LUMINOSITY,
-        JUPITER_MASS, JUPITER_RADIUS, EARTH_MASS, EARTH_RADIUS,
-        ANGSTROM, JANSKY, MJY, UJY, BARN,
-        ERG, DYN, GAUSS,
+        ANGSTROM, AU, BARN, DYN, EARTH_MASS, EARTH_RADIUS, ERG, GAUSS, GPC, JANSKY, JUPITER_MASS,
+        JUPITER_RADIUS, KPC, LIGHT_YEAR, MJY, MPC, PARSEC, SOLAR_LUMINOSITY, SOLAR_MASS,
+        SOLAR_RADIUS, UJY,
     };
 
     macro_rules! register {
@@ -831,12 +897,28 @@ fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, KPC, "kpc", "kiloparsec", "kiloparsecs");
     register!(map, MPC, "mpc", "megaparsec", "megaparsecs");
     register!(map, GPC, "gpc", "gigaparsec", "gigaparsecs");
-    register!(map, LIGHT_YEAR, "ly", "lyr", "lightyear", "lightyears", "light_year", "light_years");
+    register!(
+        map,
+        LIGHT_YEAR,
+        "ly",
+        "lyr",
+        "lightyear",
+        "lightyears",
+        "light_year",
+        "light_years"
+    );
 
     // Solar
     register!(map, SOLAR_MASS, "m_sun", "msun", "solmass", "solar_mass");
     register!(map, SOLAR_RADIUS, "r_sun", "rsun", "solrad", "solar_radius");
-    register!(map, SOLAR_LUMINOSITY, "l_sun", "lsun", "sollum", "solar_luminosity");
+    register!(
+        map,
+        SOLAR_LUMINOSITY,
+        "l_sun",
+        "lsun",
+        "sollum",
+        "solar_luminosity"
+    );
 
     // Planetary
     register!(map, JUPITER_MASS, "m_jup", "mjup", "jupiter_mass");
@@ -909,9 +991,8 @@ fn register_extended_aliases(map: &mut HashMap<String, UnitEntry>) {
 #[cfg(feature = "astrophysics")]
 fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
     use crate::systems::astrophysical::{
-        SOLAR_MASS, SOLAR_RADIUS, SOLAR_LUMINOSITY,
-        JUPITER_MASS, JUPITER_RADIUS, EARTH_MASS, EARTH_RADIUS,
-        ANGSTROM,
+        ANGSTROM, EARTH_MASS, EARTH_RADIUS, JUPITER_MASS, JUPITER_RADIUS, SOLAR_LUMINOSITY,
+        SOLAR_MASS, SOLAR_RADIUS,
     };
 
     macro_rules! register {
@@ -929,7 +1010,14 @@ fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
     // Extended astrophysical aliases
     register!(map, SOLAR_MASS, "m⊙", "solmass", "sol_mass");
     register!(map, SOLAR_RADIUS, "r⊙", "solrad", "sol_rad", "solarradius");
-    register!(map, SOLAR_LUMINOSITY, "l⊙", "sollum", "sol_lum", "solarluminosity");
+    register!(
+        map,
+        SOLAR_LUMINOSITY,
+        "l⊙",
+        "sollum",
+        "sol_lum",
+        "solarluminosity"
+    );
     register!(map, JUPITER_MASS, "m_jupiter", "jupitermass");
     register!(map, JUPITER_RADIUS, "r_jupiter", "jupiterradius");
     register!(map, EARTH_MASS, "m⊕", "earthmass");
@@ -968,7 +1056,8 @@ pub fn register_unit(names: &[&str], unit: Unit) {
 /// - Subscripts: "M_sun", "R_jup"
 /// - Parentheses: "(kg m)/s^2"
 pub fn parse_unit(s: &str) -> UnitResult<Unit> {
-    let registry = UNIT_REGISTRY.read()
+    let registry = UNIT_REGISTRY
+        .read()
         .map_err(|_| UnitError::ParseError("failed to acquire registry lock".into()))?;
     parse_unit_with_registry(s, &registry)
 }
@@ -1043,7 +1132,10 @@ fn split_unit_by_division(s: &str) -> Vec<String> {
             let next_idx = i + 1;
             let is_fraction = if next_idx < chars.len() {
                 let next = chars[next_idx];
-                next.is_ascii_digit() || (next == '-' && next_idx + 1 < chars.len() && chars[next_idx + 1].is_ascii_digit())
+                next.is_ascii_digit()
+                    || (next == '-'
+                        && next_idx + 1 < chars.len()
+                        && chars[next_idx + 1].is_ascii_digit())
             } else {
                 false
             };
@@ -1084,7 +1176,10 @@ fn split_unit_by_division(s: &str) -> Vec<String> {
 }
 
 /// Parse a product of units using a specific registry.
-fn parse_unit_product_with_registry(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResult<Unit> {
+fn parse_unit_product_with_registry(
+    s: &str,
+    registry: &HashMap<String, UnitEntry>,
+) -> UnitResult<Unit> {
     let s = s.trim();
     if s.is_empty() {
         return Ok(Unit::dimensionless());
@@ -1110,7 +1205,10 @@ fn parse_unit_product_with_registry(s: &str, registry: &HashMap<String, UnitEntr
 }
 
 /// Parse a single unit with optional power using a specific registry.
-fn parse_unit_with_power_registry(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResult<Unit> {
+fn parse_unit_with_power_registry(
+    s: &str,
+    registry: &HashMap<String, UnitEntry>,
+) -> UnitResult<Unit> {
     let s = s.trim();
 
     // Check for power notation
@@ -1143,29 +1241,35 @@ fn parse_power(s: &str) -> UnitResult<Rational16> {
         let (num_str, den_str) = s.split_at(idx);
         let den_str = &den_str[1..];
 
-        let num: i16 = num_str.trim().parse().map_err(|_| {
-            UnitError::ParseError(format!("invalid power numerator: {}", num_str))
-        })?;
+        let num: i16 = num_str
+            .trim()
+            .parse()
+            .map_err(|_| UnitError::ParseError(format!("invalid power numerator: {}", num_str)))?;
         let den: i16 = den_str.trim().parse().map_err(|_| {
             UnitError::ParseError(format!("invalid power denominator: {}", den_str))
         })?;
 
         if den == 0 {
-            return Err(UnitError::ParseError("power denominator cannot be zero".into()));
+            return Err(UnitError::ParseError(
+                "power denominator cannot be zero".into(),
+            ));
         }
 
         Ok(Rational16::new(num, den))
     } else {
         // Simple integer power
-        let exp: i16 = s.parse().map_err(|_| {
-            UnitError::ParseError(format!("invalid power: {}", s))
-        })?;
+        let exp: i16 = s
+            .parse()
+            .map_err(|_| UnitError::ParseError(format!("invalid power: {}", s)))?;
         Ok(Rational16::new(exp, 1))
     }
 }
 
 /// Look up a simple unit name using a specific registry.
-fn lookup_simple_unit_with_registry(name: &str, registry: &HashMap<String, UnitEntry>) -> UnitResult<Unit> {
+fn lookup_simple_unit_with_registry(
+    name: &str,
+    registry: &HashMap<String, UnitEntry>,
+) -> UnitResult<Unit> {
     let name = name.trim();
     let name_lower = name.to_lowercase();
 
@@ -1192,13 +1296,17 @@ fn lookup_simple_unit_with_registry(name: &str, registry: &HashMap<String, UnitE
 /// - "1.5e8 m"
 /// - "-3.14 rad"
 pub fn parse_quantity(s: &str) -> UnitResult<Quantity> {
-    let registry = UNIT_REGISTRY.read()
+    let registry = UNIT_REGISTRY
+        .read()
         .map_err(|_| UnitError::ParseError("failed to acquire registry lock".into()))?;
     parse_quantity_with_registry(s, &registry)
 }
 
 /// Parse a quantity string using a specific registry.
-fn parse_quantity_with_registry(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResult<Quantity> {
+fn parse_quantity_with_registry(
+    s: &str,
+    registry: &HashMap<String, UnitEntry>,
+) -> UnitResult<Quantity> {
     let s = s.trim();
 
     // Find where the number ends and the unit begins
@@ -1235,7 +1343,8 @@ fn parse_quantity_with_registry(s: &str, registry: &HashMap<String, UnitEntry>) 
     if unit_start == 0 {
         // No unit found, try parsing whole string as number
         return Err(UnitError::ParseError(format!(
-            "cannot parse quantity: no unit found in '{}'", s
+            "cannot parse quantity: no unit found in '{}'",
+            s
         )));
     }
 
@@ -1243,9 +1352,9 @@ fn parse_quantity_with_registry(s: &str, registry: &HashMap<String, UnitEntry>) 
     let value_str = value_str.trim();
     let unit_str = unit_str.trim();
 
-    let value: f64 = value_str.parse().map_err(|_| {
-        UnitError::ParseError(format!("invalid number: '{}'", value_str))
-    })?;
+    let value: f64 = value_str
+        .parse()
+        .map_err(|_| UnitError::ParseError(format!("invalid number: '{}'", value_str)))?;
 
     let unit = parse_unit_with_registry(unit_str, registry)?;
 
@@ -1273,7 +1382,7 @@ impl FromStr for Quantity {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{M, S, KG, KM, H};
+    use crate::systems::si::{H, KG, KM, M, S};
 
     #[test]
     fn test_lookup_simple_unit() {

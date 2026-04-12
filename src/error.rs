@@ -77,7 +77,9 @@ pub enum UnitError {
 
     /// Attempted to use a simple scale factor for offset unit conversion.
     /// Use `Quantity::to()` instead of `Unit::conversion_factor()` for offset units.
-    #[error("cannot use simple scaling for offset units: {from} -> {to}, use Quantity::to() instead")]
+    #[error(
+        "cannot use simple scaling for offset units: {from} -> {to}, use Quantity::to() instead"
+    )]
     OffsetConversion { from: String, to: String },
 
     /// Invalid input for batch operation.

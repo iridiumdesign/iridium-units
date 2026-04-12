@@ -106,13 +106,19 @@ fn create_temp_converter(
     Converter::new(
         |k| {
             if k < 0.0 {
-                return Err(format!("temperature cannot be negative in Kelvin, got {}", k));
+                return Err(format!(
+                    "temperature cannot be negative in Kelvin, got {}",
+                    k
+                ));
             }
             Ok(k)
         },
         |k| {
             if k < 0.0 {
-                return Err(format!("temperature cannot be negative in Kelvin, got {}", k));
+                return Err(format!(
+                    "temperature cannot be negative in Kelvin, got {}",
+                    k
+                ));
             }
             Ok(k)
         },
@@ -138,14 +144,13 @@ fn create_temp_converter(
 /// ```
 pub fn temperature_energy() -> Equivalency {
     Equivalency::new("temperature_energy", |from, to| {
-        let (is_temp_to_energy, _from_scale, _to_scale) =
-            if is_temperature(from) && is_energy(to) {
-                (true, from.scale(), to.scale())
-            } else if is_energy(from) && is_temperature(to) {
-                (false, from.scale(), to.scale())
-            } else {
-                return None;
-            };
+        let (is_temp_to_energy, _from_scale, _to_scale) = if is_temperature(from) && is_energy(to) {
+            (true, from.scale(), to.scale())
+        } else if is_energy(from) && is_temperature(to) {
+            (false, from.scale(), to.scale())
+        } else {
+            return None;
+        };
 
         if is_temp_to_energy {
             // T → E: E = kT
@@ -192,7 +197,7 @@ pub fn temperature_energy() -> Equivalency {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{K, EV, J, DEG_C, DEG_F};
+    use crate::systems::si::{DEG_C, DEG_F, EV, J, K};
 
     #[test]
     fn test_temperature_energy_room_temp() {

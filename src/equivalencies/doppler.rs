@@ -248,7 +248,7 @@ pub fn doppler_relativistic(rest_freq: Quantity) -> Equivalency {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{GHZ, HZ, M, S, KM};
+    use crate::systems::si::{GHZ, HZ, KM, M, S};
 
     fn km_per_s() -> Unit {
         KM / S
@@ -261,7 +261,9 @@ mod tests {
 
         // If observed frequency is lower, velocity should be positive (receding)
         let observed = 115.0 * GHZ.clone();
-        let velocity = observed.to_equiv(&km_per_s(), doppler_radio(rest_freq.clone())).unwrap();
+        let velocity = observed
+            .to_equiv(&km_per_s(), doppler_radio(rest_freq.clone()))
+            .unwrap();
 
         // v = c(1 - ν/ν₀) = c(1 - 115/115.27120)
         let expected = SPEED_OF_LIGHT * (1.0 - 115.0 / 115.27120) / 1000.0; // km/s
@@ -274,7 +276,9 @@ mod tests {
 
         // If observed frequency is higher, velocity should be negative (approaching)
         let observed = 116.0 * GHZ.clone();
-        let velocity = observed.to_equiv(&km_per_s(), doppler_radio(rest_freq)).unwrap();
+        let velocity = observed
+            .to_equiv(&km_per_s(), doppler_radio(rest_freq))
+            .unwrap();
 
         assert!(velocity.value() < 0.0); // Approaching
     }
@@ -286,7 +290,9 @@ mod tests {
         // z = 0.1 redshift means v/c = 0.1 in optical convention
         // ν = ν₀/(1 + z) = ν₀/1.1
         let observed = (1e15 / 1.1) * HZ.clone();
-        let velocity = observed.to_equiv(&km_per_s(), doppler_optical(rest_freq)).unwrap();
+        let velocity = observed
+            .to_equiv(&km_per_s(), doppler_optical(rest_freq))
+            .unwrap();
 
         // v = c * z = c * 0.1
         let expected = SPEED_OF_LIGHT * 0.1 / 1000.0; // km/s
@@ -301,9 +307,15 @@ mod tests {
         // Small velocity: 1 km/s << c
         let velocity = 1.0 * km_per_s();
 
-        let freq_radio = velocity.to_equiv(&HZ, doppler_radio(rest_freq.clone())).unwrap();
-        let freq_optical = velocity.to_equiv(&HZ, doppler_optical(rest_freq.clone())).unwrap();
-        let freq_rel = velocity.to_equiv(&HZ, doppler_relativistic(rest_freq.clone())).unwrap();
+        let freq_radio = velocity
+            .to_equiv(&HZ, doppler_radio(rest_freq.clone()))
+            .unwrap();
+        let freq_optical = velocity
+            .to_equiv(&HZ, doppler_optical(rest_freq.clone()))
+            .unwrap();
+        let freq_rel = velocity
+            .to_equiv(&HZ, doppler_relativistic(rest_freq.clone()))
+            .unwrap();
 
         // All should be very close for small velocities
         assert!((freq_radio.value() - freq_optical.value()).abs() / freq_radio.value() < 1e-6);

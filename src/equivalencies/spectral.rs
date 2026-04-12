@@ -94,10 +94,7 @@ pub fn spectral() -> Equivalency {
 /// Validate that a spectral value is positive (non-zero and non-negative).
 fn validate_positive(value: f64, quantity_name: &str) -> Result<f64, String> {
     if value <= 0.0 {
-        Err(format!(
-            "{} must be positive, got {}",
-            quantity_name, value
-        ))
+        Err(format!("{} must be positive, got {}", quantity_name, value))
     } else {
         Ok(value)
     }
@@ -239,7 +236,7 @@ fn create_spectral_converter(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{HZ, NM, EV, J};
+    use crate::systems::si::{EV, HZ, J, NM};
 
     #[test]
     fn test_wavelength_to_frequency() {

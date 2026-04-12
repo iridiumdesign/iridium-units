@@ -48,7 +48,12 @@ impl UnitComponent {
 
 impl UnitComponent {
     /// Create a new unit component.
-    pub fn new(symbol: impl Into<String>, dimension: Dimension, scale: f64, power: Rational16) -> Self {
+    pub fn new(
+        symbol: impl Into<String>,
+        dimension: Dimension,
+        scale: f64,
+        power: Rational16,
+    ) -> Self {
         UnitComponent {
             symbol: symbol.into(),
             dimension,
@@ -107,7 +112,12 @@ impl CompositeUnit {
     pub fn from_base(symbol: impl Into<String>, dimension: Dimension, scale: f64) -> Self {
         CompositeUnit {
             scale: 1.0,
-            components: vec![UnitComponent::new(symbol, dimension, scale, Rational16::ONE)],
+            components: vec![UnitComponent::new(
+                symbol,
+                dimension,
+                scale,
+                Rational16::ONE,
+            )],
         }
     }
 
@@ -254,7 +264,13 @@ impl fmt::Display for CompositeUnit {
         } else if positive.is_empty() {
             write!(f, "{}1 / {}", scale_prefix, neg_str.join(" "))
         } else {
-            write!(f, "{}{} / {}", scale_prefix, pos_str.join(" "), neg_str.join(" "))
+            write!(
+                f,
+                "{}{} / {}",
+                scale_prefix,
+                pos_str.join(" "),
+                neg_str.join(" ")
+            )
         }
     }
 }

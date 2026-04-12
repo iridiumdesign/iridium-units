@@ -2,8 +2,8 @@
 
 use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
-use crate::unit::Unit;
 use crate::unit::base::BaseUnit;
+use crate::unit::Unit;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
@@ -107,20 +107,36 @@ impl Quantity {
         let dim = self.unit.dimension();
         let mut components = Vec::new();
 
-        let add_if_nonzero = |comps: &mut Vec<UnitComponent>, symbol: &str, base_dim: Dimension, exp: Rational16| {
-            if !exp.is_zero() {
-                comps.push(UnitComponent::new(symbol, base_dim, 1.0, exp));
-            }
-        };
+        let add_if_nonzero =
+            |comps: &mut Vec<UnitComponent>, symbol: &str, base_dim: Dimension, exp: Rational16| {
+                if !exp.is_zero() {
+                    comps.push(UnitComponent::new(symbol, base_dim, 1.0, exp));
+                }
+            };
 
         add_if_nonzero(&mut components, "m", Dimension::LENGTH, dim.length);
         add_if_nonzero(&mut components, "s", Dimension::TIME, dim.time);
         add_if_nonzero(&mut components, "kg", Dimension::MASS, dim.mass);
         add_if_nonzero(&mut components, "A", Dimension::CURRENT, dim.current);
-        add_if_nonzero(&mut components, "K", Dimension::TEMPERATURE, dim.temperature);
+        add_if_nonzero(
+            &mut components,
+            "K",
+            Dimension::TEMPERATURE,
+            dim.temperature,
+        );
         add_if_nonzero(&mut components, "rad", Dimension::ANGLE, dim.angle);
-        add_if_nonzero(&mut components, "sr", Dimension::SOLID_ANGLE, dim.solid_angle);
-        add_if_nonzero(&mut components, "cd", Dimension::LUMINOUS_INTENSITY, dim.luminous_intensity);
+        add_if_nonzero(
+            &mut components,
+            "sr",
+            Dimension::SOLID_ANGLE,
+            dim.solid_angle,
+        );
+        add_if_nonzero(
+            &mut components,
+            "cd",
+            Dimension::LUMINOUS_INTENSITY,
+            dim.luminous_intensity,
+        );
         add_if_nonzero(&mut components, "mag", Dimension::MAGNITUDE, dim.magnitude);
         add_if_nonzero(&mut components, "mol", Dimension::AMOUNT, dim.amount);
         add_if_nonzero(&mut components, "ph", Dimension::PHOTON, dim.photon);
@@ -207,7 +223,7 @@ impl Quantity {
     pub fn mag_to_flux_ratio(&self) -> UnitResult<f64> {
         if !self.is_logarithmic() {
             return Err(UnitError::LogarithmicError(
-                "quantity is not a magnitude".to_string()
+                "quantity is not a magnitude".to_string(),
             ));
         }
         // Convert to standard magnitude (scale = 1)
@@ -239,7 +255,7 @@ impl Quantity {
     pub fn db_to_power_ratio(&self) -> UnitResult<f64> {
         if !self.is_logarithmic() {
             return Err(UnitError::LogarithmicError(
-                "quantity is not in decibels".to_string()
+                "quantity is not in decibels".to_string(),
             ));
         }
         let db = self.value * self.unit.scale();
@@ -270,7 +286,7 @@ impl Quantity {
     pub fn dex_to_ratio(&self) -> UnitResult<f64> {
         if !self.is_logarithmic() {
             return Err(UnitError::LogarithmicError(
-                "quantity is not in dex".to_string()
+                "quantity is not in dex".to_string(),
             ));
         }
         let dex = self.value * self.unit.scale();
@@ -358,7 +374,11 @@ impl Quantity {
 /// assert!((distances_m[0] - 1000.0).abs() < 1e-10);
 /// assert!((distances_m[4] - 42195.0).abs() < 1e-10);
 /// ```
-pub fn batch_convert(values: &[f64], from: impl Into<Unit>, to: impl Into<Unit>) -> UnitResult<Vec<f64>> {
+pub fn batch_convert(
+    values: &[f64],
+    from: impl Into<Unit>,
+    to: impl Into<Unit>,
+) -> UnitResult<Vec<f64>> {
     let from = from.into();
     let to = to.into();
     let factor = from.conversion_factor(&to)?;
@@ -382,7 +402,12 @@ pub fn batch_convert(values: &[f64], from: impl Into<Unit>, to: impl Into<Unit>)
 /// batch_convert_into(&distances_km, &KM, &M, &mut distances_m).unwrap();
 /// assert!((distances_m[0] - 1000.0).abs() < 1e-10);
 /// ```
-pub fn batch_convert_into(values: &[f64], from: impl Into<Unit>, to: impl Into<Unit>, out: &mut [f64]) -> UnitResult<()> {
+pub fn batch_convert_into(
+    values: &[f64],
+    from: impl Into<Unit>,
+    to: impl Into<Unit>,
+    out: &mut [f64],
+) -> UnitResult<()> {
     if values.len() != out.len() {
         return Err(UnitError::BatchError(format!(
             "input length {} doesn't match output length {}",
@@ -458,10 +483,13 @@ impl Add for Quantity {
 
     fn add(self, rhs: Quantity) -> Quantity {
         if self.unit.dimension() != rhs.unit.dimension() {
-            panic!("{}", UnitError::IncompatibleDimensions {
-                lhs: self.unit.to_string(),
-                rhs: rhs.unit.to_string(),
-            });
+            panic!(
+                "{}",
+                UnitError::IncompatibleDimensions {
+                    lhs: self.unit.to_string(),
+                    rhs: rhs.unit.to_string(),
+                }
+            );
         }
         let rhs_converted = self.unit.from_si(rhs.unit.to_si(rhs.value));
         Quantity::new(self.value + rhs_converted, self.unit)
@@ -484,10 +512,13 @@ impl Sub for Quantity {
 
     fn sub(self, rhs: Quantity) -> Quantity {
         if self.unit.dimension() != rhs.unit.dimension() {
-            panic!("{}", UnitError::IncompatibleDimensions {
-                lhs: self.unit.to_string(),
-                rhs: rhs.unit.to_string(),
-            });
+            panic!(
+                "{}",
+                UnitError::IncompatibleDimensions {
+                    lhs: self.unit.to_string(),
+                    rhs: rhs.unit.to_string(),
+                }
+            );
         }
         let rhs_converted = self.unit.from_si(rhs.unit.to_si(rhs.value));
         Quantity::new(self.value - rhs_converted, self.unit)
@@ -799,7 +830,13 @@ mod tests {
     }
 
     fn kilometer() -> Unit {
-        Unit::Base(BaseUnit::new("kilometer", "km", &[], Dimension::LENGTH, 1000.0))
+        Unit::Base(BaseUnit::new(
+            "kilometer",
+            "km",
+            &[],
+            Dimension::LENGTH,
+            1000.0,
+        ))
     }
 
     fn second() -> Unit {
@@ -864,7 +901,10 @@ mod tests {
         let a = 1.0 * meter();
         let b = 1.0 * second();
         let result = a.checked_add(&b);
-        assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
+        assert!(matches!(
+            result,
+            Err(UnitError::IncompatibleDimensions { .. })
+        ));
     }
 
     #[test]
@@ -872,7 +912,10 @@ mod tests {
         let a = 1.0 * meter();
         let b = 1.0 * second();
         let result = a.checked_sub(&b);
-        assert!(matches!(result, Err(UnitError::IncompatibleDimensions { .. })));
+        assert!(matches!(
+            result,
+            Err(UnitError::IncompatibleDimensions { .. })
+        ));
     }
 
     #[test]
@@ -888,7 +931,7 @@ mod tests {
         let b = 500.0 * meter();
         let c = &a + &b;
         assert!((c.value() - 1.5).abs() < 1e-10); // 1.5 km
-        // Original values should still be accessible
+                                                  // Original values should still be accessible
         assert!((a.value() - 1.0).abs() < 1e-10);
         assert!((b.value() - 500.0).abs() < 1e-10);
     }
@@ -954,10 +997,13 @@ mod tests {
         let m = 3.0 * meter();
         let m2 = m.pow(2);
         assert!((m2.value() - 9.0).abs() < 1e-10);
-        assert_eq!(m2.unit().dimension(), Dimension {
-            length: Rational16::new(2, 1),
-            ..Dimension::DIMENSIONLESS
-        });
+        assert_eq!(
+            m2.unit().dimension(),
+            Dimension {
+                length: Rational16::new(2, 1),
+                ..Dimension::DIMENSIONLESS
+            }
+        );
     }
 
     #[test]

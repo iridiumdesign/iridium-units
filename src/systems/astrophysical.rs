@@ -54,47 +54,40 @@ const DIM_MAGNETIC_FIELD: Dimension = Dimension::MASS
     .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
     .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 const DIM_AREA: Dimension = Dimension::LENGTH.pow(Rational16::new(2, 1));
-const DIM_SPECTRAL_FLUX: Dimension = Dimension::MASS
-    .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
+const DIM_SPECTRAL_FLUX: Dimension =
+    Dimension::MASS.mul(&Dimension::TIME.pow(Rational16::new(-2, 1)));
 
 // =============================================================================
 // Distance Units
 // =============================================================================
 
 /// Astronomical Unit - mean Earth-Sun distance
-pub const AU: BaseUnit = BaseUnit::new(
-    "astronomical_unit", "AU", &["au"], Dimension::LENGTH, AU_M,
-);
+pub const AU: BaseUnit = BaseUnit::new("astronomical_unit", "AU", &["au"], Dimension::LENGTH, AU_M);
 
 /// Parsec - distance at which 1 AU subtends 1 arcsecond
-pub const PARSEC: BaseUnit = BaseUnit::new(
-    "parsec", "pc", &[], Dimension::LENGTH, PC_M,
-);
+pub const PARSEC: BaseUnit = BaseUnit::new("parsec", "pc", &[], Dimension::LENGTH, PC_M);
 
 /// Kiloparsec (10^3 pc)
-pub const KPC: BaseUnit = BaseUnit::new(
-    "kiloparsec", "kpc", &[], Dimension::LENGTH, PC_M * 1e3,
-);
+pub const KPC: BaseUnit = BaseUnit::new("kiloparsec", "kpc", &[], Dimension::LENGTH, PC_M * 1e3);
 
 /// Megaparsec (10^6 pc)
-pub const MPC: BaseUnit = BaseUnit::new(
-    "megaparsec", "Mpc", &[], Dimension::LENGTH, PC_M * 1e6,
-);
+pub const MPC: BaseUnit = BaseUnit::new("megaparsec", "Mpc", &[], Dimension::LENGTH, PC_M * 1e6);
 
 /// Gigaparsec (10^9 pc)
-pub const GPC: BaseUnit = BaseUnit::new(
-    "gigaparsec", "Gpc", &[], Dimension::LENGTH, PC_M * 1e9,
-);
+pub const GPC: BaseUnit = BaseUnit::new("gigaparsec", "Gpc", &[], Dimension::LENGTH, PC_M * 1e9);
 
 /// Light-year - distance light travels in one Julian year
 pub const LIGHT_YEAR: BaseUnit = BaseUnit::new(
-    "light_year", "lyr", &["ly", "lightyear"], Dimension::LENGTH, LY_M,
+    "light_year",
+    "lyr",
+    &["ly", "lightyear"],
+    Dimension::LENGTH,
+    LY_M,
 );
 
 /// Light-second
-pub const LIGHT_SECOND: BaseUnit = BaseUnit::new(
-    "light_second", "ls", &[], Dimension::LENGTH, C_M_S,
-);
+pub const LIGHT_SECOND: BaseUnit =
+    BaseUnit::new("light_second", "ls", &[], Dimension::LENGTH, C_M_S);
 
 // =============================================================================
 // Solar Units
@@ -102,17 +95,29 @@ pub const LIGHT_SECOND: BaseUnit = BaseUnit::new(
 
 /// Solar mass
 pub const SOLAR_MASS: BaseUnit = BaseUnit::new(
-    "solar_mass", "M_sun", &["Msun", "solMass", "M_sol"], Dimension::MASS, MSUN_KG,
+    "solar_mass",
+    "M_sun",
+    &["Msun", "solMass", "M_sol"],
+    Dimension::MASS,
+    MSUN_KG,
 );
 
 /// Solar radius (nominal)
 pub const SOLAR_RADIUS: BaseUnit = BaseUnit::new(
-    "solar_radius", "R_sun", &["Rsun", "solRad", "R_sol"], Dimension::LENGTH, RSUN_M,
+    "solar_radius",
+    "R_sun",
+    &["Rsun", "solRad", "R_sol"],
+    Dimension::LENGTH,
+    RSUN_M,
 );
 
 /// Solar luminosity (nominal)
 pub const SOLAR_LUMINOSITY: BaseUnit = BaseUnit::new(
-    "solar_luminosity", "L_sun", &["Lsun", "solLum", "L_sol"], DIM_POWER, LSUN_W,
+    "solar_luminosity",
+    "L_sun",
+    &["Lsun", "solLum", "L_sol"],
+    DIM_POWER,
+    LSUN_W,
 );
 
 // =============================================================================
@@ -121,22 +126,38 @@ pub const SOLAR_LUMINOSITY: BaseUnit = BaseUnit::new(
 
 /// Jupiter mass
 pub const JUPITER_MASS: BaseUnit = BaseUnit::new(
-    "jupiter_mass", "M_jup", &["Mjup", "jupiterMass"], Dimension::MASS, MJUP_KG,
+    "jupiter_mass",
+    "M_jup",
+    &["Mjup", "jupiterMass"],
+    Dimension::MASS,
+    MJUP_KG,
 );
 
 /// Jupiter radius (equatorial, nominal)
 pub const JUPITER_RADIUS: BaseUnit = BaseUnit::new(
-    "jupiter_radius", "R_jup", &["Rjup", "jupiterRad"], Dimension::LENGTH, RJUP_M,
+    "jupiter_radius",
+    "R_jup",
+    &["Rjup", "jupiterRad"],
+    Dimension::LENGTH,
+    RJUP_M,
 );
 
 /// Earth mass
 pub const EARTH_MASS: BaseUnit = BaseUnit::new(
-    "earth_mass", "M_earth", &["Mearth", "earthMass"], Dimension::MASS, MEARTH_KG,
+    "earth_mass",
+    "M_earth",
+    &["Mearth", "earthMass"],
+    Dimension::MASS,
+    MEARTH_KG,
 );
 
 /// Earth radius (equatorial, nominal)
 pub const EARTH_RADIUS: BaseUnit = BaseUnit::new(
-    "earth_radius", "R_earth", &["Rearth", "earthRad"], Dimension::LENGTH, REARTH_M,
+    "earth_radius",
+    "R_earth",
+    &["Rearth", "earthRad"],
+    Dimension::LENGTH,
+    REARTH_M,
 );
 
 // =============================================================================
@@ -145,27 +166,27 @@ pub const EARTH_RADIUS: BaseUnit = BaseUnit::new(
 
 /// Angstrom (10^-10 m) - common wavelength unit
 pub const ANGSTROM: BaseUnit = BaseUnit::new(
-    "angstrom", "Angstrom", &["AA", "angstrom"], Dimension::LENGTH, 1e-10,
+    "angstrom",
+    "Angstrom",
+    &["AA", "angstrom"],
+    Dimension::LENGTH,
+    1e-10,
 );
 
 /// Jansky - spectral flux density (10^-26 W/m^2/Hz)
-pub const JANSKY: BaseUnit = BaseUnit::new(
-    "jansky", "Jy", &[], DIM_SPECTRAL_FLUX, 1e-26,
-);
+pub const JANSKY: BaseUnit = BaseUnit::new("jansky", "Jy", &[], DIM_SPECTRAL_FLUX, 1e-26);
 
 /// Millijansky (10^-3 Jy)
-pub const MJY: BaseUnit = BaseUnit::new(
-    "millijansky", "mJy", &[], DIM_SPECTRAL_FLUX, 1e-29,
-);
+pub const MJY: BaseUnit = BaseUnit::new("millijansky", "mJy", &[], DIM_SPECTRAL_FLUX, 1e-29);
 
 /// Microjansky (10^-6 Jy)
-pub const UJY: BaseUnit = BaseUnit::new(
-    "microjansky", "uJy", &[], DIM_SPECTRAL_FLUX, 1e-32,
-);
+pub const UJY: BaseUnit = BaseUnit::new("microjansky", "uJy", &[], DIM_SPECTRAL_FLUX, 1e-32);
 
 /// Rayleigh - unit of photon flux (10^10 photons/m^2/s/sr)
 pub const RAYLEIGH: BaseUnit = BaseUnit::new(
-    "rayleigh", "R", &[],
+    "rayleigh",
+    "R",
+    &[],
     Dimension::PHOTON
         .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)))
         .mul(&Dimension::TIME.pow(Rational16::new(-1, 1)))
@@ -178,38 +199,26 @@ pub const RAYLEIGH: BaseUnit = BaseUnit::new(
 // =============================================================================
 
 /// Barn - nuclear cross section (10^-28 m^2)
-pub const BARN: BaseUnit = BaseUnit::new(
-    "barn", "barn", &["b"], DIM_AREA, 1e-28,
-);
+pub const BARN: BaseUnit = BaseUnit::new("barn", "barn", &["b"], DIM_AREA, 1e-28);
 
 /// Millibarn (10^-3 barn)
-pub const MBARN: BaseUnit = BaseUnit::new(
-    "millibarn", "mbarn", &["mb"], DIM_AREA, 1e-31,
-);
+pub const MBARN: BaseUnit = BaseUnit::new("millibarn", "mbarn", &["mb"], DIM_AREA, 1e-31);
 
 /// Microbarn (10^-6 barn)
-pub const UBARN: BaseUnit = BaseUnit::new(
-    "microbarn", "ubarn", &["ub"], DIM_AREA, 1e-34,
-);
+pub const UBARN: BaseUnit = BaseUnit::new("microbarn", "ubarn", &["ub"], DIM_AREA, 1e-34);
 
 // =============================================================================
 // CGS units commonly used in astrophysics
 // =============================================================================
 
 /// Erg (CGS energy, 10^-7 J)
-pub const ERG: BaseUnit = BaseUnit::new(
-    "erg", "erg", &[], DIM_ENERGY, 1e-7,
-);
+pub const ERG: BaseUnit = BaseUnit::new("erg", "erg", &[], DIM_ENERGY, 1e-7);
 
 /// Dyne (CGS force, 10^-5 N)
-pub const DYN: BaseUnit = BaseUnit::new(
-    "dyne", "dyn", &[], DIM_FORCE, 1e-5,
-);
+pub const DYN: BaseUnit = BaseUnit::new("dyne", "dyn", &[], DIM_FORCE, 1e-5);
 
 /// Gauss (CGS magnetic field, 10^-4 T)
-pub const GAUSS: BaseUnit = BaseUnit::new(
-    "gauss", "G", &["Gauss"], DIM_MAGNETIC_FIELD, 1e-4,
-);
+pub const GAUSS: BaseUnit = BaseUnit::new("gauss", "G", &["Gauss"], DIM_MAGNETIC_FIELD, 1e-4);
 
 // =============================================================================
 // CGS Spectral Flux Density Units
@@ -217,13 +226,18 @@ pub const GAUSS: BaseUnit = BaseUnit::new(
 
 /// CGS spectral flux density per frequency: erg/s/cm²/Hz
 pub const FLAM_NU: BaseUnit = BaseUnit::new(
-    "erg_per_s_cm2_Hz", "erg/(s cm^2 Hz)", &["erg/s/cm2/Hz", "cgs_fnu"],
-    DIM_SPECTRAL_FLUX, 1e-3,
+    "erg_per_s_cm2_Hz",
+    "erg/(s cm^2 Hz)",
+    &["erg/s/cm2/Hz", "cgs_fnu"],
+    DIM_SPECTRAL_FLUX,
+    1e-3,
 );
 
 /// CGS spectral flux density per wavelength: erg/s/cm²/Å
 pub const FLAM: BaseUnit = BaseUnit::new(
-    "erg_per_s_cm2_angstrom", "erg/(s cm^2 Angstrom)", &["erg/s/cm2/A", "FLAM", "flam"],
+    "erg_per_s_cm2_angstrom",
+    "erg/(s cm^2 Angstrom)",
+    &["erg/s/cm2/A", "FLAM", "flam"],
     Dimension::MASS
         .mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)))
         .mul(&Dimension::TIME.pow(Rational16::new(-3, 1))),
@@ -232,7 +246,9 @@ pub const FLAM: BaseUnit = BaseUnit::new(
 
 /// Photon flux per wavelength: photon/s/cm²/Å
 pub const PHOTLAM: BaseUnit = BaseUnit::new(
-    "photon_per_s_cm2_angstrom", "photon/(s cm^2 Angstrom)", &["PHOTLAM", "photlam"],
+    "photon_per_s_cm2_angstrom",
+    "photon/(s cm^2 Angstrom)",
+    &["PHOTLAM", "photlam"],
     Dimension::PHOTON
         .mul(&Dimension::LENGTH.pow(Rational16::new(-3, 1)))
         .mul(&Dimension::TIME.pow(Rational16::new(-1, 1))),
@@ -241,7 +257,9 @@ pub const PHOTLAM: BaseUnit = BaseUnit::new(
 
 /// Photon flux per frequency: photon/s/cm²/Hz
 pub const PHOTNU: BaseUnit = BaseUnit::new(
-    "photon_per_s_cm2_Hz", "photon/(s cm^2 Hz)", &["PHOTNU", "photnu"],
+    "photon_per_s_cm2_Hz",
+    "photon/(s cm^2 Hz)",
+    &["PHOTNU", "photnu"],
     Dimension::PHOTON
         .mul(&Dimension::LENGTH.pow(Rational16::new(-2, 1)))
         .mul(&Dimension::TIME.pow(Rational16::new(-2, 1))),
@@ -253,37 +271,39 @@ pub const PHOTNU: BaseUnit = BaseUnit::new(
 // =============================================================================
 
 /// Photon
-pub const PHOTON: BaseUnit = BaseUnit::new(
-    "photon", "ph", &["photon"], Dimension::PHOTON, 1.0,
-);
+pub const PHOTON: BaseUnit = BaseUnit::new("photon", "ph", &["photon"], Dimension::PHOTON, 1.0);
 
 /// Count (generic counting unit, dimensionless)
-pub const COUNT: BaseUnit = BaseUnit::new(
-    "count", "ct", &["count", "cts"], Dimension::PHOTON, 1.0,
-);
+pub const COUNT: BaseUnit = BaseUnit::new("count", "ct", &["count", "cts"], Dimension::PHOTON, 1.0);
 
 /// Electron (for detector counts)
-pub const ELECTRON: BaseUnit = BaseUnit::new(
-    "electron", "e-", &["electron"], Dimension::PHOTON, 1.0,
-);
+pub const ELECTRON: BaseUnit =
+    BaseUnit::new("electron", "e-", &["electron"], Dimension::PHOTON, 1.0);
 
 // =============================================================================
 // Time Units (Astrophysical)
 // =============================================================================
 
 /// Sidereal day (23h 56m 4.0905s)
-pub const SIDEREAL_DAY: BaseUnit = BaseUnit::new(
-    "sidereal_day", "sday", &[], Dimension::TIME, 86_164.090_5,
-);
+pub const SIDEREAL_DAY: BaseUnit =
+    BaseUnit::new("sidereal_day", "sday", &[], Dimension::TIME, 86_164.090_5);
 
 /// Tropical year (365.24219 days)
 pub const TROPICAL_YEAR: BaseUnit = BaseUnit::new(
-    "tropical_year", "tyr", &[], Dimension::TIME, 365.24219 * 86400.0,
+    "tropical_year",
+    "tyr",
+    &[],
+    Dimension::TIME,
+    365.24219 * 86400.0,
 );
 
 /// Sidereal year (365.25636 days)
 pub const SIDEREAL_YEAR: BaseUnit = BaseUnit::new(
-    "sidereal_year", "syr", &[], Dimension::TIME, 365.25636 * 86400.0,
+    "sidereal_year",
+    "syr",
+    &[],
+    Dimension::TIME,
+    365.25636 * 86400.0,
 );
 
 // =============================================================================
@@ -291,19 +311,16 @@ pub const SIDEREAL_YEAR: BaseUnit = BaseUnit::new(
 // =============================================================================
 
 /// Hubble time (1/H0 with H0 = 70 km/s/Mpc, approximately)
-pub const HUBBLE_TIME: BaseUnit = BaseUnit::new(
-    "hubble_time", "t_H", &[], Dimension::TIME, 4.4e17,
-);
+pub const HUBBLE_TIME: BaseUnit = BaseUnit::new("hubble_time", "t_H", &[], Dimension::TIME, 4.4e17);
 
 /// Hubble distance (c/H0 with H0 = 70 km/s/Mpc, approximately)
-pub const HUBBLE_DISTANCE: BaseUnit = BaseUnit::new(
-    "hubble_distance", "d_H", &[], Dimension::LENGTH, 1.32e26,
-);
+pub const HUBBLE_DISTANCE: BaseUnit =
+    BaseUnit::new("hubble_distance", "d_H", &[], Dimension::LENGTH, 1.32e26);
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{M, KG, W, J};
+    use crate::systems::si::{J, KG, M, W};
 
     #[test]
     fn test_parsec_to_meters() {

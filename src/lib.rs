@@ -114,12 +114,12 @@ pub mod systems;
 // Re-export main types
 pub use dimension::{Dimension, Rational16};
 pub use error::{UnitError, UnitResult};
-pub use quantity::{Quantity, batch_convert, batch_convert_into, conversion_factor};
-pub use unit::Unit;
+pub use quantity::{batch_convert, batch_convert_into, conversion_factor, Quantity};
 pub use unit::base::BaseUnit;
+pub use unit::Unit;
 
 // Re-export parsing functions and types
-pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRegistry};
+pub use parsing::{lookup_unit, parse_quantity, parse_unit, register_unit, UnitRegistry};
 
 /// Prelude module for convenient imports.
 ///
@@ -131,42 +131,71 @@ pub use parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRe
 pub mod prelude {
     pub use crate::dimension::{Dimension, Rational16};
     pub use crate::error::{UnitError, UnitResult};
-    pub use crate::quantity::{Quantity, batch_convert, batch_convert_into, conversion_factor};
-    pub use crate::unit::Unit;
+    pub use crate::quantity::{batch_convert, batch_convert_into, conversion_factor, Quantity};
     pub use crate::unit::base::BaseUnit;
+    pub use crate::unit::Unit;
 
     // Re-export parsing functions and types
-    pub use crate::parsing::{parse_unit, parse_quantity, lookup_unit, register_unit, UnitRegistry};
+    pub use crate::parsing::{
+        lookup_unit, parse_quantity, parse_unit, register_unit, UnitRegistry,
+    };
 
     // Re-export common SI units
     pub use crate::systems::si::{
         // Base units
-        A, CD, K, KG, M, MOL, RAD, S, SR,
-        // Temperature
-        DEG_C, DEG_F,
-        // Length
-        CM, KM, MM, NM, UM,
-        // Time
-        DAY, H, MIN, MS, NS, US, YR,
+        A,
         // Derived units
-        C, F, GHZ, HZ, J, KHZ, MHZ, N, OHM, PA, THZ, V, W,
+        C,
+        CD,
+        // Length
+        CM,
+        // Time
+        DAY,
+        // Temperature
+        DEG_C,
+        DEG_F,
+        F,
+        GHZ,
+        H,
+        HZ,
+        J,
+        K,
+        KG,
+        KHZ,
+        KM,
+        M,
+        MHZ,
+        MIN,
+        MM,
+        MOL,
+        MS,
+        N,
+        NM,
+        NS,
+        OHM,
+        PA,
+        RAD,
+        S,
+        SR,
+        THZ,
+        UM,
+        US,
+        V,
+        W,
+        YR,
     };
 
     // Re-export astrophysical units
     #[cfg(feature = "astrophysics")]
     pub use crate::systems::astrophysical::{
-        ANGSTROM, AU, BARN, DYN, ERG, GAUSS, JANSKY, LIGHT_YEAR, PARSEC,
-        SOLAR_LUMINOSITY, SOLAR_MASS, SOLAR_RADIUS,
+        ANGSTROM, AU, BARN, DYN, ERG, GAUSS, JANSKY, LIGHT_YEAR, PARSEC, SOLAR_LUMINOSITY,
+        SOLAR_MASS, SOLAR_RADIUS,
     };
 
     // Re-export CGS units
     #[cfg(feature = "cgs")]
-    pub use crate::systems::cgs::{
-        CENTIMETER, DYNE, ERG as ERG_CGS, GRAM,
-    };
+    pub use crate::systems::cgs::{CENTIMETER, DYNE, ERG as ERG_CGS, GRAM};
 
     // Re-export imperial units
-    pub use crate::systems::imperial::{
-        FOOT, INCH, MILE, POUND, YARD,
-    };
+    pub use crate::systems::imperial::{FOOT, INCH, MILE, POUND, YARD};
 }

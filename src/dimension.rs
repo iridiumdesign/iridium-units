@@ -150,8 +150,7 @@ impl Rational16 {
 
     /// Const-compatible addition.
     pub const fn const_add(self, rhs: Self) -> Self {
-        let numer = self.numer as i32 * rhs.denom as i32
-            + rhs.numer as i32 * self.denom as i32;
+        let numer = self.numer as i32 * rhs.denom as i32 + rhs.numer as i32 * self.denom as i32;
         let denom = self.denom as i32 * rhs.denom as i32;
         rational16_from_i32(numer, denom)
     }
@@ -176,14 +175,22 @@ impl Rational16 {
 
 /// GCD for i32 values (used in overflow-safe arithmetic).
 const fn gcd_i32(mut a: i32, mut b: i32) -> i32 {
-    if a < 0 { a = -a; }
-    if b < 0 { b = -b; }
+    if a < 0 {
+        a = -a;
+    }
+    if b < 0 {
+        b = -b;
+    }
     while b != 0 {
         let t = b;
         b = a % b;
         a = t;
     }
-    if a == 0 { 1 } else { a }
+    if a == 0 {
+        1
+    } else {
+        a
+    }
 }
 
 /// Create a Rational16 from i32 numerator and denominator, reducing first
@@ -212,7 +219,10 @@ const fn rational16_from_i32(numer: i32, denom: i32) -> Rational16 {
         panic!("dimension exponent overflow: denominator does not fit in i16");
     }
 
-    Rational16 { numer: numer as i16, denom: denom as i16 }
+    Rational16 {
+        numer: numer as i16,
+        denom: denom as i16,
+    }
 }
 
 impl Add for Rational16 {
@@ -221,8 +231,7 @@ impl Add for Rational16 {
     fn add(self, rhs: Self) -> Self {
         // a/b + c/d = (ad + bc) / bd
         // Use i32 for intermediate calculations, reduce before casting back
-        let numer = self.numer as i32 * rhs.denom as i32
-            + rhs.numer as i32 * self.denom as i32;
+        let numer = self.numer as i32 * rhs.denom as i32 + rhs.numer as i32 * self.denom as i32;
         let denom = self.denom as i32 * rhs.denom as i32;
         rational16_from_i32(numer, denom)
     }
@@ -297,9 +306,8 @@ impl From<i16> for Rational16 {
 
 impl From<i32> for Rational16 {
     fn from(n: i32) -> Self {
-        let numer = i16::try_from(n).unwrap_or_else(|_| {
-            panic!("value {} does not fit in Rational16 (i16 range)", n)
-        });
+        let numer = i16::try_from(n)
+            .unwrap_or_else(|_| panic!("value {} does not fit in Rational16 (i16 range)", n));
         Rational16::new(numer, 1)
     }
 }

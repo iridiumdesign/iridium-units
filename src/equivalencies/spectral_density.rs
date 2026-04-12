@@ -92,7 +92,6 @@ fn is_magnitude(unit: &Unit) -> bool {
     unit.dimension() == Dimension::MAGNITUDE
 }
 
-
 /// Spectral density equivalency for converting between Fλ and Fν.
 ///
 /// This equivalency requires a spectral coordinate (wavelength or frequency)
@@ -229,7 +228,9 @@ pub fn ab_magnitude() -> Equivalency {
             return Some(Converter::new(
                 move |f_nu_si| {
                     if f_nu_si <= 0.0 {
-                        return Err("flux density must be positive for magnitude conversion".to_string());
+                        return Err(
+                            "flux density must be positive for magnitude conversion".to_string()
+                        );
                     }
                     // m_AB = -2.5 log10(Fν / Fν0)
                     let mag = -2.5 * (f_nu_si / AB_ZERO_POINT_SI).log10();
@@ -253,7 +254,9 @@ pub fn ab_magnitude() -> Equivalency {
                 },
                 move |f_nu_si| {
                     if f_nu_si <= 0.0 {
-                        return Err("flux density must be positive for magnitude conversion".to_string());
+                        return Err(
+                            "flux density must be positive for magnitude conversion".to_string()
+                        );
                     }
                     // m_AB = -2.5 log10(Fν / Fν0)
                     let mag = -2.5 * (f_nu_si / AB_ZERO_POINT_SI).log10();
@@ -314,7 +317,9 @@ pub fn ab_magnitude_lambda(wavelength: Quantity) -> Equivalency {
             return Some(Converter::new(
                 move |f_lambda_si| {
                     if f_lambda_si <= 0.0 {
-                        return Err("flux density must be positive for magnitude conversion".to_string());
+                        return Err(
+                            "flux density must be positive for magnitude conversion".to_string()
+                        );
                     }
                     let f_nu_si = f_lambda_si * factor;
                     let mag = -2.5 * (f_nu_si / AB_ZERO_POINT_SI).log10();
@@ -339,7 +344,9 @@ pub fn ab_magnitude_lambda(wavelength: Quantity) -> Equivalency {
                 },
                 move |f_lambda_si| {
                     if f_lambda_si <= 0.0 {
-                        return Err("flux density must be positive for magnitude conversion".to_string());
+                        return Err(
+                            "flux density must be positive for magnitude conversion".to_string()
+                        );
                     }
                     let f_nu_si = f_lambda_si * factor;
                     let mag = -2.5 * (f_nu_si / AB_ZERO_POINT_SI).log10();
@@ -449,7 +456,7 @@ mod tests {
     use crate::systems::astrophysical::JANSKY;
     #[cfg(feature = "logarithmic")]
     use crate::systems::logarithmic::MAG;
-    use crate::systems::si::{NM, M, HZ, W};
+    use crate::systems::si::{HZ, M, NM, W};
 
     // Create Fλ unit: W/m³ (W/m²/m)
     fn f_lambda_unit() -> Unit {
@@ -515,7 +522,9 @@ mod tests {
         let wavelength = 500.0 * NM;
         let f_nu = 1.0 * JANSKY;
 
-        let f_lambda = f_nu.to_equiv(&f_lambda_unit(), spectral_density(wavelength)).unwrap();
+        let f_lambda = f_nu
+            .to_equiv(&f_lambda_unit(), spectral_density(wavelength))
+            .unwrap();
 
         // Manual calculation: Fλ = Fν × c/λ²
         let lambda_m = 500e-9;
@@ -534,7 +543,9 @@ mod tests {
         let f_lambda_val = 1e-10; // W/m³
         let f_lambda = f_lambda_val * f_lambda_unit();
 
-        let f_nu = f_lambda.to_equiv(&f_nu_unit(), spectral_density(wavelength.clone())).unwrap();
+        let f_nu = f_lambda
+            .to_equiv(&f_nu_unit(), spectral_density(wavelength.clone()))
+            .unwrap();
 
         // Manual calculation: Fν = Fλ × λ²/c
         let lambda_m = 500e-9;
@@ -550,8 +561,12 @@ mod tests {
         let original = 1.0 * JANSKY;
 
         // Fν → Fλ → Fν
-        let f_lambda = original.to_equiv(&f_lambda_unit(), spectral_density(wavelength.clone())).unwrap();
-        let recovered = f_lambda.to_equiv(&JANSKY, spectral_density(wavelength)).unwrap();
+        let f_lambda = original
+            .to_equiv(&f_lambda_unit(), spectral_density(wavelength.clone()))
+            .unwrap();
+        let recovered = f_lambda
+            .to_equiv(&JANSKY, spectral_density(wavelength))
+            .unwrap();
 
         assert!((recovered.value() - 1.0).abs() < 1e-10);
     }
@@ -562,7 +577,9 @@ mod tests {
         let frequency = 6e14 * HZ; // ~500 nm
         let f_nu = 1.0 * JANSKY;
 
-        let f_lambda = f_nu.to_equiv(&f_lambda_unit(), spectral_density(frequency)).unwrap();
+        let f_lambda = f_nu
+            .to_equiv(&f_lambda_unit(), spectral_density(frequency))
+            .unwrap();
 
         // Should give same result as using wavelength
         let lambda_m = SPEED_OF_LIGHT / 6e14;
@@ -631,7 +648,9 @@ mod tests {
         let f_lambda_zero_mag = AB_ZERO_POINT_SI * SPEED_OF_LIGHT / (lambda_m * lambda_m);
 
         let f_lambda = f_lambda_zero_mag * f_lambda_unit();
-        let mag = f_lambda.to_equiv(&MAG, ab_magnitude_lambda(wavelength.clone())).unwrap();
+        let mag = f_lambda
+            .to_equiv(&MAG, ab_magnitude_lambda(wavelength.clone()))
+            .unwrap();
 
         // Should be close to 0
         assert!((mag.value() - 0.0).abs() < 1e-6);
