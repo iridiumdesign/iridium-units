@@ -37,6 +37,39 @@ println!("{}", in_miles);  // 26.219... mi
 
 See the [documentation](docs/getting-started.md) for more examples.
 
+## Where it fits
+
+Rust already has [`uom`](https://crates.io/crates/uom), an excellent
+compile-time dimensional-analysis library. Python's astrophysics community
+has [`astropy.units`](https://docs.astropy.org/en/stable/units/), an
+excellent runtime one. `iridium-units` covers a third corner: runtime-typed,
+Rust-fast, with the dimensions and equivalencies astronomy actually uses.
+
+The library exists because four pain points came up while trying to extend
+a compile-time-typed approach for astrodynamics:
+
+1. **Units known only at runtime.** File formats like CCSDS OEM and FITS
+   declare units as metadata strings. Compile-time libraries want the
+   unit as a type.
+
+2. **Cross-dimension equivalencies.** Wavelength ↔ frequency, mass ↔ energy,
+   parallax ↔ parsec are physically routine but dimensionally illegal —
+   they need a named equivalency, not a phantom-type rewrite.
+
+3. **Non-SI base dimensions.** Astronomical magnitude, solid angle, and
+   photon count are first-class in astrophysics but not in an
+   SI-by-default dimension set.
+
+4. **Open-world unit registries.** Adding a unit shouldn't require a new
+   type plus `Mul`/`Div` impls for every combination it appears in.
+
+For the hot paths where even a runtime check is too much, `conversion_factor`
+returns a bare `f64` you can apply yourself in SIMD loops or pass to
+external array code. Batch conversion is also available for in-place value
+arrays. None of this substitutes for a compile-time-typed library when
+that's the right fit — different domains, different costs, different
+libraries.
+
 ## Overview
 
 iridium-units provides physical units and quantities with automatic dimensional
