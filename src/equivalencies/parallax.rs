@@ -101,8 +101,8 @@ mod tests {
     #[test]
     fn test_parallax_1_arcsec() {
         // 1 arcsec parallax = 1 parsec distance (by definition)
-        let plx = 1.0 * ARCSEC.clone();
-        let dist = plx.to_equiv(&PARSEC, parallax()).unwrap();
+        let plx = 1.0 * ARCSEC;
+        let dist = plx.to_equiv(PARSEC, parallax()).unwrap();
 
         assert!((dist.value() - 1.0).abs() < 1e-10);
     }
@@ -110,8 +110,8 @@ mod tests {
     #[test]
     fn test_parallax_proxima_centauri() {
         // Proxima Centauri: parallax ≈ 768.5 mas, distance ≈ 1.301 pc
-        let plx = 768.5 * MAS.clone();
-        let dist = plx.to_equiv(&PARSEC, parallax()).unwrap();
+        let plx = 768.5 * MAS;
+        let dist = plx.to_equiv(PARSEC, parallax()).unwrap();
 
         let expected = 1.0 / 0.7685; // pc
         assert!((dist.value() - expected).abs() / expected < 1e-6);
@@ -120,39 +120,39 @@ mod tests {
     #[test]
     fn test_distance_to_parallax() {
         // 10 pc distance should give 0.1 arcsec parallax
-        let dist = 10.0 * PARSEC.clone();
-        let plx = dist.to_equiv(&ARCSEC, parallax()).unwrap();
+        let dist = 10.0 * PARSEC;
+        let plx = dist.to_equiv(ARCSEC, parallax()).unwrap();
 
         assert!((plx.value() - 0.1).abs() < 1e-10);
     }
 
     #[test]
     fn test_parallax_roundtrip() {
-        let plx = 0.5 * ARCSEC.clone();
-        let dist = plx.to_equiv(&PARSEC, parallax()).unwrap();
-        let plx_back = dist.to_equiv(&ARCSEC, parallax()).unwrap();
+        let plx = 0.5 * ARCSEC;
+        let dist = plx.to_equiv(PARSEC, parallax()).unwrap();
+        let plx_back = dist.to_equiv(ARCSEC, parallax()).unwrap();
 
         assert!((plx.value() - plx_back.value()).abs() / plx.value() < 1e-10);
     }
 
     #[test]
     fn test_zero_parallax_fails() {
-        let plx = 0.0 * ARCSEC.clone();
-        let result = plx.to_equiv(&PARSEC, parallax());
+        let plx = 0.0 * ARCSEC;
+        let result = plx.to_equiv(PARSEC, parallax());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_negative_parallax_fails() {
-        let plx = -1.0 * ARCSEC.clone();
-        let result = plx.to_equiv(&PARSEC, parallax());
+        let plx = -1.0 * ARCSEC;
+        let result = plx.to_equiv(PARSEC, parallax());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_zero_distance_fails() {
-        let dist = 0.0 * PARSEC.clone();
-        let result = dist.to_equiv(&ARCSEC, parallax());
+        let dist = 0.0 * PARSEC;
+        let result = dist.to_equiv(ARCSEC, parallax());
         assert!(result.is_err());
     }
 }

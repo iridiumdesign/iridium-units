@@ -462,6 +462,13 @@ impl fmt::Display for Quantity {
     }
 }
 
+/// Approximate equality: two quantities compare equal when they share a
+/// dimension and their SI-normalized values agree within a relative tolerance
+/// of `1e-15`.
+///
+/// Because the comparison is tolerance-based it is **not transitive**, so
+/// `Quantity` deliberately implements neither [`Eq`] nor [`Hash`] — don't use
+/// it as a `HashMap`/`HashSet` key or anywhere exact equality is required.
 impl PartialEq for Quantity {
     fn eq(&self, other: &Self) -> bool {
         // Two quantities are equal if they have the same dimension and
@@ -852,7 +859,7 @@ mod tests {
     #[test]
     fn test_quantity_conversion() {
         let q = 1.0 * kilometer();
-        let q_m = q.to(&meter()).unwrap();
+        let q_m = q.to(meter()).unwrap();
         assert!((q_m.value() - 1000.0).abs() < 1e-10);
     }
 
@@ -949,7 +956,7 @@ mod tests {
     fn test_batch_convert() {
         use super::batch_convert;
         let values = vec![1.0, 2.0, 3.0, 100.0];
-        let converted = batch_convert(&values, &kilometer(), &meter()).unwrap();
+        let converted = batch_convert(&values, kilometer(), meter()).unwrap();
         assert_eq!(converted.len(), 4);
         assert!((converted[0] - 1000.0).abs() < 1e-10);
         assert!((converted[1] - 2000.0).abs() < 1e-10);
@@ -962,7 +969,7 @@ mod tests {
         use super::batch_convert_into;
         let values = [1.0, 2.0, 3.0];
         let mut out = [0.0; 3];
-        batch_convert_into(&values, &kilometer(), &meter(), &mut out).unwrap();
+        batch_convert_into(&values, kilometer(), meter(), &mut out).unwrap();
         assert!((out[0] - 1000.0).abs() < 1e-10);
         assert!((out[1] - 2000.0).abs() < 1e-10);
         assert!((out[2] - 3000.0).abs() < 1e-10);
@@ -973,7 +980,7 @@ mod tests {
         use super::batch_convert_into;
         let values = [1.0, 2.0, 3.0];
         let mut out = [0.0; 2]; // Wrong length
-        let result = batch_convert_into(&values, &kilometer(), &meter(), &mut out);
+        let result = batch_convert_into(&values, kilometer(), meter(), &mut out);
         assert!(result.is_err());
     }
 
@@ -981,14 +988,14 @@ mod tests {
     fn test_batch_convert_incompatible_units() {
         use super::batch_convert;
         let values = vec![1.0, 2.0];
-        let result = batch_convert(&values, &meter(), &second());
+        let result = batch_convert(&values, meter(), second());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_conversion_factor() {
         use super::conversion_factor;
-        let factor = conversion_factor(&kilometer(), &meter()).unwrap();
+        let factor = conversion_factor(kilometer(), meter()).unwrap();
         assert!((factor - 1000.0).abs() < 1e-10);
     }
 

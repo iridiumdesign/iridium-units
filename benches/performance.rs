@@ -20,7 +20,7 @@ fn bench_batch_conversion(c: &mut Criterion) {
                     .iter()
                     .map(|v| {
                         let q = *v * KM;
-                        q.to(&M).unwrap().value()
+                        q.to(M).unwrap().value()
                     })
                     .collect();
                 black_box(converted)
@@ -30,14 +30,14 @@ fn bench_batch_conversion(c: &mut Criterion) {
         // Benchmark: Use batch conversion
         group.bench_with_input(BenchmarkId::new("batch", size), size, |b, _| {
             b.iter(|| {
-                let converted = batch_convert(&values, &KM, &M).unwrap();
+                let converted = batch_convert(&values, KM, M).unwrap();
                 black_box(converted)
             })
         });
 
         // Benchmark: Manual factor application
         group.bench_with_input(BenchmarkId::new("manual_factor", size), size, |b, _| {
-            let factor = conversion_factor(&KM, &M).unwrap();
+            let factor = conversion_factor(KM, M).unwrap();
             b.iter(|| {
                 let converted: Vec<f64> = values.iter().map(|v| v * factor).collect();
                 black_box(converted)
@@ -58,7 +58,7 @@ fn bench_arithmetic_operations(c: &mut Criterion) {
     // Addition with references (optimized - no clone)
     group.bench_function("ref_addition", |b| {
         b.iter(|| {
-            let result = (&q1 + &q2).unwrap();
+            let result = &q1 + &q2;
             black_box(result)
         })
     });
@@ -68,7 +68,7 @@ fn bench_arithmetic_operations(c: &mut Criterion) {
         b.iter(|| {
             let a = q1.clone();
             let b = q2.clone();
-            let result = (a + b).unwrap();
+            let result = a + b;
             black_box(result)
         })
     });
@@ -125,7 +125,7 @@ fn bench_unit_operations(c: &mut Criterion) {
     // Conversion factor calculation
     group.bench_function("conversion_factor", |b| {
         b.iter(|| {
-            let factor = KM.conversion_factor(&M).unwrap();
+            let factor = conversion_factor(KM, M).unwrap();
             black_box(factor)
         })
     });
@@ -144,7 +144,7 @@ fn bench_equivalencies(c: &mut Criterion) {
     // Spectral conversion
     group.bench_function("spectral_wavelength_to_freq", |b| {
         b.iter(|| {
-            let freq = wavelength.to_equiv(&HZ, spectral()).unwrap();
+            let freq = wavelength.to_equiv(HZ, spectral()).unwrap();
             black_box(freq)
         })
     });

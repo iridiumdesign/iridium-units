@@ -473,7 +473,7 @@ mod tests {
     fn test_ab_zero_point() {
         // 3631 Jy should be 0 AB mag
         let flux = 3631.0 * JANSKY;
-        let mag = flux.to_equiv(&MAG, ab_magnitude()).unwrap();
+        let mag = flux.to_equiv(MAG, ab_magnitude()).unwrap();
         assert!((mag.value() - 0.0).abs() < 1e-10);
     }
 
@@ -482,7 +482,7 @@ mod tests {
     fn test_ab_mag_1jy() {
         // 1 Jy should be about 8.9 AB mag
         let flux = 1.0 * JANSKY;
-        let mag = flux.to_equiv(&MAG, ab_magnitude()).unwrap();
+        let mag = flux.to_equiv(MAG, ab_magnitude()).unwrap();
         let expected = -2.5 * (1.0 / 3631.0_f64).log10();
         assert!((mag.value() - expected).abs() < 1e-10);
         assert!((mag.value() - 8.9).abs() < 0.05);
@@ -493,7 +493,7 @@ mod tests {
     fn test_ab_mag_to_flux() {
         // 0 AB mag should be 3631 Jy
         let mag = 0.0 * MAG;
-        let flux = mag.to_equiv(&JANSKY, ab_magnitude()).unwrap();
+        let flux = mag.to_equiv(JANSKY, ab_magnitude()).unwrap();
         assert!((flux.value() - 3631.0).abs() < 1e-6);
     }
 
@@ -502,7 +502,7 @@ mod tests {
     fn test_ab_mag_20() {
         // 20 AB mag should be 3631 * 10^-8 Jy = 3.631e-5 Jy
         let mag = 20.0 * MAG;
-        let flux = mag.to_equiv(&JANSKY, ab_magnitude()).unwrap();
+        let flux = mag.to_equiv(JANSKY, ab_magnitude()).unwrap();
         let expected = 3631.0 * 10.0_f64.powf(-0.4 * 20.0);
         assert!((flux.value() - expected).abs() / expected < 1e-10);
     }
@@ -511,8 +511,8 @@ mod tests {
     #[test]
     fn test_ab_mag_roundtrip() {
         let original_flux = 100.0 * JANSKY;
-        let mag = original_flux.to_equiv(&MAG, ab_magnitude()).unwrap();
-        let recovered = mag.to_equiv(&JANSKY, ab_magnitude()).unwrap();
+        let mag = original_flux.to_equiv(MAG, ab_magnitude()).unwrap();
+        let recovered = mag.to_equiv(JANSKY, ab_magnitude()).unwrap();
         assert!((recovered.value() - 100.0).abs() < 1e-10);
     }
 
@@ -523,7 +523,7 @@ mod tests {
         let f_nu = 1.0 * JANSKY;
 
         let f_lambda = f_nu
-            .to_equiv(&f_lambda_unit(), spectral_density(wavelength))
+            .to_equiv(f_lambda_unit(), spectral_density(wavelength))
             .unwrap();
 
         // Manual calculation: Fλ = Fν × c/λ²
@@ -544,7 +544,7 @@ mod tests {
         let f_lambda = f_lambda_val * f_lambda_unit();
 
         let f_nu = f_lambda
-            .to_equiv(&f_nu_unit(), spectral_density(wavelength.clone()))
+            .to_equiv(f_nu_unit(), spectral_density(wavelength.clone()))
             .unwrap();
 
         // Manual calculation: Fν = Fλ × λ²/c
@@ -562,10 +562,10 @@ mod tests {
 
         // Fν → Fλ → Fν
         let f_lambda = original
-            .to_equiv(&f_lambda_unit(), spectral_density(wavelength.clone()))
+            .to_equiv(f_lambda_unit(), spectral_density(wavelength.clone()))
             .unwrap();
         let recovered = f_lambda
-            .to_equiv(&JANSKY, spectral_density(wavelength))
+            .to_equiv(JANSKY, spectral_density(wavelength))
             .unwrap();
 
         assert!((recovered.value() - 1.0).abs() < 1e-10);
@@ -578,7 +578,7 @@ mod tests {
         let f_nu = 1.0 * JANSKY;
 
         let f_lambda = f_nu
-            .to_equiv(&f_lambda_unit(), spectral_density(frequency))
+            .to_equiv(f_lambda_unit(), spectral_density(frequency))
             .unwrap();
 
         // Should give same result as using wavelength
@@ -594,7 +594,7 @@ mod tests {
         let wavelength = 500.0 * NM;
         let f_nu = -1.0 * JANSKY;
 
-        let result = f_nu.to_equiv(&f_lambda_unit(), spectral_density(wavelength));
+        let result = f_nu.to_equiv(f_lambda_unit(), spectral_density(wavelength));
         assert!(result.is_err());
     }
 
@@ -603,7 +603,7 @@ mod tests {
     fn test_ab_negative_flux_fails() {
         // Create a negative flux quantity
         let flux = -1.0 * JANSKY;
-        let result = flux.to_equiv(&MAG, ab_magnitude());
+        let result = flux.to_equiv(MAG, ab_magnitude());
         assert!(result.is_err());
     }
 
@@ -649,7 +649,7 @@ mod tests {
 
         let f_lambda = f_lambda_zero_mag * f_lambda_unit();
         let mag = f_lambda
-            .to_equiv(&MAG, ab_magnitude_lambda(wavelength.clone()))
+            .to_equiv(MAG, ab_magnitude_lambda(wavelength.clone()))
             .unwrap();
 
         // Should be close to 0

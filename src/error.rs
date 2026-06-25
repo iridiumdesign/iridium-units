@@ -107,6 +107,13 @@ pub enum UnitError {
     /// Invalid input for batch operation.
     #[error("batch operation error: {0}")]
     BatchError(String),
+
+    /// Attempted to register a unit name that is already a built-in.
+    #[error("unit name '{name}' is already a built-in; use register_unit_override to replace it")]
+    NameTaken {
+        /// The name that collided with a built-in unit.
+        name: String,
+    },
 }
 
 /// Result type alias for unit operations.

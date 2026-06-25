@@ -249,7 +249,9 @@ impl Neg for Rational16 {
     type Output = Self;
 
     fn neg(self) -> Self {
-        Rational16::new(-self.numer, self.denom)
+        // Negate in i32 so i16::MIN doesn't overflow before reduction
+        // (mirrors const_neg).
+        rational16_from_i32(-(self.numer as i32), self.denom as i32)
     }
 }
 
@@ -268,7 +270,9 @@ impl Mul<i8> for Rational16 {
     type Output = Self;
 
     fn mul(self, rhs: i8) -> Self {
-        Rational16::new(self.numer * rhs as i16, self.denom)
+        // Widen to i32 before multiplying so a large product reduces cleanly
+        // instead of overflowing i16 (panics in debug, wraps in release).
+        rational16_from_i32(self.numer as i32 * rhs as i32, self.denom as i32)
     }
 }
 
@@ -696,5 +700,13 @@ mod tests {
         let r = result.unwrap();
         assert_eq!(r.numer, 1);
         assert_eq!(r.denom, 2);
+    }
+
+    #[test]
+    fn test_mul_i8_no_intermediate_overflow() {
+        // #54: 400/3 * 120 = 48000/3 = 16000. The intermediate 400*120 = 48000
+        // overflows i16; the fix widens to i32 before reducing.
+        let r = Rational16::new(400, 3) * 120i8;
+        assert_eq!(r, Rational16::new(16000, 1));
     }
 }

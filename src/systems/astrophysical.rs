@@ -179,6 +179,9 @@ pub const JANSKY: BaseUnit = BaseUnit::new("jansky", "Jy", &[], DIM_SPECTRAL_FLU
 /// Millijansky (10^-3 Jy)
 pub const MJY: BaseUnit = BaseUnit::new("millijansky", "mJy", &[], DIM_SPECTRAL_FLUX, 1e-29);
 
+/// Megajansky (10^6 Jy)
+pub const MEGAJANSKY: BaseUnit = BaseUnit::new("megajansky", "MJy", &[], DIM_SPECTRAL_FLUX, 1e-20);
+
 /// Microjansky (10^-6 Jy)
 pub const UJY: BaseUnit = BaseUnit::new("microjansky", "uJy", &[], DIM_SPECTRAL_FLUX, 1e-32);
 
@@ -326,7 +329,7 @@ mod tests {
     fn test_parsec_to_meters() {
         let q = 1.0 * PARSEC;
         let q_m = q.to(M).unwrap();
-        assert!((q_m.value() - 3.0856775814913673e16).abs() / 3.0856775814913673e16 < 1e-9);
+        assert!((q_m.value() - 3.085_677_581_491_367e16).abs() / 3.085_677_581_491_367e16 < 1e-9);
     }
 
     #[test]

@@ -241,8 +241,8 @@ mod tests {
     #[test]
     fn test_wavelength_to_frequency() {
         // 500 nm should be about 6e14 Hz
-        let wavelength = 500.0 * NM.clone();
-        let frequency = wavelength.to_equiv(&HZ, spectral()).unwrap();
+        let wavelength = 500.0 * NM;
+        let frequency = wavelength.to_equiv(HZ, spectral()).unwrap();
 
         let expected = SPEED_OF_LIGHT / 500e-9;
         assert!((frequency.value() - expected).abs() / expected < 1e-9);
@@ -251,8 +251,8 @@ mod tests {
     #[test]
     fn test_frequency_to_wavelength() {
         // 6e14 Hz should be about 500 nm
-        let frequency = 6e14 * HZ.clone();
-        let wavelength = frequency.to_equiv(&NM, spectral()).unwrap();
+        let frequency = 6e14 * HZ;
+        let wavelength = frequency.to_equiv(NM, spectral()).unwrap();
 
         let expected = SPEED_OF_LIGHT / 6e14 * 1e9; // in nm
         assert!((wavelength.value() - expected).abs() / expected < 1e-9);
@@ -261,8 +261,8 @@ mod tests {
     #[test]
     fn test_wavelength_to_energy() {
         // Test conversion from wavelength to energy
-        let wavelength = 500.0 * NM.clone();
-        let energy = wavelength.to_equiv(&J, spectral()).unwrap();
+        let wavelength = 500.0 * NM;
+        let energy = wavelength.to_equiv(J, spectral()).unwrap();
 
         let expected = PLANCK_CONSTANT * SPEED_OF_LIGHT / 500e-9;
         assert!((energy.value() - expected).abs() / expected < 1e-9);
@@ -271,8 +271,8 @@ mod tests {
     #[test]
     fn test_energy_to_wavelength() {
         // 1 eV should be about 1240 nm
-        let energy = 1.0 * EV.clone();
-        let wavelength = energy.to_equiv(&NM, spectral()).unwrap();
+        let energy = 1.0 * EV;
+        let wavelength = energy.to_equiv(NM, spectral()).unwrap();
 
         // E = hc/λ => λ = hc/E
         let e_joules = 1.602176634e-19; // 1 eV in J
@@ -282,29 +282,29 @@ mod tests {
 
     #[test]
     fn test_zero_wavelength_fails() {
-        let wavelength = 0.0 * NM.clone();
-        let result = wavelength.to_equiv(&HZ, spectral());
+        let wavelength = 0.0 * NM;
+        let result = wavelength.to_equiv(HZ, spectral());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_negative_wavelength_fails() {
-        let wavelength = -500.0 * NM.clone();
-        let result = wavelength.to_equiv(&HZ, spectral());
+        let wavelength = -500.0 * NM;
+        let result = wavelength.to_equiv(HZ, spectral());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_zero_frequency_fails() {
-        let frequency = 0.0 * HZ.clone();
-        let result = frequency.to_equiv(&NM, spectral());
+        let frequency = 0.0 * HZ;
+        let result = frequency.to_equiv(NM, spectral());
         assert!(result.is_err());
     }
 
     #[test]
     fn test_negative_energy_fails() {
-        let energy = -1.0 * EV.clone();
-        let result = energy.to_equiv(&NM, spectral());
+        let energy = -1.0 * EV;
+        let result = energy.to_equiv(NM, spectral());
         assert!(result.is_err());
     }
 }

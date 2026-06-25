@@ -221,7 +221,7 @@ use crate::dimension::Rational16;
 use crate::error::{UnitError, UnitResult};
 use crate::quantity::Quantity;
 use crate::unit::Unit;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 use std::sync::LazyLock;
 use std::sync::RwLock;
@@ -650,7 +650,7 @@ impl UnitRegistry {
     pub fn register(&mut self, names: &[&str], unit: Unit) {
         let entry = UnitEntry { unit };
         for name in names {
-            self.entries.insert(name.to_lowercase(), entry.clone());
+            self.entries.insert(name.to_string(), entry.clone());
         }
     }
 
@@ -669,9 +669,7 @@ impl UnitRegistry {
 
     /// Look up a unit by name.
     pub fn lookup(&self, name: &str) -> Option<Unit> {
-        self.entries
-            .get(&name.to_lowercase())
-            .map(|e| e.unit.clone())
+        registry_get(&self.entries, name).map(|e| e.unit.clone())
     }
 
     /// Parse a unit string using this registry.
@@ -716,12 +714,40 @@ struct UnitEntry {
     unit: Unit,
 }
 
+/// Resolve a name against a registry: exact (case-sensitive) match first, then
+/// a lowercase fallback. Canonical symbols are therefore case-sensitive
+/// (`T` = tesla, `t` = tonne, `mJy` ≠ `MJy`), while long names and sloppy
+/// casing (`METER`, `Tesla`) still resolve via the fallback.
+fn registry_get<'a>(
+    registry: &'a HashMap<String, UnitEntry>,
+    name: &str,
+) -> Option<&'a UnitEntry> {
+    if let Some(entry) = registry.get(name) {
+        return Some(entry);
+    }
+    let lower = name.to_lowercase();
+    if lower.as_str() != name {
+        registry.get(&lower)
+    } else {
+        None
+    }
+}
+
 /// Global unit registry mapping strings to units.
 static UNIT_REGISTRY: LazyLock<RwLock<HashMap<String, UnitEntry>>> = LazyLock::new(|| {
     let mut map = HashMap::new();
     register_builtin_units(&mut map);
     register_extended_aliases(&mut map);
     RwLock::new(map)
+});
+
+/// Names that ship as built-ins, captured at init so `register_unit` can refuse
+/// to silently shadow them in the process-global registry.
+static BUILTIN_NAMES: LazyLock<HashSet<String>> = LazyLock::new(|| {
+    let mut map = HashMap::new();
+    register_builtin_units(&mut map);
+    register_extended_aliases(&mut map);
+    map.into_keys().collect()
 });
 
 /// Register all built-in units with the registry.
@@ -734,7 +760,7 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
         ($map:expr, $unit:expr, $($name:expr),+) => {
             let entry = UnitEntry { unit: Unit::from($unit) };
             $(
-                $map.insert($name.to_lowercase(), entry.clone());
+                $map.insert($name.to_string(), entry.clone());
             )+
         };
     }
@@ -820,6 +846,19 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, N, "n", "newton", "newtons");
     register!(map, J, "j", "joule", "joules");
     register!(map, W, "w", "watt", "watts");
+
+    // SI Derived - electromagnetic, photometric, radiological.
+    // Symbols are case-sensitive (see `registry_get`): `T`=tesla vs `t`=tonne,
+    // `S`=siemens vs `s`=second, `H`=henry vs `h`=hour.
+    register!(map, T, "T", "tesla", "teslas");
+    register!(map, WB, "Wb", "weber", "webers");
+    register!(map, HENRY, "H", "henry", "henries", "henrys");
+    register!(map, SIEMENS, "S", "siemens");
+    register!(map, LM, "lm", "lumen", "lumens");
+    register!(map, LX, "lx", "lux");
+    register!(map, BQ, "Bq", "becquerel", "becquerels");
+    register!(map, GY, "Gy", "gray", "grays");
+    register!(map, SV, "Sv", "sievert", "sieverts");
     register!(map, KW, "kw", "kilowatt", "kilowatts");
     register!(map, MW, "mw", "megawatt", "megawatts");
     register!(map, PA, "pa", "pascal", "pascals");
@@ -878,7 +917,7 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
 fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
     use crate::systems::astrophysical::{
         ANGSTROM, AU, BARN, DYN, EARTH_MASS, EARTH_RADIUS, ERG, GAUSS, GPC, JANSKY, JUPITER_MASS,
-        JUPITER_RADIUS, KPC, LIGHT_YEAR, MJY, MPC, PARSEC, SOLAR_LUMINOSITY, SOLAR_MASS,
+        JUPITER_RADIUS, KPC, LIGHT_YEAR, MEGAJANSKY, MJY, MPC, PARSEC, SOLAR_LUMINOSITY, SOLAR_MASS,
         SOLAR_RADIUS, UJY,
     };
 
@@ -886,7 +925,7 @@ fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
         ($map:expr, $unit:expr, $($name:expr),+) => {
             let entry = UnitEntry { unit: Unit::from($unit) };
             $(
-                $map.insert($name.to_lowercase(), entry.clone());
+                $map.insert($name.to_string(), entry.clone());
             )+
         };
     }
@@ -928,9 +967,10 @@ fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
 
     // Spectroscopic
     register!(map, ANGSTROM, "angstrom", "aa");
-    register!(map, JANSKY, "jy", "jansky");
-    register!(map, MJY, "mjy", "millijansky");
-    register!(map, UJY, "ujy", "microjansky");
+    register!(map, JANSKY, "Jy", "jy", "jansky");
+    register!(map, MJY, "mJy", "mjy", "millijansky");
+    register!(map, MEGAJANSKY, "MJy", "megajansky");
+    register!(map, UJY, "uJy", "µJy", "ujy", "microjansky");
     register!(map, BARN, "barn", "barns");
 
     // CGS commonly used in astrophysics
@@ -947,7 +987,7 @@ fn register_cgs_units(map: &mut HashMap<String, UnitEntry>) {
         ($map:expr, $unit:expr, $($name:expr),+) => {
             let entry = UnitEntry { unit: Unit::from($unit) };
             $(
-                $map.insert($name.to_lowercase(), entry.clone());
+                $map.insert($name.to_string(), entry.clone());
             )+
         };
     }
@@ -964,7 +1004,7 @@ fn register_extended_aliases(map: &mut HashMap<String, UnitEntry>) {
         ($map:expr, $unit:expr, $($name:expr),+) => {
             let entry = UnitEntry { unit: Unit::from($unit) };
             $(
-                $map.insert($name.to_lowercase(), entry.clone());
+                $map.insert($name.to_string(), entry.clone());
             )+
         };
     }
@@ -999,7 +1039,7 @@ fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
         ($map:expr, $unit:expr, $($name:expr),+) => {
             let entry = UnitEntry { unit: Unit::from($unit) };
             $(
-                $map.insert($name.to_lowercase(), entry.clone());
+                $map.insert($name.to_string(), entry.clone());
             )+
         };
     }
@@ -1027,19 +1067,47 @@ fn register_astrophysical_aliases(map: &mut HashMap<String, UnitEntry>) {
 /// Look up a simple unit by name.
 pub fn lookup_unit(name: &str) -> Option<Unit> {
     let registry = UNIT_REGISTRY.read().ok()?;
-    registry.get(&name.to_lowercase()).map(|e| e.unit.clone())
+    registry_get(&registry, name).map(|e| e.unit.clone())
 }
 
-/// Register a custom unit with the registry.
+/// Register a custom unit with the global registry.
 ///
-/// This allows adding user-defined units that can be parsed from strings.
-pub fn register_unit(names: &[&str], unit: Unit) {
-    if let Ok(mut registry) = UNIT_REGISTRY.write() {
-        let entry = UnitEntry { unit };
-        for name in names {
-            registry.insert(name.to_lowercase(), entry.clone());
+/// Names are stored case-sensitively. Returns [`UnitError::NameTaken`] if any
+/// name collides with a built-in unit — use [`register_unit_override`] to
+/// deliberately replace a built-in. Prefer an owned [`UnitRegistry`] over the
+/// process-global registry in library code.
+pub fn register_unit(names: &[&str], unit: Unit) -> UnitResult<()> {
+    for name in names {
+        if BUILTIN_NAMES.contains(*name) {
+            return Err(UnitError::NameTaken {
+                name: (*name).to_string(),
+            });
         }
     }
+    let mut registry = UNIT_REGISTRY
+        .write()
+        .map_err(|_| UnitError::ParseError("unit registry lock poisoned".into()))?;
+    let entry = UnitEntry { unit };
+    for name in names {
+        registry.insert((*name).to_string(), entry.clone());
+    }
+    Ok(())
+}
+
+/// Register a custom unit, allowing replacement of built-in names.
+///
+/// The escape hatch for [`register_unit`]'s built-in protection. Use sparingly:
+/// it mutates the process-global registry, so it affects every consumer of the
+/// crate in the process.
+pub fn register_unit_override(names: &[&str], unit: Unit) -> UnitResult<()> {
+    let mut registry = UNIT_REGISTRY
+        .write()
+        .map_err(|_| UnitError::ParseError("unit registry lock poisoned".into()))?;
+    let entry = UnitEntry { unit };
+    for name in names {
+        registry.insert((*name).to_string(), entry.clone());
+    }
+    Ok(())
 }
 
 /// Parse a unit string into a Unit.
@@ -1271,9 +1339,8 @@ fn lookup_simple_unit_with_registry(
     registry: &HashMap<String, UnitEntry>,
 ) -> UnitResult<Unit> {
     let name = name.trim();
-    let name_lower = name.to_lowercase();
 
-    if let Some(entry) = registry.get(&name_lower) {
+    if let Some(entry) = registry_get(registry, name) {
         return Ok(entry.unit.clone());
     }
 
@@ -1488,8 +1555,8 @@ mod tests {
 
     #[test]
     fn test_parse_quantity_negative() {
-        let q = parse_quantity("-3.14 rad").unwrap();
-        assert!((q.value() - (-3.14)).abs() < 1e-10);
+        let q = parse_quantity("-2.5 rad").unwrap();
+        assert!((q.value() - (-2.5)).abs() < 1e-10);
     }
 
     #[test]
@@ -1924,5 +1991,96 @@ mod tests {
         let dim = accel.dimension();
         assert_eq!(dim.length, Rational16::ONE);
         assert_eq!(dim.time, Rational16::new(-2, 1));
+    }
+
+    #[test]
+    fn test_si_derived_units_parse() {
+        // #51: nine derived units were defined but never registered.
+        for name in [
+            "tesla", "weber", "henry", "siemens", "lumen", "lux", "becquerel", "gray", "sievert",
+        ] {
+            assert!(parse_unit(name).is_ok(), "{name} should parse");
+        }
+        for sym in ["Wb", "lm", "lx", "Bq", "Gy", "Sv"] {
+            assert!(parse_unit(sym).is_ok(), "{sym} should parse");
+        }
+        assert_eq!(
+            parse_unit("T").unwrap().dimension(),
+            parse_unit("tesla").unwrap().dimension()
+        );
+    }
+
+    #[test]
+    fn test_symbol_case_sensitivity() {
+        // #52: T=tesla vs t=tonne, S=siemens vs s=second, H=henry vs h=hour.
+        assert_eq!(
+            parse_unit("T").unwrap().dimension(),
+            parse_unit("tesla").unwrap().dimension()
+        );
+        assert_eq!(
+            parse_unit("t").unwrap().dimension(),
+            parse_unit("tonne").unwrap().dimension()
+        );
+        assert_ne!(
+            parse_unit("T").unwrap().dimension(),
+            parse_unit("t").unwrap().dimension()
+        );
+
+        assert_eq!(
+            parse_unit("S").unwrap().dimension(),
+            parse_unit("siemens").unwrap().dimension()
+        );
+        assert_ne!(
+            parse_unit("S").unwrap().dimension(),
+            parse_unit("s").unwrap().dimension()
+        );
+
+        assert_eq!(
+            parse_unit("H").unwrap().dimension(),
+            parse_unit("henry").unwrap().dimension()
+        );
+        assert_ne!(
+            parse_unit("H").unwrap().dimension(),
+            parse_unit("h").unwrap().dimension()
+        );
+
+        // sloppy casing still resolves via the lowercase fallback
+        assert_eq!(
+            parse_unit("METER").unwrap().dimension(),
+            parse_unit("m").unwrap().dimension()
+        );
+        assert_eq!(
+            parse_unit("KM").unwrap().dimension(),
+            parse_unit("km").unwrap().dimension()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "astrophysics")]
+    fn test_jansky_case_distinction() {
+        // #52: mJy (milli) and MJy (mega) must no longer collapse together.
+        let factor =
+            crate::quantity::conversion_factor(parse_unit("MJy").unwrap(), parse_unit("mJy").unwrap())
+                .unwrap();
+        assert!(
+            (factor - 1e9).abs() / 1e9 < 1e-9,
+            "1 MJy should equal 1e9 mJy, got {factor}"
+        );
+        assert!(parse_unit("mjy").is_ok(), "lowercase mjy should still resolve");
+    }
+
+    #[test]
+    fn test_register_unit_rejects_builtin() {
+        // #53: refuse to silently shadow a built-in process-wide.
+        let result = register_unit(&["m"], Unit::from(KM));
+        assert!(matches!(result, Err(UnitError::NameTaken { .. })));
+
+        // a novel name registers fine
+        assert!(register_unit(&["frobnitz"], Unit::from(KM)).is_ok());
+        assert!(parse_unit("frobnitz").is_ok());
+
+        // the override escape hatch bypasses the guard
+        assert!(register_unit_override(&["snark"], Unit::from(M)).is_ok());
+        assert!(parse_unit("snark").is_ok());
     }
 }

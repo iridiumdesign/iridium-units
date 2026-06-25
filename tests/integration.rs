@@ -319,7 +319,7 @@ fn magnitude_flux_roundtrip() {
 
     let mag5 = 5.0 * MAG;
     let flux = mag5
-        .to_equiv(&Unit::dimensionless(), magnitude_flux())
+        .to_equiv(Unit::dimensionless(), magnitude_flux())
         .unwrap();
     assert!((flux.value() - 0.01).abs() < 1e-10);
 
@@ -336,7 +336,7 @@ fn db_power_3db_rule() {
     // 3 dB ≈ 2x power, 10 dB = 10x power, 20 dB = 100x power
     for (db_val, expected_ratio) in [(3.0, 2.0), (10.0, 10.0), (20.0, 100.0)] {
         let db = db_val * DB;
-        let ratio = db.to_equiv(&Unit::dimensionless(), db_power()).unwrap();
+        let ratio = db.to_equiv(Unit::dimensionless(), db_power()).unwrap();
         assert!((ratio.value() - expected_ratio).abs() / expected_ratio < 0.01);
     }
 }

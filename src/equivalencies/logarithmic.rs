@@ -214,9 +214,9 @@ mod tests {
 
     #[test]
     fn test_magnitude_to_flux() {
-        let mag5 = 5.0 * MAG.clone();
+        let mag5 = 5.0 * MAG;
         let flux = mag5
-            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .to_equiv(Unit::dimensionless(), magnitude_flux())
             .unwrap();
         // 5 mag = 10^(-0.4*5) = 0.01 flux ratio
         assert!((flux.value() - 0.01).abs() < 1e-10);
@@ -225,16 +225,16 @@ mod tests {
     #[test]
     fn test_flux_to_magnitude() {
         let flux = 0.01 * Unit::dimensionless();
-        let mag = flux.to_equiv(&MAG, magnitude_flux()).unwrap();
+        let mag = flux.to_equiv(MAG, magnitude_flux()).unwrap();
         // 0.01 flux ratio = 5 mag
         assert!((mag.value() - 5.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_zero_magnitude() {
-        let mag0 = 0.0 * MAG.clone();
+        let mag0 = 0.0 * MAG;
         let flux = mag0
-            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .to_equiv(Unit::dimensionless(), magnitude_flux())
             .unwrap();
         // 0 mag = flux ratio of 1
         assert!((flux.value() - 1.0).abs() < 1e-10);
@@ -243,9 +243,9 @@ mod tests {
     #[test]
     fn test_negative_magnitude() {
         // Negative magnitudes mean brighter than reference
-        let mag_neg5 = -5.0 * MAG.clone();
+        let mag_neg5 = -5.0 * MAG;
         let flux = mag_neg5
-            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .to_equiv(Unit::dimensionless(), magnitude_flux())
             .unwrap();
         // -5 mag = 100x flux ratio
         assert!((flux.value() - 100.0).abs() < 1e-10);
@@ -254,25 +254,25 @@ mod tests {
     #[test]
     fn test_millimag_conversion() {
         // 5000 mmag = 5 mag
-        let mmag = 5000.0 * MILLIMAG.clone();
+        let mmag = 5000.0 * MILLIMAG;
         let flux = mmag
-            .to_equiv(&Unit::dimensionless(), magnitude_flux())
+            .to_equiv(Unit::dimensionless(), magnitude_flux())
             .unwrap();
         assert!((flux.value() - 0.01).abs() < 1e-10);
     }
 
     #[test]
     fn test_db_power_conversion() {
-        let db10 = 10.0 * DB.clone();
-        let power = db10.to_equiv(&Unit::dimensionless(), db_power()).unwrap();
+        let db10 = 10.0 * DB;
+        let power = db10.to_equiv(Unit::dimensionless(), db_power()).unwrap();
         // 10 dB = 10x power
         assert!((power.value() - 10.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_db_3db_is_2x() {
-        let db3 = 3.0 * DB.clone();
-        let power = db3.to_equiv(&Unit::dimensionless(), db_power()).unwrap();
+        let db3 = 3.0 * DB;
+        let power = db3.to_equiv(Unit::dimensionless(), db_power()).unwrap();
         // 3 dB ≈ 2x power
         assert!((power.value() - 2.0).abs() < 0.01);
     }
@@ -280,7 +280,7 @@ mod tests {
     #[test]
     fn test_power_to_db() {
         let power = 100.0 * Unit::dimensionless();
-        let db = power.to_equiv(&DB, db_power()).unwrap();
+        let db = power.to_equiv(DB, db_power()).unwrap();
         // 100x = 20 dB
         assert!((db.value() - 20.0).abs() < 1e-10);
     }
@@ -288,9 +288,9 @@ mod tests {
     #[test]
     fn test_db_amplitude_6db() {
         // 6 dB = 2x amplitude (20 dB per decade)
-        let db6 = 6.0 * DB.clone();
+        let db6 = 6.0 * DB;
         let amp = db6
-            .to_equiv(&Unit::dimensionless(), db_amplitude())
+            .to_equiv(Unit::dimensionless(), db_amplitude())
             .unwrap();
         // 6 dB ≈ 1.995x amplitude
         assert!((amp.value() - 2.0).abs() < 0.01);
@@ -298,8 +298,8 @@ mod tests {
 
     #[test]
     fn test_dex_conversion() {
-        let dex2 = 2.0 * DEX.clone();
-        let ratio = dex2.to_equiv(&Unit::dimensionless(), dex_ratio()).unwrap();
+        let dex2 = 2.0 * DEX;
+        let ratio = dex2.to_equiv(Unit::dimensionless(), dex_ratio()).unwrap();
         // 2 dex = 100x
         assert!((ratio.value() - 100.0).abs() < 1e-10);
     }
@@ -307,7 +307,7 @@ mod tests {
     #[test]
     fn test_ratio_to_dex() {
         let ratio = 1000.0 * Unit::dimensionless();
-        let dex = ratio.to_equiv(&DEX, dex_ratio()).unwrap();
+        let dex = ratio.to_equiv(DEX, dex_ratio()).unwrap();
         // 1000x = 3 dex
         assert!((dex.value() - 3.0).abs() < 1e-10);
     }
@@ -316,7 +316,7 @@ mod tests {
     fn test_invalid_flux_conversion() {
         // Negative flux ratio should fail
         let flux = -1.0 * Unit::dimensionless();
-        let result = flux.to_equiv(&MAG, magnitude_flux());
+        let result = flux.to_equiv(MAG, magnitude_flux());
         assert!(result.is_err());
     }
 }

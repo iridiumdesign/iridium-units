@@ -257,12 +257,12 @@ mod tests {
     #[test]
     fn test_doppler_radio_redshift() {
         // Test with CO(1-0) at 115.27120 GHz
-        let rest_freq = 115.27120 * GHZ.clone();
+        let rest_freq = 115.27120 * GHZ;
 
         // If observed frequency is lower, velocity should be positive (receding)
-        let observed = 115.0 * GHZ.clone();
+        let observed = 115.0 * GHZ;
         let velocity = observed
-            .to_equiv(&km_per_s(), doppler_radio(rest_freq.clone()))
+            .to_equiv(km_per_s(), doppler_radio(rest_freq.clone()))
             .unwrap();
 
         // v = c(1 - ν/ν₀) = c(1 - 115/115.27120)
@@ -272,12 +272,12 @@ mod tests {
 
     #[test]
     fn test_doppler_radio_blueshift() {
-        let rest_freq = 115.27120 * GHZ.clone();
+        let rest_freq = 115.27120 * GHZ;
 
         // If observed frequency is higher, velocity should be negative (approaching)
-        let observed = 116.0 * GHZ.clone();
+        let observed = 116.0 * GHZ;
         let velocity = observed
-            .to_equiv(&km_per_s(), doppler_radio(rest_freq))
+            .to_equiv(km_per_s(), doppler_radio(rest_freq))
             .unwrap();
 
         assert!(velocity.value() < 0.0); // Approaching
@@ -285,13 +285,13 @@ mod tests {
 
     #[test]
     fn test_doppler_optical() {
-        let rest_freq = 1e15 * HZ.clone(); // Some UV frequency
+        let rest_freq = 1e15 * HZ; // Some UV frequency
 
         // z = 0.1 redshift means v/c = 0.1 in optical convention
         // ν = ν₀/(1 + z) = ν₀/1.1
-        let observed = (1e15 / 1.1) * HZ.clone();
+        let observed = (1e15 / 1.1) * HZ;
         let velocity = observed
-            .to_equiv(&km_per_s(), doppler_optical(rest_freq))
+            .to_equiv(km_per_s(), doppler_optical(rest_freq))
             .unwrap();
 
         // v = c * z = c * 0.1
@@ -302,19 +302,19 @@ mod tests {
     #[test]
     fn test_doppler_relativistic_low_velocity() {
         // At low velocities, all three conventions should agree
-        let rest_freq = 1e9 * HZ.clone();
+        let rest_freq = 1e9 * HZ;
 
         // Small velocity: 1 km/s << c
         let velocity = 1.0 * km_per_s();
 
         let freq_radio = velocity
-            .to_equiv(&HZ, doppler_radio(rest_freq.clone()))
+            .to_equiv(HZ, doppler_radio(rest_freq.clone()))
             .unwrap();
         let freq_optical = velocity
-            .to_equiv(&HZ, doppler_optical(rest_freq.clone()))
+            .to_equiv(HZ, doppler_optical(rest_freq.clone()))
             .unwrap();
         let freq_rel = velocity
-            .to_equiv(&HZ, doppler_relativistic(rest_freq.clone()))
+            .to_equiv(HZ, doppler_relativistic(rest_freq.clone()))
             .unwrap();
 
         // All should be very close for small velocities
@@ -328,35 +328,35 @@ mod tests {
 
     #[test]
     fn test_superluminal_radio_fails() {
-        let rest_freq = 1e9 * HZ.clone();
+        let rest_freq = 1e9 * HZ;
         // Velocity at speed of light
         let velocity = SPEED_OF_LIGHT * m_per_s();
-        let result = velocity.to_equiv(&HZ, doppler_radio(rest_freq));
+        let result = velocity.to_equiv(HZ, doppler_radio(rest_freq));
         assert!(result.is_err());
     }
 
     #[test]
     fn test_superluminal_relativistic_fails() {
-        let rest_freq = 1e9 * HZ.clone();
+        let rest_freq = 1e9 * HZ;
         // Velocity at speed of light
         let velocity = SPEED_OF_LIGHT * m_per_s();
-        let result = velocity.to_equiv(&HZ, doppler_relativistic(rest_freq));
+        let result = velocity.to_equiv(HZ, doppler_relativistic(rest_freq));
         assert!(result.is_err());
     }
 
     #[test]
     fn test_zero_frequency_fails() {
-        let rest_freq = 1e9 * HZ.clone();
-        let frequency = 0.0 * HZ.clone();
-        let result = frequency.to_equiv(&km_per_s(), doppler_radio(rest_freq));
+        let rest_freq = 1e9 * HZ;
+        let frequency = 0.0 * HZ;
+        let result = frequency.to_equiv(km_per_s(), doppler_radio(rest_freq));
         assert!(result.is_err());
     }
 
     #[test]
     fn test_negative_frequency_fails() {
-        let rest_freq = 1e9 * HZ.clone();
-        let frequency = -1e9 * HZ.clone();
-        let result = frequency.to_equiv(&km_per_s(), doppler_relativistic(rest_freq));
+        let rest_freq = 1e9 * HZ;
+        let frequency = -1e9 * HZ;
+        let result = frequency.to_equiv(km_per_s(), doppler_relativistic(rest_freq));
         assert!(result.is_err());
     }
 }

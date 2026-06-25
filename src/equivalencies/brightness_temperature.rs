@@ -464,17 +464,17 @@ mod tests {
 
     #[test]
     fn test_rayleigh_jeans_roundtrip() {
-        let freq = 1.0e9 * HZ.clone(); // 1 GHz
-        let beam = 1e-6 * SR.clone(); // 1 µsr
+        let freq = 1.0e9 * HZ; // 1 GHz
+        let beam = 1e-6 * SR; // 1 µsr
 
-        let flux = 1.0 * JANSKY.clone();
+        let flux = 1.0 * JANSKY;
         let temp = flux
-            .to_equiv(&K, brightness_temperature(freq.clone(), beam.clone()))
+            .to_equiv(K, brightness_temperature(freq.clone(), beam.clone()))
             .unwrap();
 
         // Convert back
         let flux_back = temp
-            .to_equiv(&JANSKY, brightness_temperature(freq, beam))
+            .to_equiv(JANSKY, brightness_temperature(freq, beam))
             .unwrap();
 
         assert!((flux_back.value() - 1.0).abs() < 1e-10);
@@ -491,12 +491,12 @@ mod tests {
         let expected_t = s_nu_si * SPEED_OF_LIGHT.powi(2)
             / (2.0 * BOLTZMANN_CONSTANT * freq_hz.powi(2) * omega_sr);
 
-        let freq = freq_hz * HZ.clone();
-        let beam = omega_sr * SR.clone();
-        let flux = s_nu_jy * JANSKY.clone();
+        let freq = freq_hz * HZ;
+        let beam = omega_sr * SR;
+        let flux = s_nu_jy * JANSKY;
 
         let temp = flux
-            .to_equiv(&K, brightness_temperature(freq, beam))
+            .to_equiv(K, brightness_temperature(freq, beam))
             .unwrap();
 
         assert!((temp.value() - expected_t).abs() / expected_t < 1e-10);
@@ -505,17 +505,17 @@ mod tests {
     #[test]
     fn test_planck_vs_rayleigh_jeans_high_temp() {
         // At high temperature, Planck and R-J should agree
-        let freq = 1.0e9 * HZ.clone(); // 1 GHz
-        let beam = 1e-6 * SR.clone();
+        let freq = 1.0e9 * HZ; // 1 GHz
+        let beam = 1e-6 * SR;
 
         // Start with a high temperature (R-J valid: T >> hν/k ≈ 0.048 K)
-        let temp_high = 1000.0 * K.clone();
+        let temp_high = 1000.0 * K;
 
         let flux_rj = temp_high
-            .to_equiv(&JANSKY, brightness_temperature(freq.clone(), beam.clone()))
+            .to_equiv(JANSKY, brightness_temperature(freq.clone(), beam.clone()))
             .unwrap();
         let flux_planck = temp_high
-            .to_equiv(&JANSKY, brightness_temperature_planck(freq, beam))
+            .to_equiv(JANSKY, brightness_temperature_planck(freq, beam))
             .unwrap();
 
         // Should agree to better than 0.1% at this temperature
@@ -530,17 +530,17 @@ mod tests {
     #[test]
     fn test_planck_low_temp_differs() {
         // At low temperature (relative to hν/k), Planck and R-J should differ
-        let freq = 100.0e9 * HZ.clone(); // 100 GHz -> hν/k ≈ 4.8 K
-        let beam = 1e-6 * SR.clone();
+        let freq = 100.0e9 * HZ; // 100 GHz -> hν/k ≈ 4.8 K
+        let beam = 1e-6 * SR;
 
         // Temperature comparable to hν/k
-        let temp_low = 10.0 * K.clone();
+        let temp_low = 10.0 * K;
 
         let flux_rj = temp_low
-            .to_equiv(&JANSKY, brightness_temperature(freq.clone(), beam.clone()))
+            .to_equiv(JANSKY, brightness_temperature(freq.clone(), beam.clone()))
             .unwrap();
         let flux_planck = temp_low
-            .to_equiv(&JANSKY, brightness_temperature_planck(freq, beam))
+            .to_equiv(JANSKY, brightness_temperature_planck(freq, beam))
             .unwrap();
 
         // Should differ noticeably (Planck gives less flux than R-J at low T)
@@ -549,20 +549,20 @@ mod tests {
 
     #[test]
     fn test_planck_roundtrip() {
-        let freq = 345.0e9 * HZ.clone(); // 345 GHz (submm)
-        let beam = 1e-8 * SR.clone();
+        let freq = 345.0e9 * HZ; // 345 GHz (submm)
+        let beam = 1e-8 * SR;
 
-        let flux = 100.0 * JANSKY.clone();
+        let flux = 100.0 * JANSKY;
         let temp = flux
             .to_equiv(
-                &K,
+                K,
                 brightness_temperature_planck(freq.clone(), beam.clone()),
             )
             .unwrap();
 
         // Convert back
         let flux_back = temp
-            .to_equiv(&JANSKY, brightness_temperature_planck(freq, beam))
+            .to_equiv(JANSKY, brightness_temperature_planck(freq, beam))
             .unwrap();
 
         assert!((flux_back.value() - 100.0).abs() / 100.0 < 1e-10);
@@ -570,18 +570,18 @@ mod tests {
 
     #[test]
     fn test_intensity_equivalency() {
-        let freq = 1.0e9 * HZ.clone();
+        let freq = 1.0e9 * HZ;
 
         // Test with spectral radiance
         let intensity = 1e-20 * spectral_radiance_unit();
         let temp = intensity
-            .to_equiv(&K, brightness_temperature_intensity(freq.clone()))
+            .to_equiv(K, brightness_temperature_intensity(freq.clone()))
             .unwrap();
 
         // Convert back
         let intensity_back = temp
             .to_equiv(
-                &spectral_radiance_unit(),
+                spectral_radiance_unit(),
                 brightness_temperature_intensity(freq),
             )
             .unwrap();
@@ -601,33 +601,33 @@ mod tests {
 
     #[test]
     fn test_negative_flux_fails() {
-        let freq = 1.0e9 * HZ.clone();
-        let beam = 1e-6 * SR.clone();
+        let freq = 1.0e9 * HZ;
+        let beam = 1e-6 * SR;
 
-        let flux = -1.0 * JANSKY.clone();
-        let result = flux.to_equiv(&K, brightness_temperature(freq, beam));
+        let flux = -1.0 * JANSKY;
+        let result = flux.to_equiv(K, brightness_temperature(freq, beam));
         assert!(result.is_err());
     }
 
     #[test]
     fn test_negative_temp_fails() {
-        let freq = 1.0e9 * HZ.clone();
-        let beam = 1e-6 * SR.clone();
+        let freq = 1.0e9 * HZ;
+        let beam = 1e-6 * SR;
 
-        let temp = -100.0 * K.clone();
-        let result = temp.to_equiv(&JANSKY, brightness_temperature(freq, beam));
+        let temp = -100.0 * K;
+        let result = temp.to_equiv(JANSKY, brightness_temperature(freq, beam));
         assert!(result.is_err());
     }
 
     #[test]
     fn test_ghz_frequency() {
         // Test that GHz units work correctly
-        let freq = 1.4 * GHZ.clone(); // 1.4 GHz (21 cm line)
-        let beam = 1e-6 * SR.clone();
+        let freq = 1.4 * GHZ; // 1.4 GHz (21 cm line)
+        let beam = 1e-6 * SR;
 
-        let flux = 1.0 * JANSKY.clone();
+        let flux = 1.0 * JANSKY;
         let temp = flux
-            .to_equiv(&K, brightness_temperature(freq, beam))
+            .to_equiv(K, brightness_temperature(freq, beam))
             .unwrap();
 
         // Should get a reasonable temperature (not crazy high or low)

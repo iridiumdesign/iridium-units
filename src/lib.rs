@@ -119,7 +119,9 @@ pub use unit::base::BaseUnit;
 pub use unit::Unit;
 
 // Re-export parsing functions and types
-pub use parsing::{lookup_unit, parse_quantity, parse_unit, register_unit, UnitRegistry};
+pub use parsing::{
+    lookup_unit, parse_quantity, parse_unit, register_unit, register_unit_override, UnitRegistry,
+};
 
 /// Prelude module for convenient imports.
 ///
@@ -137,7 +139,8 @@ pub mod prelude {
 
     // Re-export parsing functions and types
     pub use crate::parsing::{
-        lookup_unit, parse_quantity, parse_unit, register_unit, UnitRegistry,
+        lookup_unit, parse_quantity, parse_unit, register_unit, register_unit_override,
+        UnitRegistry,
     };
 
     // Re-export common SI units

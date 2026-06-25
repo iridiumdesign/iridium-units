@@ -180,7 +180,7 @@ mod tests {
         // The equivalency treats rad as dimensionless (= 1)
         // So 2π rad/s → 2π Hz (same numeric value, just drops the rad)
         let omega = 2.0 * PI * RAD / S;
-        let f = omega.to_equiv(&HZ, dimensionless_angles()).unwrap();
+        let f = omega.to_equiv(HZ, dimensionless_angles()).unwrap();
         assert!((f.value() - 2.0 * PI).abs() < 1e-10);
     }
 
@@ -197,18 +197,18 @@ mod tests {
     fn test_rotational_energy() {
         // E = ½Iω²
         // I = 2 kg·m², ω = 3 rad/s
-        // E = ½ × 2 × 9 = 9 J
-        let I = 2.0 * KG * M * M;
+        // energy = ½ × 2 × 9 = 9 J
+        let inertia = 2.0 * KG * M * M;
         let omega = 3.0 * RAD / S;
         let omega_squared = &omega * &omega;
-        let E_raw = 0.5 * &I * omega_squared;
+        let energy_raw = 0.5 * &inertia * omega_squared;
 
         // Raw dimension is kg·m²·rad²/s²
-        assert!(has_angle_dimension(E_raw.unit()));
+        assert!(has_angle_dimension(energy_raw.unit()));
 
         // Convert to Joules
-        let E = E_raw.to_equiv(&J, dimensionless_angles()).unwrap();
-        assert!((E.value() - 9.0).abs() < 1e-10);
+        let energy = energy_raw.to_equiv(J, dimensionless_angles()).unwrap();
+        assert!((energy.value() - 9.0).abs() < 1e-10);
     }
 
     #[test]
@@ -224,7 +224,7 @@ mod tests {
         assert!(has_angle_dimension(work_raw.unit()));
 
         // Convert to Joules
-        let work = work_raw.to_equiv(&J, dimensionless_angles()).unwrap();
+        let work = work_raw.to_equiv(J, dimensionless_angles()).unwrap();
         assert!((work.value() - 20.0).abs() < 1e-10);
     }
 
@@ -238,7 +238,7 @@ mod tests {
         let power_raw = &intensity * &solid_angle;
 
         // Should already be W (sr cancels), but let's verify
-        let power = power_raw.to_equiv(&W, dimensionless_angles()).unwrap();
+        let power = power_raw.to_equiv(W, dimensionless_angles()).unwrap();
         assert!((power.value() - 50.0).abs() < 1e-10);
     }
 
@@ -265,7 +265,7 @@ mod tests {
     fn test_incompatible_dimensions_fail() {
         // Can't convert kg to Hz even with dimensionless angles
         let mass = 1.0 * KG;
-        let result = mass.to_equiv(&HZ, dimensionless_angles());
+        let result = mass.to_equiv(HZ, dimensionless_angles());
         assert!(result.is_err());
     }
 
@@ -274,7 +274,7 @@ mod tests {
         // 1 rad should convert to dimensionless 1
         let angle = 1.0 * RAD;
         let dimless = angle
-            .to_equiv(&Unit::dimensionless(), dimensionless_angles())
+            .to_equiv(Unit::dimensionless(), dimensionless_angles())
             .unwrap();
         assert!((dimless.value() - 1.0).abs() < 1e-10);
     }
@@ -284,7 +284,7 @@ mod tests {
         // π rad = π (dimensionless)
         let angle = PI * RAD;
         let dimless = angle
-            .to_equiv(&Unit::dimensionless(), dimensionless_angles())
+            .to_equiv(Unit::dimensionless(), dimensionless_angles())
             .unwrap();
         assert!((dimless.value() - PI).abs() < 1e-10);
     }
