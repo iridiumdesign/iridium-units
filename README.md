@@ -1,4 +1,9 @@
-# iridium-units
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/iridiumdesign/iridium-units/main/branding/iridium-units-github-banner.png"
+    alt="iridium-units — runtime quantities :: rust performance"
+    width="880">
+</p>
 
 A high-performance runtime unit-of-measure library for Rust.
 
