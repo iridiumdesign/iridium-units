@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Pre-commit checks mirroring CI (.github/workflows/rust.yml).
+# Enable once per clone with:  git config core.hooksPath .githooks
+
+echo "pre-commit: cargo fmt --check"
+cargo fmt -- --check || {
+    echo "✗ formatting — run 'cargo fmt' and re-stage." >&2
+    exit 1
+}
+
+echo "pre-commit: cargo clippy --all-features -D warnings"
+cargo clippy --all-features -- -D warnings || {
+    echo "✗ clippy warnings — fix them before committing." >&2
+    exit 1
+}
+
+echo "pre-commit: ok"

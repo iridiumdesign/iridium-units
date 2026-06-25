@@ -718,10 +718,7 @@ struct UnitEntry {
 /// a lowercase fallback. Canonical symbols are therefore case-sensitive
 /// (`T` = tesla, `t` = tonne, `mJy` ≠ `MJy`), while long names and sloppy
 /// casing (`METER`, `Tesla`) still resolve via the fallback.
-fn registry_get<'a>(
-    registry: &'a HashMap<String, UnitEntry>,
-    name: &str,
-) -> Option<&'a UnitEntry> {
+fn registry_get<'a>(registry: &'a HashMap<String, UnitEntry>, name: &str) -> Option<&'a UnitEntry> {
     if let Some(entry) = registry.get(name) {
         return Some(entry);
     }
@@ -917,8 +914,8 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
 fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
     use crate::systems::astrophysical::{
         ANGSTROM, AU, BARN, DYN, EARTH_MASS, EARTH_RADIUS, ERG, GAUSS, GPC, JANSKY, JUPITER_MASS,
-        JUPITER_RADIUS, KPC, LIGHT_YEAR, MEGAJANSKY, MJY, MPC, PARSEC, SOLAR_LUMINOSITY, SOLAR_MASS,
-        SOLAR_RADIUS, UJY,
+        JUPITER_RADIUS, KPC, LIGHT_YEAR, MEGAJANSKY, MJY, MPC, PARSEC, SOLAR_LUMINOSITY,
+        SOLAR_MASS, SOLAR_RADIUS, UJY,
     };
 
     macro_rules! register {
@@ -1997,7 +1994,15 @@ mod tests {
     fn test_si_derived_units_parse() {
         // #51: nine derived units were defined but never registered.
         for name in [
-            "tesla", "weber", "henry", "siemens", "lumen", "lux", "becquerel", "gray", "sievert",
+            "tesla",
+            "weber",
+            "henry",
+            "siemens",
+            "lumen",
+            "lux",
+            "becquerel",
+            "gray",
+            "sievert",
         ] {
             assert!(parse_unit(name).is_ok(), "{name} should parse");
         }
@@ -2059,14 +2064,19 @@ mod tests {
     #[cfg(feature = "astrophysics")]
     fn test_jansky_case_distinction() {
         // #52: mJy (milli) and MJy (mega) must no longer collapse together.
-        let factor =
-            crate::quantity::conversion_factor(parse_unit("MJy").unwrap(), parse_unit("mJy").unwrap())
-                .unwrap();
+        let factor = crate::quantity::conversion_factor(
+            parse_unit("MJy").unwrap(),
+            parse_unit("mJy").unwrap(),
+        )
+        .unwrap();
         assert!(
             (factor - 1e9).abs() / 1e9 < 1e-9,
             "1 MJy should equal 1e9 mJy, got {factor}"
         );
-        assert!(parse_unit("mjy").is_ok(), "lowercase mjy should still resolve");
+        assert!(
+            parse_unit("mjy").is_ok(),
+            "lowercase mjy should still resolve"
+        );
     }
 
     #[test]

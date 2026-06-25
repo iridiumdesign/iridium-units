@@ -289,9 +289,7 @@ mod tests {
     fn test_db_amplitude_6db() {
         // 6 dB = 2x amplitude (20 dB per decade)
         let db6 = 6.0 * DB;
-        let amp = db6
-            .to_equiv(Unit::dimensionless(), db_amplitude())
-            .unwrap();
+        let amp = db6.to_equiv(Unit::dimensionless(), db_amplitude()).unwrap();
         // 6 dB ≈ 1.995x amplitude
         assert!((amp.value() - 2.0).abs() < 0.01);
     }

@@ -554,10 +554,7 @@ mod tests {
 
         let flux = 100.0 * JANSKY;
         let temp = flux
-            .to_equiv(
-                K,
-                brightness_temperature_planck(freq.clone(), beam.clone()),
-            )
+            .to_equiv(K, brightness_temperature_planck(freq.clone(), beam.clone()))
             .unwrap();
 
         // Convert back
