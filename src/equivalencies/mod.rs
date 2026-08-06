@@ -29,6 +29,7 @@ pub mod dimensionless_angles;
 pub mod doppler;
 #[cfg(feature = "logarithmic")]
 pub mod logarithmic;
+pub mod magnetic;
 pub mod mass_energy;
 #[cfg(feature = "astrophysics")]
 pub mod parallax;
@@ -185,6 +186,7 @@ pub use dimensionless_angles::dimensionless_angles;
 pub use doppler::{doppler_optical, doppler_radio, doppler_relativistic};
 #[cfg(feature = "logarithmic")]
 pub use logarithmic::{db_amplitude, db_power, dex_ratio, magnitude_flux};
+pub use magnetic::magnetic_flux_density;
 pub use mass_energy::mass_energy;
 #[cfg(feature = "astrophysics")]
 pub use parallax::parallax;

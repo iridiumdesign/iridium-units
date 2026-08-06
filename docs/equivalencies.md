@@ -4,6 +4,26 @@ Equivalencies enable conversions between units with different dimensions when th
 
 Mass-energy, temperature, and dimensionless-angle equivalencies are always available. The spectral, Doppler, parallax, spectral-density, and brightness-temperature equivalencies require the `astrophysics` feature; the magnitude, decibel, and dex equivalencies require `logarithmic`.
 
+## Magnetic Flux Density and Field Strength
+
+The `magnetic_flux_density()` equivalency converts magnetic flux density `B` and magnetic field strength `H` in vacuum using:
+
+```text
+B = μ₀H
+```
+
+The conversion uses SI values internally and therefore accepts Tesla and units with `A/m` dimension. It models free space only; material permeability must be applied by the caller when working inside a material.
+
+```rust
+use iridium_units::equivalencies::magnetic_flux_density;
+use iridium_units::prelude::*;
+use iridium_units::systems::si::T;
+
+let h = 1.0 * &(A / M);
+let b = h.to_equiv(T, magnetic_flux_density())?;
+assert!((b.value() - 1.256_637_062_12e-6).abs() < 1e-15);
+```
+
 ## Using Equivalencies
 
 ```rust
