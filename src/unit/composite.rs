@@ -15,6 +15,14 @@
 use crate::dimension::{Dimension, Rational16};
 use std::fmt;
 
+fn scale_to_power(scale: f64, power: Rational16) -> f64 {
+    if power.denom() == 1 {
+        scale.powi(power.numer() as i32)
+    } else {
+        scale.powf(power.to_f64())
+    }
+}
+
 /// A component of a composite unit: a unit symbol with its power.
 #[derive(Clone, Debug, PartialEq)]
 pub struct UnitComponent {
@@ -69,7 +77,7 @@ impl UnitComponent {
 
     /// Get the effective scale (scale ^ power).
     pub fn effective_scale(&self) -> f64 {
-        self.scale.powf(self.power.to_f64())
+        scale_to_power(self.scale, self.power)
     }
 }
 
@@ -192,7 +200,7 @@ impl CompositeUnit {
     /// Raise this composite unit to a power.
     pub fn pow(&self, power: Rational16) -> CompositeUnit {
         CompositeUnit {
-            scale: self.scale.powf(power.to_f64()),
+            scale: scale_to_power(self.scale, power),
             components: self
                 .components
                 .iter()
@@ -204,6 +212,33 @@ impl CompositeUnit {
                 })
                 .collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn effective_scale_handles_integer_powers() {
+        let component = UnitComponent::new("m", Dimension::LENGTH, 10.0, Rational16::new(3, 1));
+
+        assert_eq!(component.effective_scale(), 10.0_f64.powi(3));
+    }
+
+    #[test]
+    fn effective_scale_keeps_fractional_powers() {
+        let component = UnitComponent::new("m", Dimension::LENGTH, 10.0, Rational16::new(1, 2));
+
+        assert!((component.effective_scale() - 10.0_f64.sqrt()).abs() < 1e-15);
+    }
+
+    #[test]
+    fn composite_power_handles_integer_scale_powers() {
+        let unit = CompositeUnit::dimensionless(10.0);
+        let powered = unit.pow(Rational16::new(-2, 1));
+
+        assert_eq!(powered.scale(), 10.0_f64.powi(-2));
     }
 }
 
