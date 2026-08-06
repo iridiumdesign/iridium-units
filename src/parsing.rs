@@ -289,21 +289,46 @@ fn find_similar_units(
     let name_lower = name.to_lowercase();
     let threshold = (name_lower.len() / 2).clamp(2, 3);
 
-    let mut candidates: Vec<(String, usize)> = registry
-        .keys()
-        .filter_map(|key| {
-            let dist = levenshtein_distance(&name_lower, key);
+    let mut candidates: Vec<(String, usize, Unit)> = registry
+        .iter()
+        .filter_map(|(key, entry)| {
+            let dist = levenshtein_distance(&name_lower, &key.to_lowercase());
             if dist <= threshold {
-                Some((key.clone(), dist))
+                Some((canonical_unit_label(&entry.unit), dist, entry.unit.clone()))
             } else {
                 None
             }
         })
         .collect();
 
-    candidates.sort_by_key(|(_, dist)| *dist);
-    candidates.truncate(max_suggestions);
-    candidates.into_iter().map(|(name, _)| name).collect()
+    // HashMap iteration order is not stable, so use the display label as a
+    // deterministic tie-breaker. This also lets aliases for one unit be
+    // collapsed before applying the suggestion limit.
+    candidates.sort_by(|(label_a, dist_a, _), (label_b, dist_b, _)| {
+        dist_a.cmp(dist_b).then_with(|| label_a.cmp(label_b))
+    });
+
+    let mut suggestions = Vec::with_capacity(max_suggestions);
+    let mut seen_units = Vec::new();
+    for (label, _, unit) in candidates {
+        if seen_units.iter().any(|seen: &Unit| seen == &unit) {
+            continue;
+        }
+        seen_units.push(unit);
+        suggestions.push(label);
+        if suggestions.len() == max_suggestions {
+            break;
+        }
+    }
+    suggestions
+}
+
+/// Return the stable, user-facing label for a resolved unit.
+fn canonical_unit_label(unit: &Unit) -> String {
+    match unit {
+        Unit::Base(base) => format!("{} ({})", base.name, base.symbol),
+        _ => unit.to_string(),
+    }
 }
 
 // ============================================================================
@@ -510,32 +535,34 @@ const MAX_PAREN_DEPTH: i32 = 64;
 /// Check if parentheses in a string are balanced and within depth limits.
 fn check_balanced_parens(s: &str) -> UnitResult<()> {
     let mut depth = 0i32;
-    for c in s.chars() {
+    for (position, c) in s.chars().enumerate() {
         match c {
             '(' => {
                 depth += 1;
                 if depth > MAX_PAREN_DEPTH {
                     return Err(UnitError::ParseError(format!(
-                        "parentheses nested deeper than {} levels",
-                        MAX_PAREN_DEPTH
+                        "parentheses nested deeper than {} levels at character position {}",
+                        MAX_PAREN_DEPTH, position
                     )));
                 }
             }
             ')' => {
                 depth -= 1;
                 if depth < 0 {
-                    return Err(UnitError::ParseError(
-                        "unbalanced parentheses: unexpected ')'".into(),
-                    ));
+                    return Err(UnitError::ParseError(format!(
+                        "unbalanced parentheses: unexpected ')' at character position {}",
+                        position
+                    )));
                 }
             }
             _ => {}
         }
     }
     if depth != 0 {
-        return Err(UnitError::ParseError(
-            "unbalanced parentheses: missing ')'".into(),
-        ));
+        return Err(UnitError::ParseError(format!(
+            "unbalanced parentheses: missing ')' at character position {}",
+            s.chars().count()
+        )));
     }
     Ok(())
 }
@@ -1230,31 +1257,61 @@ fn parse_unit_with_registry(s: &str, registry: &HashMap<String, UnitEntry>) -> U
     let normalized = normalize_subscripts(&normalized);
 
     // Check for parentheses - use the parentheses-aware parser
-    if normalized.contains('(') || normalized.contains(')') {
-        return parse_with_parens(&normalized, registry);
-    }
+    let result: UnitResult<Unit> = (|| {
+        if normalized.contains('(') || normalized.contains(')') {
+            parse_with_parens(&normalized, registry)
+        } else {
+            // Split by division, but be careful not to split inside exponents
+            // Exponents like "m^1/2" should not be split at the "/"
+            let parts = split_unit_by_division(&normalized);
 
-    // Split by division, but be careful not to split inside exponents
-    // Exponents like "m^1/2" should not be split at the "/"
-    let parts = split_unit_by_division(&normalized);
-
-    match parts.len() {
-        1 => parse_unit_product_with_registry(&parts[0], registry),
-        2 => {
-            let numerator = parse_unit_product_with_registry(&parts[0], registry)?;
-            let denominator = parse_unit_product_with_registry(&parts[1], registry)?;
-            Ok(&numerator / &denominator)
-        }
-        _ => {
-            // Multiple divisions: a/b/c = a / (b * c)
-            let numerator = parse_unit_product_with_registry(&parts[0], registry)?;
-            let mut denominator = parse_unit_product_with_registry(&parts[1], registry)?;
-            for part in &parts[2..] {
-                let next = parse_unit_product_with_registry(part, registry)?;
-                denominator = &denominator * &next;
+            match parts.len() {
+                1 => parse_unit_product_with_registry(&parts[0], registry),
+                2 => {
+                    let numerator = parse_unit_product_with_registry(&parts[0], registry)?;
+                    let denominator = parse_unit_product_with_registry(&parts[1], registry)?;
+                    Ok(&numerator / &denominator)
+                }
+                _ => {
+                    // Multiple divisions: a/b/c = a / (b * c)
+                    let numerator = parse_unit_product_with_registry(&parts[0], registry)?;
+                    let mut denominator = parse_unit_product_with_registry(&parts[1], registry)?;
+                    for part in &parts[2..] {
+                        let next = parse_unit_product_with_registry(part, registry)?;
+                        denominator = &denominator * &next;
+                    }
+                    Ok(&numerator / &denominator)
+                }
             }
-            Ok(&numerator / &denominator)
         }
+    })();
+
+    result.map_err(|error| add_parse_error_context(error, &normalized, s))
+}
+
+/// Add source-position context to parse failures while preserving the public
+/// `ParseError(String)` shape for callers matching the existing error API.
+fn add_parse_error_context(
+    error: UnitError,
+    normalized_source: &str,
+    original_source: &str,
+) -> UnitError {
+    match error {
+        UnitError::ParseError(message) if !message.contains("character position") => {
+            let position = if message.starts_with("invalid power") {
+                normalized_source
+                    .chars()
+                    .position(|character| character == '^')
+                    .unwrap_or_else(|| normalized_source.chars().count())
+            } else {
+                normalized_source.chars().count()
+            };
+            UnitError::ParseError(format!(
+                "{} at character position {} in `{}`",
+                message, position, original_source
+            ))
+        }
+        other => other,
     }
 }
 
@@ -1680,10 +1737,21 @@ mod tests {
         match result {
             Err(UnitError::UnknownUnit { name, suggestions }) => {
                 assert_eq!(name, "metrs");
-                // Should suggest "meters" or similar
-                assert!(!suggestions.is_empty());
+                assert_eq!(suggestions, vec!["meter (m)".to_string()]);
             }
             _ => panic!("Expected UnknownUnit error"),
+        }
+    }
+
+    #[test]
+    fn test_parse_error_includes_position_context() {
+        match parse_unit("m^not-a-power") {
+            Err(UnitError::ParseError(message)) => {
+                assert!(message.contains("invalid power"));
+                assert!(message.contains("character position 1"));
+                assert!(message.contains("`m^not-a-power`"));
+            }
+            _ => panic!("Expected ParseError"),
         }
     }
 
@@ -1894,11 +1962,21 @@ mod tests {
 
     #[test]
     fn test_unbalanced_parens_error() {
-        let result = parse_unit("(m/s");
-        assert!(result.is_err());
+        match parse_unit("(m/s") {
+            Err(UnitError::ParseError(message)) => {
+                assert!(message.contains("missing ')'"));
+                assert!(message.contains("character position 4"));
+            }
+            _ => panic!("Expected ParseError"),
+        }
 
-        let result = parse_unit("m/s)");
-        assert!(result.is_err());
+        match parse_unit("m/s)") {
+            Err(UnitError::ParseError(message)) => {
+                assert!(message.contains("unexpected ')'"));
+                assert!(message.contains("character position 3"));
+            }
+            _ => panic!("Expected ParseError"),
+        }
     }
 
     // ========================================================================
