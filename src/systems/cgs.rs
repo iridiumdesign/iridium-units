@@ -38,6 +38,8 @@ const DIM_VISCOSITY: Dimension = Dimension::MASS
 const DIM_MAGNETIC_FIELD: Dimension = Dimension::MASS
     .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
     .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
+const DIM_MAGNETIC_FIELD_STRENGTH: Dimension =
+    Dimension::CURRENT.mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)));
 const DIM_MAGNETIC_FLUX: Dimension = Dimension::MASS
     .mul(&Dimension::LENGTH.pow(Rational16::new(2, 1)))
     .mul(&Dimension::TIME.pow(Rational16::new(-2, 1)))
@@ -106,13 +108,13 @@ pub const GAUSS: BaseUnit = BaseUnit::new("gauss", "G", &["Gauss"], DIM_MAGNETIC
 /// Maxwell - CGS unit of magnetic flux (10^-8 Wb)
 pub const MAXWELL: BaseUnit = BaseUnit::new("maxwell", "Mx", &[], DIM_MAGNETIC_FLUX, 1e-8);
 
-/// Oersted - CGS unit of magnetic field strength
+/// Oersted - CGS unit of magnetic field strength H (10^3/(4π) A/m)
 pub const OERSTED: BaseUnit = BaseUnit::new(
     "oersted",
     "Oe",
     &[],
-    DIM_MAGNETIC_FIELD,
-    1e-4 / (4.0 * std::f64::consts::PI) * 1e3,
+    DIM_MAGNETIC_FIELD_STRENGTH,
+    1e3 / (4.0 * std::f64::consts::PI),
 );
 
 /// Statcoulomb - CGS-ESU unit of charge
@@ -138,7 +140,7 @@ pub const ABCOULOMB: BaseUnit = BaseUnit::new("abcoulomb", "abC", &[], DIM_CHARG
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::si::{J, N, T};
+    use crate::systems::si::{A, J, M, N, T};
 
     #[test]
     fn test_dyne_to_newton() {
@@ -159,5 +161,20 @@ mod tests {
         let q = 1e4 * GAUSS;
         let q_t = q.to(T).unwrap();
         assert!((q_t.value() - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_oersted_to_ampere_per_meter() {
+        let q = (1.0 * OERSTED).to(A / M).unwrap();
+        let expected = 1e3 / (4.0 * std::f64::consts::PI);
+
+        assert!((q.value() - expected).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_oersted_to_gauss_requires_equivalency() {
+        let result = (1.0 * OERSTED).to(GAUSS);
+
+        assert!(result.is_err());
     }
 }
