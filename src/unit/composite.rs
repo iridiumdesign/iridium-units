@@ -147,7 +147,10 @@ impl CompositeUnit {
         for other_comp in &other.components {
             let mut found = false;
             for comp in &mut components {
-                if comp.symbol == other_comp.symbol && comp.dimension == other_comp.dimension {
+                if comp.symbol == other_comp.symbol
+                    && comp.dimension == other_comp.dimension
+                    && comp.scale.to_bits() == other_comp.scale.to_bits()
+                {
                     comp.power = comp.power + other_comp.power;
                     found = true;
                     break;
@@ -204,6 +207,44 @@ impl CompositeUnit {
                 })
                 .collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn multiplication_preserves_different_scales_for_same_symbol() {
+        let meter = CompositeUnit::from_base("m", Dimension::LENGTH, 1.0);
+        let custom_meter = CompositeUnit::from_base("m", Dimension::LENGTH, 2.0);
+
+        let product = meter.mul(&custom_meter);
+
+        assert_eq!(product.components().len(), 2);
+        assert!((product.total_scale() - 2.0).abs() < 1e-15);
+    }
+
+    #[test]
+    fn division_preserves_different_scales_for_same_symbol() {
+        let meter = CompositeUnit::from_base("m", Dimension::LENGTH, 1.0);
+        let custom_meter = CompositeUnit::from_base("m", Dimension::LENGTH, 2.0);
+
+        let quotient = meter.div(&custom_meter);
+
+        assert_eq!(quotient.components().len(), 2);
+        assert!((quotient.total_scale() - 0.5).abs() < 1e-15);
+    }
+
+    #[test]
+    fn multiplication_still_merges_identical_scales() {
+        let meter = CompositeUnit::from_base("m", Dimension::LENGTH, 2.0);
+
+        let product = meter.mul(&meter);
+
+        assert_eq!(product.components().len(), 1);
+        assert_eq!(product.components()[0].power, Rational16::new(2, 1));
+        assert!((product.total_scale() - 4.0).abs() < 1e-15);
     }
 }
 
