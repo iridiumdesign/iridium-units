@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING — `OERSTED` is now a unit of magnetic field strength H
+  (A/m, scale 1000/4π ≈ 79.5775), not of flux density B.** Previously it
+  carried B's dimension with an incorrect scale, so `1 Oe` converted to
+  79.58 G (the Gaussian correspondence is 1 G). Converting oersted to
+  gauss or tesla now returns `DimensionMismatch`; the B ↔ H crossing is
+  physics (μ₀) and will arrive as an equivalency (#14, #64)
+- `src/systems/cgs.rs` module docs now state the electromagnetic
+  policy: CGS EM units map by numerical SI correspondence, so Gaussian
+  dimensional identities (e.g. statV/cm ≡ G) deliberately do not hold
+
 ## [0.2.1] - 2026-08-06
 
 Parser correctness fixes. **One change alters parsing behavior** — see

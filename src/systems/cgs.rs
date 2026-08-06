@@ -3,6 +3,16 @@
 //! The CGS system was the first coherent metric system and is still
 //! commonly used in astrophysics and electromagnetism.
 //!
+//! # Electromagnetic units: SI substrate
+//!
+//! Gaussian CGS is not a rescaled SI — it absorbs the vacuum constants
+//! into its definitions, giving charge a fractional dimension and
+//! letting E and B share one. This crate keeps the SI dimensional
+//! skeleton and maps each Gaussian/ESU/EMU unit by numerical SI
+//! correspondence (statcoulomb = 3.336e-10 C, gauss = 1e-4 T). Values
+//! convert correctly; Gaussian dimensional identities deliberately do
+//! not hold here.
+//!
 //! # Examples
 //!
 //! ```
@@ -47,6 +57,8 @@ const DIM_VOLTAGE: Dimension = Dimension::MASS
     .mul(&Dimension::TIME.pow(Rational16::new(-3, 1)))
     .mul(&Dimension::CURRENT.pow(Rational16::new(-1, 1)));
 const DIM_CHARGE: Dimension = Dimension::CURRENT.mul(&Dimension::TIME);
+const DIM_FIELD_STRENGTH: Dimension =
+    Dimension::CURRENT.mul(&Dimension::LENGTH.pow(Rational16::new(-1, 1)));
 
 // =============================================================================
 // Base CGS Units
@@ -106,13 +118,17 @@ pub const GAUSS: BaseUnit = BaseUnit::new("gauss", "G", &["Gauss"], DIM_MAGNETIC
 /// Maxwell - CGS unit of magnetic flux (10^-8 Wb)
 pub const MAXWELL: BaseUnit = BaseUnit::new("maxwell", "Mx", &[], DIM_MAGNETIC_FLUX, 1e-8);
 
-/// Oersted - CGS unit of magnetic field strength
+/// Oersted - CGS unit of magnetic field strength H (1000/4π A/m).
+///
+/// H and B have different SI dimensions, so oersted does not convert
+/// to gauss or tesla directly; that crossing is the B ↔ H physics
+/// (μ₀), not a unit scale.
 pub const OERSTED: BaseUnit = BaseUnit::new(
     "oersted",
     "Oe",
     &[],
-    DIM_MAGNETIC_FIELD,
-    1e-4 / (4.0 * std::f64::consts::PI) * 1e3,
+    DIM_FIELD_STRENGTH,
+    1e3 / (4.0 * std::f64::consts::PI),
 );
 
 /// Statcoulomb - CGS-ESU unit of charge
@@ -159,5 +175,22 @@ mod tests {
         let q = 1e4 * GAUSS;
         let q_t = q.to(T).unwrap();
         assert!((q_t.value() - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_oersted_is_field_strength() {
+        // #64: oersted is a unit of H (A/m), not of B.
+        use crate::systems::si::{A, M};
+        use crate::unit::Unit;
+        let am = Unit::from(A) / Unit::from(M);
+        let q = (1.0 * OERSTED).to(am).unwrap();
+        assert!((q.value() - 1e3 / (4.0 * std::f64::consts::PI)).abs() < 1e-9);
+
+        // Crossing to B requires physics (mu_0), not a scale factor.
+        let to_gauss = (1.0 * OERSTED).to(GAUSS);
+        assert!(matches!(
+            to_gauss,
+            Err(crate::error::UnitError::DimensionMismatch { .. })
+        ));
     }
 }

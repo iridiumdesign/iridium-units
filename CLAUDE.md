@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 iridium-units is a Rust library for units of measure with runtime dimensional analysis. It supports SI, CGS, astrophysical, imperial, and logarithmic unit systems.
 
+## The Book
+
+The reference manual, *The Measure*, lives at
+`~/Repositories/iridium-units-book`. **Any library work updates the
+book in the same sitting** — behavior changes, new units, new APIs all
+get reflected in the relevant chapter, and the book's `#crate-version`
+constant (in `iridium-units.typ`, printed in the colophon) bumps at
+each crate release. The Appendix A unit tables are generated from the
+crate by a probe; regenerate rather than hand-edit.
+
 ## Build Commands
 
 ```bash
