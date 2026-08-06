@@ -1,15 +1,17 @@
 # Equivalencies Guide
 
-Equivalencies enable conversions between units with different dimensions when there is a physical relationship between them. Unlike regular unit conversion (meters to kilometers), equivalencies bridge fundamentally different physical quantities (wavelength to frequency).
+Equivalencies enable conversions between units with different dimensions when there is a physical relationship between them. Unlike regular unit conversion (meters to kilometers), equivalencies bridge fundamentally different physical quantities (mass to energy, temperature to energy).
+
+Mass-energy, temperature, and dimensionless-angle equivalencies are always available. The spectral, Doppler, parallax, spectral-density, and brightness-temperature equivalencies require the `astrophysics` feature; the magnitude, decibel, and dex equivalencies require `logarithmic`.
 
 ## Using Equivalencies
 
 ```rust
 use iridium_units::prelude::*;
-use iridium_units::equivalencies::spectral;
+use iridium_units::equivalencies::mass_energy;
 
-let wavelength = 500.0 * NM;
-let frequency = wavelength.to_equiv(HZ, spectral())?;
+let mass = 1.0 * KG;
+let energy = mass.to_equiv(J, mass_energy())?;  // ~9×10¹⁶ J
 ```
 
 ## Available Equivalencies
@@ -144,7 +146,7 @@ Converts between parallax angle and distance.
 use iridium_units::equivalencies::parallax;
 use iridium_units::systems::si::ARCSEC;
 
-// Proxima Centauri: parallax = 0.7687 arcsec
+// parallax angle of 0.7687 arcsec
 let p = 0.7687 * ARCSEC;
 let distance = p.to_equiv(PARSEC, parallax())?;  // ~1.30 pc
 ```

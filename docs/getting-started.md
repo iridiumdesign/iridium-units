@@ -1,7 +1,8 @@
 # Getting Started with iridium-units
 
-iridium-units is a Rust library for physical units with runtime dimensional
-analysis. It works for anything from kitchen conversions to astrophysics.
+iridium-units is a Rust library for units of measure with runtime dimensional
+analysis. A unit is a value you parse, store, and pass around — not a type you
+fix at compile time — which suits units that aren't known until you run.
 
 ## Installation
 
@@ -9,7 +10,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-iridium-units = "0.1"
+iridium-units = "0.2"
 ```
 
 ## Basic Usage
@@ -126,24 +127,15 @@ let nm = 1.0 * NM;         // nanometer
 let ghz = 1.0 * GHZ;       // gigahertz
 ```
 
-### Astrophysical Units (`systems::astrophysical`)
+### Imperial Units (`systems::imperial`)
 
 ```rust
-use iridium_units::systems::astrophysical::*;
+use iridium_units::systems::imperial::*;
 
-// Distance
-let d1 = 1.0 * PARSEC;       // parsec
-let d2 = 1.0 * AU;           // astronomical unit
-let d3 = 1.0 * LIGHT_YEAR;   // light year
-
-// Solar/planetary
-let mass = 1.0 * SOLAR_MASS;
-let radius = 1.0 * SOLAR_RADIUS;
-let lum = 1.0 * SOLAR_LUMINOSITY;
-
-// Spectroscopy
-let flux = 1.0 * JANSKY;     // Jansky (flux density)
-let wave = 1.0 * ANGSTROM;   // Angstrom
+let distance = 1.0 * MILE;    // mile
+let height = 6.0 * FOOT;      // foot
+let weight = 180.0 * POUND;   // pound
+let volume = 1.0 * GALLON;    // gallon
 ```
 
 ### CGS Units (`systems::cgs`)
@@ -161,9 +153,21 @@ let field = 1.0 * GAUSS;     // gauss
 ```rust
 use iridium_units::systems::logarithmic::*;
 
-let star_mag = 5.0 * MAG;           // magnitude
+let mag = 5.0 * MAG;                // magnitude
 let signal = 10.0 * DB;             // decibel
 let order = 2.0 * DEX;              // dex (order of magnitude)
+```
+
+### Astrophysical Units (`systems::astrophysical`)
+
+Behind the `astrophysics` feature flag:
+
+```rust
+use iridium_units::systems::astrophysical::*;
+
+let d1 = 1.0 * PARSEC;       // parsec
+let d2 = 1.0 * AU;           // astronomical unit
+let d3 = 1.0 * LIGHT_YEAR;   // light year
 ```
 
 ## Equivalencies
@@ -213,15 +217,16 @@ match mass.to(M) {
 }
 ```
 
-## Performance Tips
+## Batch Conversion
 
-For processing large datasets, use the batch conversion API:
+When converting many values of the same unit, the batch API computes the
+conversion factor once and applies it across the slice, rather than
+recomputing it per value:
 
 ```rust
 use iridium_units::prelude::*;
 use iridium_units::quantity::{batch_convert, conversion_factor};
 
-// Convert 10,000 values at once (~80x faster than individual conversion)
 let values_km: Vec<f64> = (0..10000).map(|i| i as f64).collect();
 let values_m = batch_convert(&values_km, KM, M)?;
 

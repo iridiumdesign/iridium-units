@@ -142,7 +142,7 @@ let edge = volume.pow(third);  // 3 m
 
 ## Batch Operations
 
-For high-performance processing of large datasets:
+For converting many values of the same unit:
 
 ### Basic Batch Conversion
 

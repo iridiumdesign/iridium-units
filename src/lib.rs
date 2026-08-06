@@ -1,11 +1,14 @@
 //! # iridium-units
 //!
-//! A high-performance runtime dimensional analysis library for Rust.
+//! Units of measure for Rust with runtime dimensional analysis.
 //!
-//! This library provides physical units and quantities with automatic dimensional
-//! analysis at runtime. It supports SI, CGS, and astrophysical unit systems,
-//! as well as equivalencies for converting between different physical domains
-//! (e.g., wavelength to frequency).
+//! In iridium-units a unit is a value, not a type: you parse it, store it,
+//! pass it around, and combine it with other units, while the library tracks
+//! dimensions and catches mismatched operations at runtime. This suits units
+//! that aren't known until runtime — parsed from strings, configuration, file
+//! formats, or a database — where encoding each unit as a distinct type isn't
+//! practical. It provides multiple unit systems and named equivalencies for
+//! converting between different physical domains (e.g., mass to energy).
 //!
 //! ## Quick Start
 //!

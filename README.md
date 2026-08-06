@@ -1,26 +1,19 @@
 <p align="center">
   <img
     src="https://raw.githubusercontent.com/iridiumdesign/iridium-units/main/branding/iridium-units-github-banner.png"
-    alt="iridium-units — runtime quantities :: rust performance"
+    alt="iridium-units — runtime-typed units of measure for Rust"
     width="880">
 </p>
 
-A high-performance runtime unit-of-measure library for Rust.
+A Rust library for units of measure with runtime dimensional analysis.
 
 [![Crates.io](https://img.shields.io/crates/v/iridium-units.svg)](https://crates.io/crates/iridium-units)
 [![Documentation](https://docs.rs/iridium-units/badge.svg)](https://docs.rs/iridium-units)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
-
-- **Runtime dimensional analysis** — Catch unit errors at runtime with helpful error messages
-- **High performance** — Batch conversion API (~80x faster), optimized operators
-- **Flexible parsing** — Unicode (`m²`, `µm`, `Ω`), LaTeX (`m^{2}`), natural language (`km per hour`)
-- **Comprehensive unit systems** — SI, CGS, astrophysical, imperial, logarithmic
-- **12 equivalencies** — Spectral, Doppler, parallax, mass-energy, temperature, and more
-- **Exact rational exponents** — No floating-point errors in dimensional analysis
-
-## Quick Start
+In iridium-units a unit is a value, not a type. You parse it, store it, pass
+it around, and combine it with other units, and the library tracks dimensions
+and catches mismatched operations as you go — all at runtime.
 
 ```rust
 use iridium_units::prelude::*;
@@ -34,168 +27,148 @@ let speed = &distance / &time;
 let speed_ms = speed.to(M / S).unwrap();
 println!("{}", speed_ms);  // 13.888... m/s
 
-// Parse from strings
+// Parse a unit that you only know as a string at runtime
 let dist = parse_quantity("42.195 km").unwrap();
 let in_miles = dist.to(MILE).unwrap();
 println!("{}", in_miles);  // 26.219... mi
 ```
 
-See the [documentation](docs/getting-started.md) for more examples.
-
 ## Where it fits
 
 Rust already has [`uom`](https://crates.io/crates/uom), an excellent
-compile-time dimensional-analysis library. Python's astrophysics community
-has [`astropy.units`](https://docs.astropy.org/en/stable/units/), an
-excellent runtime one. `iridium-units` covers a third corner: runtime-typed,
-Rust-fast, with the dimensions and equivalencies astronomy actually uses.
+compile-time dimensional-analysis library. When every unit is known at compile
+time, encoding dimensions in the type system is hard to beat — the checks cost
+nothing at runtime and mismatches never compile.
 
-The library exists because four pain points came up while trying to extend
-a compile-time-typed approach for astrodynamics:
+iridium-units covers the other case: **units that aren't known until runtime.**
+Three things follow from treating a unit as data rather than a type:
 
-1. **Units known only at runtime.** File formats like CCSDS OEM and FITS
-   declare units as metadata strings. Compile-time libraries want the
-   unit as a type.
+1. **Units as data.** File formats, APIs, configuration, and databases declare
+   units as strings — `"km/h"`, `"mg/L"`, `"N·m"`. Here a unit is a value you
+   parse and carry, not a type you have to know when you compile.
 
-2. **Cross-dimension equivalencies.** Wavelength ↔ frequency, mass ↔ energy,
-   parallax ↔ parsec are physically routine but dimensionally illegal —
-   they need a named equivalency, not a phantom-type rewrite.
+2. **Open-world registry.** Adding a unit is a registry entry, not a new type
+   plus `Mul`/`Div` impls for every combination it appears in. An application
+   can load its units from a database at startup and parse against them.
 
-3. **Non-SI base dimensions.** Astronomical magnitude, solid angle, and
-   photon count are first-class in astrophysics but not in an
-   SI-by-default dimension set.
+3. **Cross-dimension equivalencies.** Some conversions are physically routine
+   but dimensionally illegal — mass ↔ energy (E=mc²), temperature ↔ energy
+   (kT), wavelength ↔ frequency. These are named, opt-in conversions you ask
+   for explicitly, not something the type system silently allows or forbids.
 
-4. **Open-world unit registries.** Adding a unit shouldn't require a new
-   type plus `Mul`/`Div` impls for every combination it appears in.
-
-For the hot paths where even a runtime check is too much, `conversion_factor`
-returns a bare `f64` you can apply yourself in SIMD loops or pass to
-external array code. Batch conversion is also available for in-place value
-arrays. None of this substitutes for a compile-time-typed library when
-that's the right fit — different domains, different costs, different
-libraries.
-
-## Overview
-
-iridium-units provides physical units and quantities with automatic dimensional
-analysis at runtime. It catches unit errors with helpful error messages, supports
-exact rational exponents, and provides comprehensive unit systems for science,
-engineering, and everyday calculations.
-
-## Design Goals
-
-- **Runtime dimensional safety** — Catch invalid unit operations at runtime,
-with errors that explain what went wrong.
-
-- **Performance first** — Designed for real systems, not just notebooks.
-Batch conversion API processes 10,000 values in ~2 µs.
-
-- **Low cognitive overhead** — Natural arithmetic syntax. `100.0 * KM` just works.
-
-- **Ergonomic API** — Readable unit expressions and explicit conversions
-where they matter.
-
-- **Extensible** — Start with SI, add domain-specific units through registries.
-
-## Non-Goals
-
-- A full symbolic algebra system
-- A compile-time unit checker
-- A physics reasoning engine
-- An encyclopedic catalog of every unit system ever invented
+The cost is that dimension checks happen at runtime and return a `Result`
+instead of failing to compile. That's the trade: a compile-time-typed library
+is the better choice when the units are fixed and known up front.
 
 ## Capabilities
 
-### Exact Rational Exponents
+### Runtime dimensional analysis
 
-Dimensional exponents are stored as exact fractions (`Rational16`), so
-dimensional analysis is always precise:
+Addition and subtraction require matching dimensions and return a `Result`;
+multiplication and division combine dimensions automatically. Incompatible
+operations report what went wrong rather than producing a wrong answer.
+
+### Exact rational exponents
+
+Dimensional exponents are stored as exact fractions (`Rational16`), so taking
+roots and powers of dimensions never accumulates floating-point error:
 
 ```rust
 use iridium_units::prelude::*;
 
-// √(m²) = m, exactly — no floating-point rounding
+// √(m²) = m, exactly
 let area = 100.0 * &M.pow(2);
 let side = area.pow(Rational16::new(1, 2));
 assert_eq!(side.unit().dimension(), M.dimension());
 ```
 
-### 11 Base Dimensions
+### Flexible parsing
 
-iridium-units tracks 11 base dimensions, including those common in astrophysics:
-
-Length, Time, Mass, Current, Temperature, Angle, Solid Angle,
-Luminous Intensity, Magnitude, Amount, Photon Count
-
-### Flexible Unit Parsing
-
-Multiple input formats are supported:
+Units and quantities parse from several common notations:
 
 ```rust
 use iridium_units::prelude::*;
 
-// Standard notation
-parse_unit("m/s^2")?;
-
-// Unicode symbols
-parse_unit("m²")?;        // Superscript
-parse_unit("µm")?;        // Micro sign
-
-// LaTeX notation
-parse_unit("m^{2}")?;     // Braced exponents
-
-// Natural language
-parse_unit("km per hour")?;
+parse_unit("m/s^2")?;       // Standard notation
+parse_unit("m²")?;          // Unicode superscript
+parse_unit("µm")?;          // Unicode micro sign
+parse_unit("m^{2}")?;       // LaTeX braces
+parse_unit("km per hour")?; // Natural language
 # Ok::<(), iridium_units::error::UnitError>(())
 ```
 
-### Helpful Error Messages
+### Helpful error messages
 
-When a unit isn't recognized, alternatives are suggested:
+When a unit isn't recognized, close matches are suggested:
 
 ```text
 Error: unknown unit 'metrs', did you mean 'meters'?
 ```
 
+### Custom registries
+
+Applications that define their own units build a registry and parse against it:
+
+```rust
+use iridium_units::prelude::*;
+
+let registry = UnitRegistry::with_builtins()
+    .with_unit(&["my_unit", "mu"], Unit::from(M));
+let unit = registry.parse_unit("my_unit").unwrap();
+```
+
+### Base dimensions
+
+Quantities are tracked over eleven base dimensions — the seven SI base
+dimensions (length, time, mass, current, temperature, amount, luminous
+intensity) plus angle, solid angle, and a couple of domain-specific
+extensions — so dimensionally distinct quantities stay distinct.
+
+### High-throughput conversion
+
+For converting many values of the same unit, `batch_convert` /
+`batch_convert_into` apply a single conversion factor across a slice, and
+`conversion_factor` returns the bare `f64` factor so you can apply it yourself
+in a tight loop or hand it to external array code.
+
+## Non-Goals
+
+- A compile-time unit checker
+- A full symbolic algebra system
+- A physics reasoning engine
+- An encyclopedic catalog of every unit system ever invented
+
 ## Feature Flags
 
-All features are enabled by default. Disable default features and enable only
-what you need to reduce compile scope:
+The core library — SI and imperial units, parsing, custom registries, batch
+conversion, mass-energy and temperature equivalencies, dimensionless angles,
+and physical constants — is always available. Optional unit systems sit behind
+feature flags, all enabled by default:
 
 ```toml
 [dependencies]
-iridium-units = { version = "0.1", default-features = false, features = ["astrophysics"] }
+iridium-units = { version = "0.2", default-features = false, features = ["cgs"] }
 ```
 
 | Feature | What it includes |
 |---------|-----------------|
 | `cgs` | CGS unit system (centimeter, gram, dyne, erg, gauss, etc.) |
-| `astrophysics` | Astrophysical units (parsec, AU, solar units, Jansky, etc.) and equivalencies (spectral, Doppler, parallax, brightness temperature, spectral density) |
+| `astrophysics` | Additional units and equivalencies for astronomy |
 | `logarithmic` | Logarithmic units (magnitudes, decibels, dex) and equivalencies |
-
-The core library (SI, imperial, temperature, mass-energy, dimensionless angles,
-parsing, batch conversion, and physical constants) is always available.
 
 ## Verification
 
-Physical constants are sourced from CODATA 2018 and verified against published
-values. Astronomical constants follow IAU 2015 nominal values.
+Physical constants are sourced from CODATA 2018; astronomical constants follow
+IAU 2015 nominal values. The test suite covers arithmetic with dimensional
+analysis, conversion round-trips, equivalencies validated against known
+results, parsing across all supported formats, and edge cases (zero, negative,
+and invalid inputs).
 
-The test suite includes 335+ tests covering:
+## Documentation
 
-- Arithmetic with dimensional analysis
-- Unit conversion round-trips
-- Equivalency physics validated against known results
-- Edge cases (zero values, negative inputs, invalid conversions)
-- Parsing across all supported formats
+See the [getting-started guide](docs/getting-started.md) for a fuller tour, or
+the [API documentation](https://docs.rs/iridium-units) on docs.rs.
 
-## Development
+## License
 
-This library was developed with AI assistance. The core type system, SI units,
-imperial units, and fundamental physics equivalencies (temperature, mass-energy,
-dimensionless angles) have been validated through direct use.
-
-The CGS, astrophysics, and logarithmic modules were developed primarily through
-AI assistance and verified against published references rather than personal
-domain expertise. These modules are behind feature flags. Contributions and
-corrections from domain experts are welcome.
+MIT

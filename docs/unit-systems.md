@@ -1,6 +1,8 @@
 # Unit Systems Reference
 
-iridium-units provides comprehensive unit systems for scientific computing.
+iridium-units provides several unit systems. SI and imperial units are always
+available; CGS, astrophysical, and logarithmic units sit behind feature flags
+of the same name.
 
 ## SI Units (`iridium_units::systems::si`)
 
@@ -107,7 +109,7 @@ The International System of Units.
 
 ## Astrophysical Units (`iridium_units::systems::astrophysical`)
 
-Units commonly used in astronomy and astrophysics.
+Behind the `astrophysics` feature flag.
 
 ### Distance Units
 
@@ -179,7 +181,7 @@ Units commonly used in astronomy and astrophysics.
 
 ## CGS Units (`iridium_units::systems::cgs`)
 
-Centimeter-Gram-Second system, commonly used in astrophysics literature.
+Centimeter-gram-second system, behind the `cgs` feature flag.
 
 ### Base Units
 
@@ -292,18 +294,17 @@ US customary and Imperial units.
 
 ```rust
 use iridium_units::prelude::*;
-use iridium_units::systems::astrophysical::*;
 
-// Distance to Proxima Centauri
-let distance = 1.3 * PARSEC;
-let in_ly = distance.to(LIGHT_YEAR)?;  // ~4.24 ly
+// Convert across systems; conversions are explicit
+let trip = 250.0 * MILE;
+let in_km = trip.to(KM)?;               // ~402 km
 
-// Sun's properties
-let M = 1.0 * SOLAR_MASS;
-let R = 1.0 * SOLAR_RADIUS;
-let L = 1.0 * SOLAR_LUMINOSITY;
+// Dimensional analysis is automatic
+let mass = 75.0 * KG;
+let accel = 9.8 * &(M / S.pow(2));
+let force = (&mass * &accel).to(N)?;    // ~735 N
 
-// Flux calculation
-let flux = 1.0 * JANSKY;
-let in_cgs = flux.to(FLAM_NU)?;  // erg/s/cm²/Hz
+// Parse a unit known only at runtime
+let speed = parse_quantity("65 mi/h")?;
+let in_ms = speed.to(M / S)?;           // ~29 m/s
 ```
