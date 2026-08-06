@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-06
+
+Parser correctness fixes. **One change alters parsing behavior** — see
+_Changed_: four short mixed-case tokens that previously parsed silently to
+the wrong unit now return an error.
+
+### Changed
+
+- **Short mixed-case tokens no longer fall back to lowercase lookup.**
+  Tokens of 4 characters or fewer that mix upper- and lowercase must match
+  an exact-case key or fail with `UnknownUnit`. Previously `mW`, `Mg`,
+  `meV`, and `Ms` silently folded to the lowercase keys and parsed as
+  **megawatt**, **milligram**, **MeV**, and **millisecond** — errors of up
+  to nine orders of magnitude. They now return an error (with suggestions).
+  Long names and single-case tokens (`METER`, `Tesla`, `AU`, `KM`) still
+  resolve via the fallback
+
+### Added
+
+- Exact-case registry keys for the canonical mixed-case symbols, so they
+  parse as written: `Hz`, `kHz`, `MHz`, `GHz`, `THz`, `Pa`, `eV`, `keV`,
+  `MeV`, `GeV`, `kW`, `MW`, `degC`, `degF`, `Ohm`, `Mpc`, `Gpc`
+
+### Fixed
+
+- Display output for pure-inverse units round-trips through the parser:
+  the bare token `1` now parses as a dimensionless numerator, so `"1 / s"`
+  (the display form of `s^-1`) parses. Other bare numbers are still
+  rejected
+- Parenthesized units with an exponent followed by a division now parse:
+  `"(m^2/s)"` failed with "invalid power denominator: s" while `"m^2/s"`
+  worked. The top-level division scanner now uses the same
+  fraction-lookahead as the splitter, so `"(m^2/s)"`, `"(kg m^2/s^2)"`,
+  and `"(m^1/2/s)"` all parse correctly
+
+### Documentation
+
+- README and guides repositioned to lead with runtime-typed units and the
+  `uom` comparison; astrophysical units documented behind their feature flag
+
 ## [0.2.0] - 2026-06-25
 
 Correctness fixes to unit parsing and the global registry. **Two changes alter
@@ -77,5 +117,6 @@ Initial public release.
 - **`checked_add` / `checked_sub`** for fallible addition/subtraction that returns `Result`
 - **CODATA 2018 physical constants** (speed of light, Planck constant, Boltzmann constant, gravitational constant, and astronomical constants)
 
+[0.2.1]: https://github.com/iridiumdesign/iridium-units/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/iridiumdesign/iridium-units/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/iridiumdesign/iridium-units/releases/tag/v0.1.0

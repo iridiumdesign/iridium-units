@@ -190,6 +190,20 @@
 //! | `parse_quantity(s)` | Parse quantity string |
 //! | `merge(&mut self, other)` | Merge another registry |
 //!
+//! # Case Sensitivity
+//!
+//! Lookups try an exact-case match first, then fall back to lowercase, so
+//! long names and sloppy casing (`METER`, `Tesla`, `AU`) still resolve.
+//! Two groups of symbols are strictly case-sensitive:
+//!
+//! - Single-letter symbol pairs: `T` (tesla) vs `t` (tonne), `S` (siemens)
+//!   vs `s` (second), `H` (henry) vs `h` (hour).
+//! - Short mixed-case tokens (4 chars or fewer with both upper- and
+//!   lowercase letters), where case selects the SI prefix: `MW` (megawatt)
+//!   vs `mw`, `mJy` (millijansky) vs `MJy` (megajansky). These match
+//!   exactly or fail — `mW`, `Mg`, `meV`, and `Ms` are unknown units, not
+//!   silent aliases for `MW`, `mg`, `MeV`, and `ms`.
+//!
 //! # Available Unit Names
 //!
 //! ## SI Units
@@ -198,17 +212,18 @@
 //! - **Length**: `km`, `cm`, `mm`, `um`/`µm`, `nm`, `pm`, `fm`
 //! - **Time**: `ms`, `us`/`µs`, `ns`, `ps`, `min`, `h`/`hr`, `d`/`day`, `yr`
 //! - **Mass**: `g`, `mg`, `ug`/`µg`, `t`/`tonne`
-//! - **Frequency**: `hz`, `khz`, `mhz`, `ghz`, `thz`
-//! - **Derived**: `n` (newton), `j` (joule), `w` (watt), `pa`, `c` (coulomb), `v`, `f` (farad), `ohm`/`Ω`
-//! - **Energy**: `ev`, `kev`, `mev`, `gev`
+//! - **Frequency**: `Hz`, `kHz`, `MHz`, `GHz`, `THz`
+//! - **Derived**: `n` (newton), `j` (joule), `w` (watt), `Pa`, `c` (coulomb), `v`, `f` (farad), `ohm`/`Ω`
+//! - **Power**: `kW`, `MW`
+//! - **Energy**: `eV`, `keV`, `MeV`, `GeV`
 //! - **Angle**: `deg`/`°`, `arcmin`/`′`, `arcsec`/`″`, `mas`, `uas`
 //!
 //! ## Astrophysical Units
 //!
-//! - **Distance**: `au`, `pc`, `kpc`, `mpc`, `gpc`, `ly`/`lightyear`
+//! - **Distance**: `au`, `pc`, `kpc`, `Mpc`, `Gpc`, `ly`/`lightyear`
 //! - **Solar**: `msun`/`M_sun`/`solar_mass`, `rsun`/`R_sun`, `lsun`/`L_sun`
 //! - **Planetary**: `mjup`/`M_jup`, `rjup`/`R_jup`, `mearth`/`M_earth`, `rearth`/`R_earth`
-//! - **Spectroscopic**: `angstrom`/`Å`, `jy` (jansky), `mjy`, `ujy`, `barn`
+//! - **Spectroscopic**: `angstrom`/`Å`, `Jy` (jansky), `mJy`, `uJy`, `barn`
 //! - **CGS**: `erg`, `dyn`, `gauss`
 //!
 //! ## Imperial Units
@@ -520,7 +535,24 @@ fn find_top_level_division(s: &str) -> Option<usize> {
             '(' => depth += 1,
             ')' => depth -= 1,
             '^' => in_exponent = true,
-            '/' if depth == 0 && !in_exponent => return Some(i),
+            '/' if in_exponent => {
+                // A '/' inside an exponent is part of a fractional power
+                // ("m^1/2") only if a digit (optionally signed) follows;
+                // otherwise the exponent has ended and this is a division.
+                let mut rest = s[i + 1..].chars();
+                let is_fraction = match rest.next() {
+                    Some(d) if d.is_ascii_digit() => true,
+                    Some('-') => rest.next().is_some_and(|d| d.is_ascii_digit()),
+                    _ => false,
+                };
+                if !is_fraction {
+                    in_exponent = false;
+                    if depth == 0 {
+                        return Some(i);
+                    }
+                }
+            }
+            '/' if depth == 0 => return Some(i),
             _ if c.is_whitespace() && in_exponent => in_exponent = false,
             _ if !c.is_ascii_digit() && c != '-' && c != '+' && c != '/' && in_exponent => {
                 in_exponent = false;
@@ -718,9 +750,21 @@ struct UnitEntry {
 /// a lowercase fallback. Canonical symbols are therefore case-sensitive
 /// (`T` = tesla, `t` = tonne, `mJy` ≠ `MJy`), while long names and sloppy
 /// casing (`METER`, `Tesla`) still resolve via the fallback.
+///
+/// Short mixed-case tokens (at most 4 chars, containing both an ASCII
+/// uppercase and an ASCII lowercase letter) never use the fallback: in that
+/// range the case IS the SI prefix (`mW` milliwatt vs `MW` megawatt, `Mg`
+/// megagram vs `mg` milligram), and folding would silently return a unit off
+/// by many orders of magnitude. Such tokens must match an exact-case key or
+/// they fail with `UnknownUnit`.
 fn registry_get<'a>(registry: &'a HashMap<String, UnitEntry>, name: &str) -> Option<&'a UnitEntry> {
     if let Some(entry) = registry.get(name) {
         return Some(entry);
+    }
+    let mixed_case = name.chars().any(|c| c.is_ascii_uppercase())
+        && name.chars().any(|c| c.is_ascii_lowercase());
+    if mixed_case && name.chars().count() <= 4 {
+        return None;
     }
     let lower = name.to_lowercase();
     if lower.as_str() != name {
@@ -768,8 +812,8 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, KG, "kg", "kilogram", "kilograms");
     register!(map, A, "a", "amp", "ampere", "amperes");
     register!(map, K, "k", "kelvin");
-    register!(map, DEG_C, "°c", "degc", "celsius");
-    register!(map, DEG_F, "°f", "degf", "fahrenheit");
+    register!(map, DEG_C, "°c", "degC", "degc", "celsius");
+    register!(map, DEG_F, "°f", "degF", "degf", "fahrenheit");
     register!(map, MOL, "mol", "mole", "moles");
     register!(map, CD, "cd", "candela");
     register!(map, RAD, "rad", "radian", "radians");
@@ -833,11 +877,13 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, TONNE, "t", "tonne", "tonnes", "metric_ton");
 
     // SI Derived - Frequency
-    register!(map, HZ, "hz", "hertz");
-    register!(map, KHZ, "khz", "kilohertz");
-    register!(map, MHZ, "mhz", "megahertz");
-    register!(map, GHZ, "ghz", "gigahertz");
-    register!(map, THZ, "thz", "terahertz");
+    // Canonical mixed-case symbols get exact-case keys because short
+    // mixed-case tokens never use the lowercase fallback (see `registry_get`).
+    register!(map, HZ, "Hz", "hz", "hertz");
+    register!(map, KHZ, "kHz", "khz", "kilohertz");
+    register!(map, MHZ, "MHz", "mhz", "megahertz");
+    register!(map, GHZ, "GHz", "ghz", "gigahertz");
+    register!(map, THZ, "THz", "thz", "terahertz");
 
     // SI Derived - Mechanics
     register!(map, N, "n", "newton", "newtons");
@@ -856,21 +902,21 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, BQ, "Bq", "becquerel", "becquerels");
     register!(map, GY, "Gy", "gray", "grays");
     register!(map, SV, "Sv", "sievert", "sieverts");
-    register!(map, KW, "kw", "kilowatt", "kilowatts");
-    register!(map, MW, "mw", "megawatt", "megawatts");
-    register!(map, PA, "pa", "pascal", "pascals");
+    register!(map, KW, "kW", "kw", "kilowatt", "kilowatts");
+    register!(map, MW, "MW", "mw", "megawatt", "megawatts");
+    register!(map, PA, "Pa", "pa", "pascal", "pascals");
 
     // SI Derived - Electrical
     register!(map, C, "c", "coulomb", "coulombs");
     register!(map, V, "v", "volt", "volts");
     register!(map, F, "f", "farad", "farads");
-    register!(map, OHM, "ohm", "ohms");
+    register!(map, OHM, "Ohm", "ohm", "ohms");
 
     // SI Derived - Energy
-    register!(map, EV, "ev", "electronvolt", "electronvolts");
-    register!(map, KEV, "kev", "kiloelectronvolt");
-    register!(map, MEV, "mev", "megaelectronvolt");
-    register!(map, GEV, "gev", "gigaelectronvolt");
+    register!(map, EV, "eV", "ev", "electronvolt", "electronvolts");
+    register!(map, KEV, "keV", "kev", "kiloelectronvolt");
+    register!(map, MEV, "MeV", "mev", "megaelectronvolt");
+    register!(map, GEV, "GeV", "gev", "gigaelectronvolt");
 
     // SI Angles
     register!(map, DEG, "deg", "degree", "degrees");
@@ -931,8 +977,8 @@ fn register_astrophysical_units(map: &mut HashMap<String, UnitEntry>) {
     register!(map, AU, "au", "astronomical_unit");
     register!(map, PARSEC, "pc", "parsec", "parsecs");
     register!(map, KPC, "kpc", "kiloparsec", "kiloparsecs");
-    register!(map, MPC, "mpc", "megaparsec", "megaparsecs");
-    register!(map, GPC, "gpc", "gigaparsec", "gigaparsecs");
+    register!(map, MPC, "Mpc", "mpc", "megaparsec", "megaparsecs");
+    register!(map, GPC, "Gpc", "gpc", "gigaparsec", "gigaparsecs");
     register!(
         map,
         LIGHT_YEAR,
@@ -1336,6 +1382,13 @@ fn lookup_simple_unit_with_registry(
     registry: &HashMap<String, UnitEntry>,
 ) -> UnitResult<Unit> {
     let name = name.trim();
+
+    // The bare token "1" is a dimensionless numerator, so Display output
+    // for pure-inverse units ("1 / s") round-trips through the parser.
+    // Only "1" is accepted; other bare numbers are still unknown units.
+    if name == "1" {
+        return Ok(Unit::dimensionless());
+    }
 
     if let Some(entry) = registry_get(registry, name) {
         return Ok(entry.unit.clone());
@@ -2077,6 +2130,131 @@ mod tests {
             parse_unit("mjy").is_ok(),
             "lowercase mjy should still resolve"
         );
+    }
+
+    /// Assert two unit scales agree to 1e-12 relative tolerance.
+    fn assert_scale_close(actual: f64, expected: f64) {
+        let rel = if expected == 0.0 {
+            actual.abs()
+        } else {
+            ((actual - expected) / expected).abs()
+        };
+        assert!(rel < 1e-12, "scale mismatch: {actual} vs {expected}");
+    }
+
+    #[test]
+    fn test_prefix_case_not_folded() {
+        // These used to fall back to the lowercase key and silently parse
+        // as the wrong unit (mW -> megawatt, Mg -> milligram, meV -> MeV,
+        // Ms -> millisecond). They must now fail as unknown units.
+        for tok in ["mW", "Mg", "meV", "Ms"] {
+            assert!(
+                matches!(parse_unit(tok), Err(UnitError::UnknownUnit { .. })),
+                "'{tok}' must not fold to its lowercase key"
+            );
+        }
+    }
+
+    #[test]
+    fn test_canonical_symbols_parse_exact() {
+        use crate::systems::si::{DEG_C, GEV, KW, MHZ, T};
+
+        for (input, expected) in [
+            ("MHz", Unit::from(MHZ)),
+            ("GeV", Unit::from(GEV)),
+            ("kW", Unit::from(KW)),
+            ("degC", Unit::from(DEG_C)),
+            // Single-case tokens still resolve via the lowercase fallback.
+            ("KM", Unit::from(KM)),
+            ("METER", Unit::from(M)),
+            // Long mixed-case names keep the fallback too.
+            ("Tesla", Unit::from(T)),
+        ] {
+            let parsed = parse_unit(input).unwrap();
+            assert_eq!(
+                parsed.dimension(),
+                expected.dimension(),
+                "'{input}' dimension"
+            );
+            assert_scale_close(parsed.scale(), expected.scale());
+        }
+
+        #[cfg(feature = "astrophysics")]
+        {
+            use crate::systems::astrophysical::AU;
+            let au = parse_unit("AU").unwrap();
+            assert_eq!(au.dimension(), Unit::from(AU).dimension());
+            assert_scale_close(au.scale(), Unit::from(AU).scale());
+        }
+    }
+
+    #[test]
+    fn test_display_parse_round_trip() {
+        use crate::systems::si::HZ;
+
+        let m = Unit::from(M);
+        let s = Unit::from(S);
+        let kg = Unit::from(KG);
+        let units = [
+            Unit::from(S).inv(),
+            &m / &s,
+            &(&kg * &m) / &(&s * &s),
+            (&m / &s).pow(Rational16::new(2, 1)),
+            Unit::from(HZ).inv(),
+        ];
+
+        for unit in &units {
+            let rendered = unit.to_string();
+            let reparsed = parse_unit(&rendered)
+                .unwrap_or_else(|e| panic!("'{rendered}' failed to reparse: {e}"));
+            assert_eq!(
+                reparsed.dimension(),
+                unit.dimension(),
+                "'{rendered}' dimension"
+            );
+            assert_scale_close(reparsed.scale(), unit.scale());
+        }
+    }
+
+    #[test]
+    fn test_bare_one_only() {
+        // "1" is dimensionless; other bare numbers stay unknown.
+        assert!(parse_unit("1/s").is_ok());
+        assert!(parse_unit("1 / s").is_ok());
+        assert!(parse_unit("1 / m^2 s").is_ok());
+        assert!(matches!(
+            parse_unit("2/s"),
+            Err(UnitError::UnknownUnit { .. })
+        ));
+    }
+
+    #[test]
+    fn test_paren_exponent_fraction() {
+        // '/' after an exponent inside parens is a division, not part of
+        // the exponent, unless a digit follows.
+        let u = parse_unit("(m^2/s)").unwrap();
+        let dim = u.dimension();
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-1, 1));
+
+        let energy = parse_unit("(kg m^2/s^2)").unwrap();
+        let dim = energy.dimension();
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
+
+        let sqrt_m = parse_unit("(m^1/2)").unwrap();
+        assert_eq!(sqrt_m.dimension().length, Rational16::new(1, 2));
+
+        let u = parse_unit("(m^1/2/s)").unwrap();
+        let dim = u.dimension();
+        assert_eq!(dim.length, Rational16::new(1, 2));
+        assert_eq!(dim.time, Rational16::new(-1, 1));
+
+        let sq_vel = parse_unit("(m/s)^2").unwrap();
+        let dim = sq_vel.dimension();
+        assert_eq!(dim.length, Rational16::new(2, 1));
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 
     #[test]

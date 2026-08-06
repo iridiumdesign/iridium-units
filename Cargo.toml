@@ -1,9 +1,10 @@
 [package]
 name = "iridium-units"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 rust-version = "1.94"
 license = "MIT"
+authors = ["Brad Siegfreid <brad@iridiumdesign.com>"]
 description = "A high-performance runtime unit-of-measure library for Rust"
 keywords = ["units", "dimensional-analysis", "physics", "astronomy"]
 categories = ["science", "mathematics"]
