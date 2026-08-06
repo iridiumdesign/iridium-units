@@ -896,12 +896,38 @@ fn register_builtin_units(map: &mut HashMap<String, UnitEntry>) {
         "um",
         "micrometer",
         "micrometers",
+        "micrometre",
+        "micrometres",
         "micron",
         "microns"
     );
-    register!(map, NM, "nm", "nanometer", "nanometers");
-    register!(map, PM, "pm", "picometer", "picometers");
-    register!(map, FM, "fm", "femtometer", "femtometers");
+    register!(
+        map,
+        NM,
+        "nm",
+        "nanometer",
+        "nanometers",
+        "nanometre",
+        "nanometres"
+    );
+    register!(
+        map,
+        PM,
+        "pm",
+        "picometer",
+        "picometers",
+        "picometre",
+        "picometres"
+    );
+    register!(
+        map,
+        FM,
+        "fm",
+        "femtometer",
+        "femtometers",
+        "femtometre",
+        "femtometres"
+    );
 
     // SI Time
     register!(map, MS, "ms", "millisecond", "milliseconds");
@@ -1554,6 +1580,26 @@ mod tests {
 
         let meters = lookup_unit("meters").unwrap();
         assert_eq!(meters.symbol(), "m");
+    }
+
+    #[test]
+    fn test_lookup_metric_length_british_spellings() {
+        for (british, american) in [
+            ("micrometre", "micrometer"),
+            ("micrometres", "micrometers"),
+            ("nanometre", "nanometer"),
+            ("nanometres", "nanometers"),
+            ("picometre", "picometer"),
+            ("picometres", "picometers"),
+            ("femtometre", "femtometer"),
+            ("femtometres", "femtometers"),
+        ] {
+            let british_unit = lookup_unit(british).unwrap();
+            let american_unit = lookup_unit(american).unwrap();
+
+            assert_eq!(british_unit.symbol(), american_unit.symbol());
+            assert_eq!(british_unit.dimension(), american_unit.dimension());
+        }
     }
 
     #[test]
