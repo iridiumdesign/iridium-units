@@ -500,12 +500,27 @@ fn normalize_subscripts(s: &str) -> String {
 // Parentheses Support
 // ============================================================================
 
-/// Check if parentheses in a string are balanced.
+/// Maximum parenthesis nesting depth accepted by the parser.
+///
+/// Parenthesized expressions are parsed recursively, so unbounded nesting
+/// lets a small hostile input exhaust the stack and abort the process.
+/// Real unit expressions nest a handful of levels at most.
+const MAX_PAREN_DEPTH: i32 = 64;
+
+/// Check if parentheses in a string are balanced and within depth limits.
 fn check_balanced_parens(s: &str) -> UnitResult<()> {
     let mut depth = 0i32;
     for c in s.chars() {
         match c {
-            '(' => depth += 1,
+            '(' => {
+                depth += 1;
+                if depth > MAX_PAREN_DEPTH {
+                    return Err(UnitError::ParseError(format!(
+                        "parentheses nested deeper than {} levels",
+                        MAX_PAREN_DEPTH
+                    )));
+                }
+            }
             ')' => {
                 depth -= 1;
                 if depth < 0 {
@@ -563,8 +578,32 @@ fn find_top_level_division(s: &str) -> Option<usize> {
     None
 }
 
+/// Maximum recursion depth for the parenthesis-aware parser.
+///
+/// Recursion descends once per nesting level, once per top-level division,
+/// and once per adjacent parenthesized group, so any of those repeated in
+/// a hostile input would otherwise exhaust the stack and abort the
+/// process. Real unit expressions stay in single digits on all three.
+const MAX_PARSE_DEPTH: u32 = 128;
+
 /// Parse an expression that may contain parentheses.
 fn parse_with_parens(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResult<Unit> {
+    parse_with_parens_depth(s, registry, 0)
+}
+
+/// Recursive worker for [`parse_with_parens`], with an explicit depth guard.
+fn parse_with_parens_depth(
+    s: &str,
+    registry: &HashMap<String, UnitEntry>,
+    depth: u32,
+) -> UnitResult<Unit> {
+    if depth > MAX_PARSE_DEPTH {
+        return Err(UnitError::ParseError(format!(
+            "unit expression exceeds maximum nesting depth of {}",
+            MAX_PARSE_DEPTH
+        )));
+    }
+
     let s = s.trim();
     if s.is_empty() {
         return Ok(Unit::dimensionless());
@@ -574,8 +613,8 @@ fn parse_with_parens(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResu
 
     // Check for top-level division first
     if let Some(div_pos) = find_top_level_division(s) {
-        let numerator = parse_with_parens(&s[..div_pos], registry)?;
-        let denominator = parse_with_parens(&s[div_pos + 1..], registry)?;
+        let numerator = parse_with_parens_depth(&s[..div_pos], registry, depth + 1)?;
+        let denominator = parse_with_parens_depth(&s[div_pos + 1..], registry, depth + 1)?;
         return Ok(&numerator / &denominator);
     }
 
@@ -585,7 +624,7 @@ fn parse_with_parens(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResu
             let inner = &s[1..close_pos];
             let after = &s[close_pos + 1..];
 
-            let inner_unit = parse_with_parens(inner, registry)?;
+            let inner_unit = parse_with_parens_depth(inner, registry, depth + 1)?;
 
             // Check for power after closing paren
             if let Some(power_str) = after.strip_prefix('^') {
@@ -596,7 +635,11 @@ fn parse_with_parens(s: &str, registry: &HashMap<String, UnitEntry>) -> UnitResu
                 return Ok(inner_unit);
             } else {
                 // There's more to parse - multiply
-                let rest = parse_with_parens(after.trim_start_matches(['*', ' ']), registry)?;
+                let rest = parse_with_parens_depth(
+                    after.trim_start_matches(['*', ' ']),
+                    registry,
+                    depth + 1,
+                )?;
                 return Ok(&inner_unit * &rest);
             }
         }
@@ -2270,5 +2313,41 @@ mod tests {
         // the override escape hatch bypasses the guard
         assert!(register_unit_override(&["snark"], Unit::from(M)).is_ok());
         assert!(parse_unit("snark").is_ok());
+    }
+
+    #[test]
+    fn test_hostile_nesting_rejected_not_aborted() {
+        // Deep recursion in the paren parser must return an error, never
+        // exhaust the stack (SECURITY.md: in-scope DoS). Three vectors:
+        // nesting depth, division chains, and adjacent group chains.
+        let deep_parens = format!("{}m{}", "(".repeat(100_000), ")".repeat(100_000));
+        assert!(matches!(
+            parse_unit(&deep_parens),
+            Err(UnitError::ParseError(_))
+        ));
+
+        let division_chain = format!("(m){}", "/s".repeat(100_000));
+        assert!(matches!(
+            parse_unit(&division_chain),
+            Err(UnitError::ParseError(_))
+        ));
+
+        let group_chain = "(m)".repeat(100_000);
+        assert!(matches!(
+            parse_unit(&group_chain),
+            Err(UnitError::ParseError(_))
+        ));
+    }
+
+    #[test]
+    fn test_reasonable_nesting_still_parses() {
+        let nested = parse_unit("((((m))))").unwrap();
+        assert_eq!(nested.dimension(), M.dimension());
+
+        let chain = parse_unit("(kg)(m)/((s)(s))").unwrap();
+        let dim = chain.dimension();
+        assert_eq!(dim.mass, Rational16::ONE);
+        assert_eq!(dim.length, Rational16::ONE);
+        assert_eq!(dim.time, Rational16::new(-2, 1));
     }
 }

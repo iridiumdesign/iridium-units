@@ -40,6 +40,15 @@ the wrong unit now return an error.
   fraction-lookahead as the splitter, so `"(m^2/s)"`, `"(kg m^2/s^2)"`,
   and `"(m^1/2/s)"` all parse correctly
 
+### Security
+
+- The parenthesis-aware parser now enforces a recursion depth limit
+  (64 nesting levels, 128 total recursion). Previously a hostile input —
+  deep nesting, a long division chain, or a long run of adjacent groups —
+  could exhaust the stack and abort the process through `parse_unit`,
+  `parse_quantity`, or `FromStr`. Such inputs now return
+  `UnitError::ParseError`
+
 ### Documentation
 
 - README and guides repositioned to lead with runtime-typed units and the
