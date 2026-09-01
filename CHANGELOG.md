@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/systems/cgs.rs` module docs now state the electromagnetic
   policy: CGS EM units map by numerical SI correspondence, so Gaussian
   dimensional identities (e.g. statV/cm ≡ G) deliberately do not hold
+- **Dual licensed under MIT OR Apache-2.0**, the Rust ecosystem
+  convention, adding Apache-2.0's express patent grant. `LICENSE` is now
+  `LICENSE-MIT`, alongside a new `LICENSE-APACHE`. This is not
+  retroactive: 0.1.0 through 0.2.1 remain MIT on crates.io
 
 ## [0.2.1] - 2026-08-06
 

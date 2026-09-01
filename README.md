@@ -9,7 +9,7 @@ A Rust library for units of measure with runtime dimensional analysis.
 
 [![Crates.io](https://img.shields.io/crates/v/iridium-units.svg)](https://crates.io/crates/iridium-units)
 [![Documentation](https://docs.rs/iridium-units/badge.svg)](https://docs.rs/iridium-units)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-yellow.svg)](#license)
 
 In iridium-units a unit is a value, not a type. You parse it, store it, pass
 it around, and combine it with other units, and the library tracks dimensions
@@ -171,4 +171,16 @@ the [API documentation](https://docs.rs/iridium-units) on docs.rs.
 
 ## License
 
-MIT
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+  <https://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or
+  <https://opensource.org/licenses/MIT>)
+
+at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in this crate by you, as defined in the Apache-2.0
+license, shall be dual licensed as above, without any additional terms or
+conditions.
