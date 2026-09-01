@@ -44,11 +44,38 @@ judgment to the output that you'd bring to your own.
 
 ## If you do send a patch
 
-- `cargo test --all-features` passes
-- `cargo clippy --all-features -- -D warnings` is clean
-- `cargo fmt` has been run
-- new behavior comes with a test
-- the MSRV in `Cargo.toml` still holds
+The repository has a `justfile`. `just check` runs formatting, clippy
+with warnings as errors, the test suite at both feature extremes, and
+rustdoc with warnings promoted. `just check-all` adds the MSRV job,
+which is the fifth thing CI runs — so `check-all`, not `check`, is what
+matches a green CI.
+
+```sh
+cargo install --locked just   # once
+just                          # list every recipe
+just check                    # the fast gate
+just check-all                # the gate CI actually runs
+```
+
+`check` leaves MSRV out because it downloads a toolchain and runs the
+suite a second time; that is a fine trade while you iterate and a bad
+one right before you open a pull request.
+
+`just fix` reformats in place and `just test-fast` skips the second
+feature pass.
+
+If you'd rather not install anything, the same gate by hand:
+
+```sh
+cargo fmt --all -- --check
+cargo clippy --all-features --all-targets -- -D warnings
+cargo test --all-features
+cargo test --no-default-features
+RUSTDOCFLAGS="-D warnings" cargo doc --all-features --no-deps
+```
+
+Beyond the gate: new behavior comes with a test, and the MSRV in
+`Cargo.toml` still has to hold.
 
 The CI workflow runs all of this. First-time contributors need me to
 approve the run manually, so there may be a wait.

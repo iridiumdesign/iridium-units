@@ -2,7 +2,14 @@
 name = "iridium-units"
 version = "0.2.1"
 edition = "2021"
-rust-version = "1.94"
+# Verified floor: LazyLock in parsing.rs stabilized in 1.80, and nothing in
+# the crate needs anything newer. 1.79 fails on unstable lazy_cell.
+#
+# This is a promise to consumers, who pull only thiserror. It says nothing
+# about dev-dependencies: proptest declares 1.82 and half (via criterion)
+# declares 1.81, so `cargo test` will not run on the floor even though the
+# code compiles there. The MSRV gate builds rather than tests, on purpose.
+rust-version = "1.80"
 license = "MIT OR Apache-2.0"
 authors = ["Brad Siegfreid <brad@iridiumdesign.com>"]
 description = "A high-performance runtime unit-of-measure library for Rust"

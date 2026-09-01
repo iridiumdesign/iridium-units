@@ -6,7 +6,7 @@
 
 # The floor in Cargo.toml. Named once here so `just msrv` and the
 # rust-version field cannot drift apart silently.
-MSRV := "1.94"
+MSRV := "1.80"
 
 # The book lives beside the crate, not inside it. See BOOK below.
 BOOK := "../iridium-units-book"
@@ -116,15 +116,32 @@ test-fast:
 doc-check:
     RUSTDOCFLAGS="-D warnings" cargo doc --all-features --no-deps
 
-[doc('Build and test on the MSRV floor.')]
+# Builds rather than tests, and the distinction matters. `rust-version`
+# is a promise to consumers, who pull only thiserror. The dev-dependency
+# tree declares higher floors -- proptest 1.82, half 1.81 via criterion
+# -- so `cargo test` refuses on the floor even though the code compiles
+# and passes there. Testing the dev tree would gate the promise on
+# packages no consumer ever sees.
+
+[doc('Build every feature combination on the MSRV floor.')]
 [group('gates')]
 msrv:
     rustup toolchain install {{ MSRV }} --profile minimal
-    cargo +{{ MSRV }} test --all-features
+    cargo +{{ MSRV }} build --all-features
+    cargo +{{ MSRV }} build --no-default-features
 
-[doc('The gate: everything CI runs, in CI order.')]
+# `check` is the fast gate and deliberately leaves out `msrv`, which
+# downloads a toolchain and runs the suite again. CI does run it, so
+# `check` passing is not by itself proof that CI will pass — use
+# `check-all` before opening a pull request.
+
+[doc('The fast gate: fmt, clippy, tests, docs. No MSRV.')]
 [group('gates')]
 check: fmt clippy test doc-check
+
+[doc('Everything CI runs, MSRV included.')]
+[group('gates')]
+check-all: check msrv
 
 # ── ship ───────────────────────────────────────────────────────────
 
@@ -136,9 +153,9 @@ check: fmt clippy test doc-check
 package:
     cargo package --all-features
 
-[doc('Preflight a release: gate, package, and show both versions.')]
+[doc('Preflight a release: full gate, package, and show both versions.')]
 [group('ship')]
-release-check: check package version
+release-check: check-all package version
 
 # ── tidy ───────────────────────────────────────────────────────────
 

@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   convention, adding Apache-2.0's express patent grant. `LICENSE` is now
   `LICENSE-MIT`, alongside a new `LICENSE-APACHE`. This is not
   retroactive: 0.1.0 through 0.2.1 remain MIT on crates.io
+- **MSRV lowered from 1.94 to 1.80.** The declared floor was never
+  derived from anything the crate uses; the real constraint is
+  `std::sync::LazyLock` in the parser, stabilized in 1.80. Verified by
+  building every feature combination on 1.80.0 — 1.79 fails on unstable
+  `lazy_cell`. Lowering a floor only widens compatibility, so this breaks
+  nothing. The MSRV gate now builds rather than tests: `rust-version` is
+  a promise to consumers, who pull only `thiserror`, while the
+  dev-dependency tree declares higher floors of its own
 
 ## [0.2.1] - 2026-08-06
 
